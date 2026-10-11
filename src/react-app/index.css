@@ -1,0 +1,8 @@
+/* Hallmark · route: custom (bespoke, app screens) · structure: ruled notebook page with slips clipped in · idea: the next empty line is the add button
+ * theme: custom · vibe: "blue-ink notebook, ruled, quiet" · paper: oklch(98.6% 0.005 250) · accent: oklch(56% 0.18 25)
+ * display: Geist Variable (weight 200) · body: Geist Variable · outlier: Geist Mono Variable (slip references and scanned values only)
+ * axes: light / geometric-sans / warm (red used only for the margin line and warnings) · studied: no · context: explicit
+ * Hallmark · pre-emit critique: P4 H4 E4 S4 R5 V3 (variety is low by design: one pinned world, three screens)
+ */
+@import "./styles/tokens.css";
+@import "./styles/app.css";
