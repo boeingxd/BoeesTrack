@@ -1,0 +1,173 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-11T15:22:47.869252Z",
+  "title": "Design System: BoeesTrack",
+  "extensions": {
+    "colorMeta": {
+      "ink": {
+        "role": "primary",
+        "displayName": "Blue-Black Ink",
+        "canonical": "oklch(27% 0.06 262)"
+      },
+      "red": {
+        "role": "secondary",
+        "displayName": "Notebook Red",
+        "canonical": "oklch(56% 0.18 25)"
+      },
+      "margin-red": {
+        "role": "secondary",
+        "displayName": "Margin Red",
+        "canonical": "oklch(80% 0.07 25)"
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Cool Paper",
+        "canonical": "oklch(98.6% 0.005 250)"
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Pale Blue Rule",
+        "canonical": "oklch(88% 0.022 245)"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Light Figure",
+        "purpose": "Spent figure and Add amount."
+      },
+      "scanned-value": {
+        "displayName": "Scanned Value",
+        "purpose": "Slip amounts and references only."
+      }
+    },
+    "shadows": [
+      {
+        "name": "inset-ink-ring",
+        "value": "inset 0 0 0 1px var(--color-ink)",
+        "purpose": "Outline for Slips button and free-allowance bar segment; the only box-shadow."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "All entrances and presses."
+      },
+      {
+        "name": "dur-micro/short/long",
+        "value": "120ms / 220ms / 420ms",
+        "purpose": "Press, sheet-in, reveal and settle."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "page",
+        "value": "40rem"
+      },
+      {
+        "name": "short-screen",
+        "value": "max-height 44rem"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Add Button",
+      "kind": "button",
+      "refersTo": "button-add",
+      "description": "Filled primary action in the dock.",
+      "html": "<button class=\"ds-add\">Add a spend</button>",
+      "css": ".ds-add{min-height:3.5rem;padding:0 1rem;border:0;border-radius:.375rem;background:var(--color-ink);color:var(--color-paper);font-weight:600;font:inherit;font-weight:600}.ds-add:active{transform:translateY(1px)}.ds-add:focus-visible{outline:2px solid var(--color-focus);outline-offset:2px}"
+    },
+    {
+      "name": "Slips Button",
+      "kind": "button",
+      "refersTo": "button-slips",
+      "description": "Outlined secondary action.",
+      "html": "<button class=\"ds-slips\">Slips</button>",
+      "css": ".ds-slips{min-height:3.5rem;padding:0 1rem;border:0;border-radius:.375rem;background:transparent;box-shadow:inset 0 0 0 1px var(--color-ink);color:var(--color-ink);font:inherit;font-weight:500}.ds-slips:hover{background:var(--color-paper-2)}.ds-slips:active{background:var(--color-paper-3)}.ds-slips:focus-visible{outline:2px solid var(--color-focus);outline-offset:2px}"
+    },
+    {
+      "name": "View Tab",
+      "kind": "nav",
+      "refersTo": "line",
+      "description": "Segmented text tab; active is underlined in ink.",
+      "html": "<div class=\"ds-tabs\"><button class=\"ds-tab on\">Home</button><button class=\"ds-tab\">Insight</button></div>",
+      "css": ".ds-tabs{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;border-bottom:1px solid var(--color-rule)}.ds-tab{min-height:2.75rem;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;background:none;font:inherit;font-weight:500;color:var(--color-muted)}.ds-tab.on{border-bottom-color:var(--color-ink);color:var(--color-ink)}.ds-tab:focus-visible{outline:2px solid var(--color-focus);outline-offset:2px}"
+    },
+    {
+      "name": "Category Tag",
+      "kind": "chip",
+      "description": "Plain text tag; chosen one underlined.",
+      "html": "<button class=\"ds-tag on\">Food</button>",
+      "css": ".ds-tag{min-width:2.75rem;min-height:2.75rem;padding:0 .5rem;border:0;border-bottom:2px solid transparent;background:none;font:inherit;font-weight:500;color:var(--color-muted)}.ds-tag.on{border-bottom-color:var(--color-ink);color:var(--color-ink)}.ds-tag:focus-visible{outline:2px solid var(--color-focus);outline-offset:2px}"
+    },
+    {
+      "name": "Budget Bar",
+      "kind": "custom",
+      "description": "Month bar: before today, today, free today outlined.",
+      "html": "<div class=\"ds-bb\"><span style=\"width:40%;background:var(--color-edge)\"></span><span style=\"width:8%;background:var(--color-ink)\"></span><span style=\"width:12%;box-shadow:inset 0 0 0 1px var(--color-ink)\"></span></div>",
+      "css": ".ds-bb{display:flex;height:.625rem;border-radius:2px;background:var(--color-rule);overflow:hidden}.ds-bb>span{flex:none}"
+    },
+    {
+      "name": "Day Page",
+      "kind": "custom",
+      "description": "Bold date over 1px ink rule, ruled lines with margin line.",
+      "html": "<section><h2 class=\"ds-dh\"><span>Today</span><span>฿120</span></h2><ul class=\"ds-dl\"><li class=\"ds-ln\"><time>12:30</time><span>Food</span><span>฿60</span></li></ul></section>",
+      "css": ".ds-dh{display:flex;justify-content:space-between;margin:0;padding:2rem 1.25rem .5rem;border-bottom:1px solid var(--color-ink);font-size:1rem;font-weight:600}.ds-dl{position:relative;margin:0;padding:0;list-style:none}.ds-dl::before{content:'';position:absolute;inset-block:0;inset-inline-start:4.75rem;width:1px;background:var(--color-margin)}.ds-ln{display:grid;grid-template-columns:3.5rem 1fr auto;align-items:center;min-height:3.25rem;padding:.5rem 1.25rem;border-bottom:1px solid var(--color-rule)}.ds-ln time{font-size:.875rem;color:var(--color-muted)}.ds-ln span:nth-child(2){padding-inline-start:1rem}.ds-ln span:last-child{font-weight:500}"
+    },
+    {
+      "name": "Slip Page",
+      "kind": "card-less custom",
+      "description": "Lighter clipped page, review only.",
+      "html": "<div class=\"ds-slip\"><b class=\"ds-sv\">฿120</b><p class=\"ds-sr\">Ref 0000</p></div>",
+      "css": ".ds-slip{padding:1.5rem .75rem 1rem;border:1px solid var(--color-rule);border-radius:2px;background:var(--color-sheet)}.ds-sv{font-family:var(--font-mono);font-size:1.25rem;font-weight:600}.ds-sr{margin:0;font-family:var(--font-mono);font-size:.75rem;color:var(--color-muted)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Ruled Page",
+    "overview": "A cool near-white sheet with pale blue rules, blue-black ink, and one red. The notebook lives in structure only; slips are guests, shown only in batch review.",
+    "keyCharacteristics": [
+      "Rules, margin and day headers carry the structure; fills are rare and always ink.",
+      "One red (margin line, warnings); one blue (focus ring only).",
+      "Tabular amounts; whole baht when averaged.",
+      "Works at 320px; tap targets at least 44px."
+    ],
+    "rules": [
+      {
+        "name": "The One Red Rule",
+        "body": "Red marks the margin line and warnings only.",
+        "section": "colors"
+      },
+      {
+        "name": "The Ink-Only Rule",
+        "body": "Charts and bars use ink, edge and rule tones; today is darkest.",
+        "section": "colors"
+      },
+      {
+        "name": "The Light Figure Rule",
+        "body": "Big numbers are weight 200 and left-aligned on the page edge.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Rule",
+        "body": "Surfaces separate by rule or tone, never by shadow.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do take every value from tokens.css.",
+      "Do keep titles and the hero on the left page edge and the margin line beside ruled rows only.",
+      "Do show averages in whole baht.",
+      "Do keep targets at least 44px and check 320px.",
+      "Do keep slips confined to batch review."
+    ],
+    "donts": [
+      "Don't add cards, tiles, pills, gradients or pie/gauge charts.",
+      "Don't use red beyond margin line and warnings.",
+      "Don't add textures or handwriting.",
+      "Don't use shadows for depth.",
+      "Don't use Geist Mono outside slip data."
+    ]
+  }
+}
