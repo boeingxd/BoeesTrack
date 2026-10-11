@@ -4,7 +4,8 @@ import type { Entry } from "../lib/types";
 
 function lineLabel(entry: Entry): string {
 	if (entry.kind === "received") return "Received";
-	if (entry.kind === "saved") return "Saved";
+	if (entry.kind === "saved") return entry.pot ? `Saved · ${entry.pot}` : "Saved";
+	if (entry.kind === "adjust") return "Adjustment";
 	return entry.category ?? "No category";
 }
 
@@ -35,10 +36,11 @@ export function DayList({ groups, today, justAddedId = null }: Props) {
 									<time className="line__time">{timeLabel(entry.at)}</time>
 									<span className="line__body">
 										<span className="line__what">{lineLabel(entry)}</span>
+										{entry.kind === "spent" && entry.pot && <span className="line__note">Paid from {entry.pot}</span>}
 										{entry.note && <span className="line__note">{entry.note}</span>}
 									</span>
 									<span className="line__amount">
-										{entry.kind === "received" && "+"}
+										{(entry.kind === "received" || (entry.kind === "adjust" && entry.satang > 0)) && "+"}
 										{formatBaht(entry.satang)}
 									</span>
 								</li>

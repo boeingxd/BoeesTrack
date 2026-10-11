@@ -5,16 +5,18 @@ import { Figure } from "../components/Figure";
 import { Icon } from "../components/Icon";
 import { ViewSwitch, type View } from "../components/ViewSwitch";
 import { standing } from "../lib/allowance";
+import { balance, potTotals } from "../lib/balance";
 import { groupByDay, monthTitle } from "../lib/dates";
 import { formatBaht } from "../lib/money";
-import type { Entry } from "../lib/types";
+import type { BudgetPlan, Entry, Pot } from "../lib/types";
 
 // Home shows today and the days just before it; everything older lives in History.
 const HOME_DAYS = 4;
 
 type Props = {
 	entries: Entry[];
-	budget: number;
+	plan: BudgetPlan;
+	pots: Pot[];
 	today: Date;
 	intro: boolean;
 	justAddedId: string | null;
@@ -22,11 +24,16 @@ type Props = {
 	onSlips: () => void;
 	onView: (view: View) => void;
 	onHistory: () => void;
+	onMoney: () => void;
+	onBudget: () => void;
 };
 
-export function Home({ entries, budget, today, intro, justAddedId, onAdd, onSlips, onView, onHistory }: Props) {
+export function Home({ entries, plan, pots, today, intro, justAddedId, onAdd, onSlips, onView, onHistory, onMoney, onBudget }: Props) {
+	const budget = plan.monthly;
 	const groups = useMemo(() => groupByDay(entries, today).slice(0, HOME_DAYS), [entries, today]);
-	const s = useMemo(() => standing(entries, budget, today), [entries, budget, today]);
+	const s = useMemo(() => standing(entries, plan, today), [entries, plan, today]);
+	const held = useMemo(() => balance(entries), [entries]);
+	const saved = useMemo(() => potTotals(entries, pots, today).reduce((sum, p) => sum + p.total, 0), [entries, pots, today]);
 	const overBy = formatBaht(Math.abs(s.leftToday));
 
 	return (
@@ -58,21 +65,34 @@ export function Home({ entries, budget, today, intro, justAddedId, onAdd, onSlip
 					<span>
 						<strong>{formatBaht(s.monthSpent)}</strong> this month
 					</span>
-					<span>of {formatBaht(budget)}</span>
+					<button type="button" className="budget-labels__set" onClick={onBudget} aria-label={`Budget ${formatBaht(budget)} a month, change`}>
+						of {formatBaht(budget)}
+					</button>
 				</p>
 				{s.overToday || s.overMonth ? (
 					<p className="today__note today__note--warn" role="status">
 						<Icon name="warning" size={18} />
 						<span>
 							{s.overMonth
-								? "The month's budget is used up, so today's allowance is ฿0."
+								? s.mode === "auto"
+									? "The month's budget is used up, so today's allowance is ฿0."
+									: `${formatBaht(-s.monthLeft)} over the month's budget.`
 								: `${overBy} over today's ${formatBaht(s.todayAllowance)}.`}
-							{!s.overMonth && s.tomorrowAllowance !== null && ` Tomorrow's allowance drops to ${formatBaht(s.tomorrowAllowance)}.`}
+							{!s.overMonth && s.mode === "auto" && s.tomorrowAllowance !== null && ` Tomorrow's allowance drops to ${formatBaht(s.tomorrowAllowance)}.`}
 						</span>
 					</p>
 				) : (
 					<p className="today__note">
-						<strong>{formatBaht(s.leftToday)}</strong> left of today's {formatBaht(s.todayAllowance)} ·{" "}
+						{s.mode === "off" ? (
+							<>
+								<strong>{formatBaht(s.monthLeft)}</strong> left this month
+							</>
+						) : (
+							<>
+								<strong>{formatBaht(s.leftToday)}</strong> left of today's {formatBaht(s.todayAllowance)}
+							</>
+						)}{" "}
+						·{" "}
 						<span className="nowrap">
 							{s.daysLeft} {s.daysLeft === 1 ? "day" : "days"} left
 						</span>
@@ -81,6 +101,15 @@ export function Home({ entries, budget, today, intro, justAddedId, onAdd, onSlip
 			</section>
 
 			<section className="sheet" aria-label="Entries by day" style={{ "--i": 2 } as React.CSSProperties}>
+				<div className="more-line more-line--top">
+					<button type="button" className="more-line__btn" onClick={onMoney}>
+						<span>
+							Balance <strong>{formatBaht(held)}</strong> · Saved <strong>{formatBaht(saved)}</strong>
+						</span>
+						<Icon name="forward" size={18} />
+					</button>
+				</div>
+
 				<DayList groups={groups} today={today} justAddedId={justAddedId} />
 
 				<div className="more-line">

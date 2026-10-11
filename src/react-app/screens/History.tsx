@@ -20,6 +20,7 @@ const KINDS: { value: "all" | Kind; label: string }[] = [
 	{ value: "spent", label: "Spent" },
 	{ value: "received", label: "Received" },
 	{ value: "saved", label: "Saved" },
+	{ value: "adjust", label: "Adjustments" },
 ];
 
 export function History({ entries, categories, today, filters, onFilters, onBack }: Props) {

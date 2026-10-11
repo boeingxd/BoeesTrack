@@ -173,6 +173,19 @@ button:disabled {
 	white-space: nowrap;
 }
 
+.budget-labels__set {
+	display: inline-flex;
+	align-items: center;
+	min-height: var(--tap);
+	margin-block: -0.75rem;
+	padding-inline: var(--space-2);
+	margin-inline-end: calc(var(--space-2) * -1);
+	color: var(--color-ink-2);
+	text-decoration: underline;
+	text-underline-offset: 0.2em;
+	white-space: nowrap;
+}
+
 .budget-labels strong,
 .today__note strong {
 	font-weight: var(--weight-strong);
@@ -343,6 +356,7 @@ button:disabled {
 }
 
 .icon-btn {
+	flex: none;
 	display: inline-grid;
 	width: var(--tap);
 	height: var(--tap);
@@ -1051,6 +1065,15 @@ button:disabled {
 	border-block: 1px solid var(--color-rule);
 }
 
+.more-line--top {
+	margin-top: 0;
+	border-top: 0;
+}
+
+.more-line__btn strong {
+	font-weight: var(--weight-strong);
+}
+
 .more-line__btn {
 	display: flex;
 	flex: 1;
@@ -1164,4 +1187,70 @@ button:disabled {
 			opacity: 0;
 		}
 	}
+}
+
+/* Money and budget sheets */
+
+.scale--field {
+	margin-inline: 0;
+	margin-bottom: 0;
+}
+
+.money-gap {
+	display: grid;
+	gap: var(--space-3);
+	padding: var(--space-3) var(--page-pad) var(--space-4);
+}
+
+.money-head {
+	margin-top: var(--space-5);
+	padding: var(--space-3) var(--page-pad);
+	border-bottom: 1px solid var(--color-ink);
+	font-size: var(--text-base);
+	font-weight: var(--weight-strong);
+}
+
+.pot {
+	padding: var(--space-3) var(--page-pad);
+	border-bottom: 1px solid var(--color-rule);
+}
+
+.pot--empty {
+	color: var(--color-muted);
+}
+
+.pot__row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 0 var(--space-3);
+}
+
+.pot__name {
+	font-weight: var(--weight-medium);
+}
+
+.pot__sum {
+	font-weight: var(--weight-strong);
+}
+
+.pot__sum--over {
+	color: var(--color-accent-text);
+}
+
+.pot__of,
+.pot__month {
+	font-size: var(--text-sm);
+	font-weight: var(--weight-regular);
+	color: var(--color-muted);
+}
+
+.fields--pot {
+	margin-top: 0;
+}
+
+.field__empty {
+	padding-block: var(--space-3);
+	color: var(--color-muted);
 }

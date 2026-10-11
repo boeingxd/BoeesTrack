@@ -1,21 +1,26 @@
 import { useEffect, useState } from "react";
 import type { View } from "./components/ViewSwitch";
 import { monthKey } from "./lib/dates";
-import { DEFAULT_CATEGORIES, SAMPLE_BUDGET, sampleEntries, sampleSlips } from "./lib/sample";
+import { checkIn } from "./lib/balance";
+import { DEFAULT_CATEGORIES, SAMPLE_PLAN, SAMPLE_POTS, sampleEntries, sampleSlips } from "./lib/sample";
 import { defaultFilters, periodRange, type Filters, type Scale } from "./lib/stats";
-import type { Entry, Slip } from "./lib/types";
+import type { BudgetPlan, Entry, Pot, Slip } from "./lib/types";
 import { AddSpend } from "./screens/AddSpend";
+import { BudgetSheet } from "./screens/BudgetSheet";
 import { History } from "./screens/History";
 import { Home } from "./screens/Home";
+import { Money } from "./screens/Money";
 import { SlipReview } from "./screens/SlipReview";
 import { Stats } from "./screens/Stats";
 
-type Screen = "home" | "stats" | "history" | "add" | "slips";
+type Screen = "home" | "stats" | "history" | "add" | "slips" | "money" | "budget";
 
 function App() {
 	const [today] = useState(() => new Date());
 	const [entries, setEntries] = useState<Entry[]>(() => sampleEntries(today));
 	const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
+	const [plan, setPlan] = useState<BudgetPlan>(SAMPLE_PLAN);
+	const [pots, setPots] = useState<Pot[]>(SAMPLE_POTS);
 	const [slips, setSlips] = useState<Slip[]>([]);
 	const [screen, setScreen] = useState<Screen>("home");
 	const [justAddedId, setJustAddedId] = useState<string | null>(null);
@@ -66,17 +71,25 @@ function App() {
 		setScreen("home");
 	}
 
+	function addCheckIn(bankSatang: number) {
+		const adjustment = checkIn(entries, bankSatang, new Date());
+		if (adjustment) setEntries((current) => [...current, adjustment]);
+	}
+
 	return (
 		<div className="app">
 			{screen === "home" && (
 				<Home
 					entries={entries}
-					budget={SAMPLE_BUDGET}
+					plan={plan}
+					pots={pots}
 					today={today}
 					intro={intro}
 					justAddedId={justAddedId}
 					onAdd={() => setScreen("add")}
 					onView={goToView}
+					onMoney={() => setScreen("money")}
+					onBudget={() => setScreen("budget")}
 					onHistory={() => openHistory("home", defaultFilters(monthKey(today)))}
 					onSlips={() => {
 						setSlips(sampleSlips(today));
@@ -87,7 +100,7 @@ function App() {
 			{screen === "stats" && (
 				<Stats
 					entries={entries}
-					budget={SAMPLE_BUDGET}
+					plan={plan}
 					today={today}
 					scale={statsScale}
 					anchor={statsAnchor}
@@ -108,9 +121,30 @@ function App() {
 					onBack={() => setScreen(historyFrom)}
 				/>
 			)}
+			{screen === "money" && (
+				<Money
+					entries={entries}
+					pots={pots}
+					today={today}
+					onClose={() => setScreen("home")}
+					onCheckIn={addCheckIn}
+					onAddPot={(pot) => setPots((current) => [...current, pot])}
+				/>
+			)}
+			{screen === "budget" && (
+				<BudgetSheet
+					plan={plan}
+					onClose={() => setScreen("home")}
+					onSave={(next) => {
+						setPlan(next);
+						setScreen("home");
+					}}
+				/>
+			)}
 			{screen === "add" && (
 				<AddSpend
 					categories={categories}
+					pots={pots}
 					onAddCategory={addCategory}
 					onClose={() => setScreen("home")}
 					onSave={(draft) => addEntries([{ id: `entry-${Date.now()}`, ...draft }])}

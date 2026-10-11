@@ -3,13 +3,14 @@ import { CategoryTags } from "../components/CategoryTags";
 import { Icon } from "../components/Icon";
 import { toInputValue, whenLabel } from "../lib/dates";
 import { formatBaht, groupInput, inputToSatang, pressKey } from "../lib/money";
-import type { Kind } from "../lib/types";
+import type { Kind, Pot } from "../lib/types";
 
 type Props = {
 	categories: string[];
+	pots: Pot[];
 	onAddCategory: (name: string) => void;
 	onClose: () => void;
-	onSave: (draft: { kind: Kind; satang: number; at: Date; category: string | null; note: string }) => void;
+	onSave: (draft: { kind: Kind; satang: number; at: Date; category: string | null; note: string; pot?: string }) => void;
 };
 
 const KINDS: { value: Kind; label: string }[] = [
@@ -20,16 +21,19 @@ const KINDS: { value: Kind; label: string }[] = [
 
 const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "back"];
 
-export function AddSpend({ categories, onAddCategory, onClose, onSave }: Props) {
+export function AddSpend({ categories, pots, onAddCategory, onClose, onSave }: Props) {
 	const [kind, setKind] = useState<Kind>("spent");
 	const [input, setInput] = useState("");
 	const [note, setNote] = useState("");
 	const [at, setAt] = useState(() => new Date());
 	const [category, setCategory] = useState<string | null>(null);
+	// Saved money must go into a pot; a spend can optionally be paid from one (null means from the balance).
+	const [pot, setPot] = useState<string | null>(null);
 	const whenInput = useRef<HTMLInputElement>(null);
 
 	const satang = inputToSatang(input);
-	const ready = satang > 0;
+	const potNames = pots.map((p) => p.name);
+	const ready = satang > 0 && (kind !== "saved" || pot !== null);
 	const verb = kind === "spent" ? "Add" : kind === "received" ? "Add money" : "Set aside";
 
 	return (
@@ -102,6 +106,35 @@ export function AddSpend({ categories, onAddCategory, onClose, onSave }: Props) 
 						/>
 					</label>
 				</div>
+				{kind === "saved" && (
+					<div className="field field--tags">
+						<span className="field__label" aria-hidden="true">
+							Into
+						</span>
+						<div className="field__body">
+							{potNames.length === 0 ? (
+								<p className="field__empty">Make a pot first, from Money on Home.</p>
+							) : (
+								<CategoryTags label="Savings pot" categories={potNames} value={pot} onChange={setPot} />
+							)}
+						</div>
+					</div>
+				)}
+				{kind === "spent" && potNames.length > 0 && (
+					<div className="field field--tags">
+						<span className="field__label" aria-hidden="true">
+							Paid from
+						</span>
+						<div className="field__body">
+							<CategoryTags
+								label="Paid from"
+								categories={["Balance", ...potNames]}
+								value={pot ?? "Balance"}
+								onChange={(name) => setPot(name === "Balance" ? null : name)}
+							/>
+						</div>
+					</div>
+				)}
 				{kind === "spent" && (
 					<div className="field field--tags">
 						<span className="field__label" aria-hidden="true">
@@ -139,10 +172,10 @@ export function AddSpend({ categories, onAddCategory, onClose, onSave }: Props) 
 					className="confirm"
 					disabled={!ready}
 					onClick={() =>
-						onSave({ kind, satang, at, category: kind === "spent" ? category : null, note: note.trim() })
+						onSave({ kind, satang, at, category: kind === "spent" ? category : null, note: note.trim(), ...(kind !== "received" && pot ? { pot } : {}) })
 					}
 				>
-					{ready ? `${verb} ${formatBaht(satang)}` : "Enter an amount"}
+					{satang === 0 ? "Enter an amount" : ready ? `${verb} ${formatBaht(satang)}` : "Pick a pot"}
 				</button>
 			</div>
 		</div>

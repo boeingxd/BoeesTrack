@@ -19,11 +19,11 @@ import {
 	type Range,
 	type Scale,
 } from "../lib/stats";
-import type { Entry } from "../lib/types";
+import type { BudgetPlan, Entry } from "../lib/types";
 
 type Props = {
 	entries: Entry[];
-	budget: number;
+	plan: BudgetPlan;
 	today: Date;
 	scale: Scale;
 	anchor: Date;
@@ -59,7 +59,7 @@ function versus(total: number, before: number, scale: Scale, partial: boolean, h
 	return `${formatBaht(Math.abs(delta))} ${delta < 0 ? "less" : "more"} than ${ref} (${delta < 0 ? "−" : "+"}${percent}%).`;
 }
 
-export function Stats({ entries, budget, today, scale, anchor, onAnchor, onScale, onView, onOpenDay, onOpenCategory }: Props) {
+export function Stats({ entries, plan, today, scale, anchor, onAnchor, onScale, onView, onOpenDay, onOpenCategory }: Props) {
 	const range = useMemo(() => periodRange(scale, anchor), [scale, anchor]);
 	const { range: earlier, partial } = useMemo(() => previousRange(scale, anchor, today), [scale, anchor, today]);
 	const current = range.to.getTime() > today.getTime();
@@ -73,8 +73,8 @@ export function Stats({ entries, budget, today, scale, anchor, onAnchor, onScale
 
 	// A day's allowance is worked out as it stood at the end of that day, so later spending does not leak in.
 	const day = useMemo(
-		() => (scale === "day" ? standing(entries.filter((entry) => entry.at.getTime() < range.to.getTime()), budget, range.from) : null),
-		[scale, entries, budget, range],
+		() => (scale === "day" ? standing(entries.filter((entry) => entry.at.getTime() < range.to.getTime()), plan, range.from) : null),
+		[scale, entries, plan, range],
 	);
 	const dayGroups = useMemo(
 		() =>
@@ -131,7 +131,7 @@ export function Stats({ entries, budget, today, scale, anchor, onAnchor, onScale
 				<p className="today__figure" aria-live="polite">
 					<Figure satang={breakdown.total} />
 				</p>
-				{day && (
+				{day && day.mode !== "off" && (
 					<p className={day.leftToday < 0 ? "today__note today__note--warn" : "today__note"}>
 						{day.leftToday < 0 && <Icon name="warning" size={18} />}
 						<span>

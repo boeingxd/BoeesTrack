@@ -2,9 +2,9 @@ import type { Scale } from "../lib/stats";
 
 export type View = "home" | "stats";
 
-type Option<T extends string> = { value: T; label: string };
+export type Option<T extends string> = { value: T; label: string };
 
-function Segmented<T extends string>({
+export function Segmented<T extends string>({
 	label,
 	options,
 	value,
