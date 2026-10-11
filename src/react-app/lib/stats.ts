@@ -139,7 +139,6 @@ const wholeBaht = (satang: number) => Math.round(satang / 100) * 100;
 export type Habits = {
 	avgPerDay: number;
 	busiest: { weekday: number; satang: number } | null;
-	weekdayAverages: { weekday: number; satang: number }[];
 	riser: { category: string; delta: number } | null;
 };
 
@@ -161,11 +160,6 @@ export function habits(entries: Entry[], range: Range, earlier: Range, today: Da
 		const average = wholeBaht(satang / days);
 		if (average > 0 && (busiest === null || average > busiest.satang)) busiest = { weekday, satang: average };
 	}
-	// Monday first; a weekday that has not happened yet averages 0.
-	const weekdayAverages = [1, 2, 3, 4, 5, 6, 0].map((weekday) => {
-		const slot = byWeekday.get(weekday);
-		return { weekday, satang: slot ? wholeBaht(slot.satang / slot.days) : 0 };
-	});
 
 	const { rows } = categoryBreakdown(entries, range, earlier);
 	const hadEarlier = totalSpent(entries, earlier) > 0;
@@ -177,7 +171,6 @@ export function habits(entries: Entry[], range: Range, earlier: Range, today: Da
 	return {
 		avgPerDay: elapsed.length === 0 ? 0 : wholeBaht(total / elapsed.length),
 		busiest,
-		weekdayAverages,
 		riser: hadEarlier ? (grown[0] ?? null) : null,
 	};
 }

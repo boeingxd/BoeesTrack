@@ -926,6 +926,11 @@ button:disabled {
 	padding: var(--space-4) var(--space-1) var(--space-5);
 }
 
+/* The bars sit nearly edge to edge; the note under them lines up with the section title */
+.bars-wrap .stat-note {
+	padding-inline: calc(var(--page-pad) - var(--space-1));
+}
+
 .bars {
 	display: flex;
 	list-style: none;
@@ -983,8 +988,7 @@ button:disabled {
 	width: 55%;
 }
 
-.bar--today,
-.bar--top {
+.bar--today {
 	background: var(--color-ink);
 }
 
@@ -993,35 +997,6 @@ button:disabled {
 	inset-inline: 0;
 	border-top: 1px dashed var(--color-ink-2);
 	pointer-events: none;
-}
-
-.bars--weekday {
-	gap: var(--space-2);
-	height: 5rem;
-	padding-inline: var(--space-4);
-}
-
-.bars--weekday .bar {
-	width: 55%;
-}
-
-.weekday {
-	padding: 0 var(--page-pad) var(--space-5);
-}
-
-.weekday__cap,
-.weekday__top {
-	font-size: var(--text-sm);
-	color: var(--color-muted);
-}
-
-.weekday__cap {
-	padding-bottom: var(--space-2);
-}
-
-.weekday__top {
-	padding-top: var(--space-2);
-	color: var(--color-ink-2);
 }
 
 .stat-sub {
@@ -1381,47 +1356,32 @@ button:disabled {
 
 /* Insight hero: what was spent and what was saved, side by side, stacked when too narrow */
 
+.hero-main {
+	text-align: center;
+}
+
+/* Saved and Received sit under the centred Spent figure: Saved left, Received right */
 .hero-pair {
 	display: flex;
-	gap: var(--space-2) var(--space-3);
+	justify-content: space-between;
+	gap: var(--space-3);
+	margin-top: var(--space-4);
+	padding-inline: var(--space-3);
 }
 
 .hero-pair > div {
-	flex: 1 1 0;
 	min-width: 0;
 }
 
-/* Three figures share one row, so the size follows the width instead of the fixed display size */
+.hero-pair__end {
+	text-align: end;
+}
+
 .hero-pair .today__figure {
-	font-size: clamp(1.25rem, 7vw, var(--text-display-s));
+	font-size: var(--text-md);
 }
 
-/* Insight hero: the day's allowance and the comparison with the period before, drawn instead of written */
-
-.allowance {
-	display: flex;
-	align-items: center;
-	gap: var(--space-3);
-	margin-top: var(--space-3);
-}
-
-.allowance .budget-bar {
-	flex: 1;
-	margin-top: 0;
-}
-
-.allowance__text {
-	display: inline-flex;
-	align-items: center;
-	gap: var(--space-1);
-	font-size: var(--text-sm);
-	color: var(--color-ink-2);
-	white-space: nowrap;
-}
-
-.allowance__text--warn {
-	color: var(--color-accent-text);
-}
+/* Insight hero: the comparison with the period before, drawn instead of written */
 
 .compare {
 	display: grid;

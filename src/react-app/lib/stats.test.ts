@@ -135,12 +135,6 @@ describe("habits", () => {
 		expect(busiest).toEqual({ weekday: 4, satang: 34_000 });
 	});
 
-	it("lists the weekday averages Monday first, with Thursday matching the busiest", () => {
-		const { weekdayAverages, busiest } = habits(entries, month, earlier, today);
-		expect(weekdayAverages.map((d) => d.weekday)).toEqual([1, 2, 3, 4, 5, 6, 0]);
-		expect(weekdayAverages[3]).toEqual(busiest);
-	});
-
 	it("names the category that grew most, and says nothing when there was no earlier spending", () => {
 		expect(habits(entries, month, earlier, today).riser).toBeNull();
 		const lastMonth = [entry({ baht: 100, category: "Hangouts", at: new Date(2026, 8, 3, 12, 0) }), ...entries];

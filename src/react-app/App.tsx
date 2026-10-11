@@ -109,7 +109,6 @@ function App() {
 			{screen === "stats" && (
 				<Stats
 					entries={entries}
-					plan={plan}
 					today={today}
 					scale={statsScale}
 					anchor={statsAnchor}
