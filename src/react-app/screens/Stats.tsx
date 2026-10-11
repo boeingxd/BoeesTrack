@@ -4,7 +4,7 @@ import { DayList } from "../components/DayList";
 import { Figure } from "../components/Figure";
 import { Icon } from "../components/Icon";
 import { ScaleSwitch, ViewSwitch, type View } from "../components/ViewSwitch";
-import { addDays, dayKey, dayMonth, dayTitle, groupByDay, monthKey, monthTitle, weekdayName } from "../lib/dates";
+import { addDays, dayKey, dayMonth, groupByDay } from "../lib/dates";
 import { formatBaht } from "../lib/money";
 import {
 	categoryBreakdown,
@@ -13,10 +13,10 @@ import {
 	habits,
 	NO_CATEGORY,
 	periodRange,
+	periodTitle,
 	previousRange,
 	shiftAnchor,
 	topSpends,
-	type Range,
 	type Scale,
 } from "../lib/stats";
 import type { Entry } from "../lib/types";
@@ -30,19 +30,15 @@ type Props = {
 	onScale: (scale: Scale) => void;
 	onView: (view: View) => void;
 	onOpenDay: (date: Date) => void;
-	onOpenCategory: (category: string, month: string) => void;
+	onOpenCategory: (category: string) => void;
+	onOpenHistory: () => void;
+	onOpenEntry: (entry: Entry) => void;
 };
 
 const share = (value: number) => (value > 0 && value < 0.01 ? "<1%" : `${Math.round(value * 100)}%`);
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
-function title(scale: Scale, range: Range, today: Date): string {
-	if (scale === "day") return dayTitle(range.from, today);
-	if (scale === "month") return monthTitle(range.from);
-	return `${dayMonth(range.from)} – ${dayMonth(addDays(range.to, -1))}`;
-}
-
-export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onView, onOpenDay, onOpenCategory }: Props) {
+export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onView, onOpenDay, onOpenCategory, onOpenHistory, onOpenEntry }: Props) {
 	const range = useMemo(() => periodRange(scale, anchor), [scale, anchor]);
 	const { range: earlier, partial } = useMemo(() => previousRange(scale, anchor, today), [scale, anchor, today]);
 	const current = range.to.getTime() > today.getTime();
@@ -52,7 +48,7 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onView
 	const before = useMemo(() => categoryBreakdown(entries, earlier).total, [entries, earlier]);
 	const days = useMemo(() => dailyTotals(entries, range), [entries, range]);
 	const biggest = useMemo(() => topSpends(entries, range), [entries, range]);
-	const habit = useMemo(() => habits(entries, range, earlier, today), [entries, range, earlier, today]);
+	const habit = useMemo(() => habits(entries, range, today), [entries, range, today]);
 
 	const dayGroups = useMemo(
 		() =>
@@ -70,8 +66,6 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onView
 	// Two bars, this period against the one before, on one shared scale (the longer is full width).
 	const longest = Math.max(breakdown.total, before);
 	const barWidth = (satang: number) => `${satang === 0 ? 0 : Math.max(2, (satang / longest) * 100)}%`;
-	// shortcut: History filters by month only, so a day or week opens its whole month; add a date-range filter if that bothers.
-	const historyMonth = monthKey(lastDay.getTime() > today.getTime() ? today : lastDay);
 	const word = scale === "day" ? "day" : scale === "week" ? "week" : "month";
 	const nowName = scale === "day" ? (current ? "Today" : "That day") : `${current ? "This" : "That"} ${word}`;
 	const beforeName = `${scale === "day" ? "Day" : scale === "week" ? "Week" : "Month"} before`;
@@ -85,7 +79,7 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onView
 
 			<section className="today" aria-labelledby="stats-label">
 				<div className="ledger-head__top">
-					<h1 className="month">{title(scale, range, today)}</h1>
+					<h1 className="month">{periodTitle(scale, range, today)}</h1>
 					<div className="month-nav">
 						<button
 							type="button"
@@ -174,24 +168,22 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onView
 								<span>{dayMonth(lastDay)}</span>
 							</p>
 						)}
-						{scale === "month" && habit.busiest && (
-							<p className="stat-note">
-								Priciest: {weekdayName(habit.busiest.weekday)} · {formatBaht(habit.busiest.satang)}
-							</p>
-						)}
 					</div>
 				</section>
 			)}
 
 			{scale === "day" && (
 				<section className="sheet sheet--page" aria-label="Entries that day">
-					<DayList groups={dayGroups} today={today} />
+					<DayList groups={dayGroups} today={today} onOpenEntry={onOpenEntry} />
 				</section>
 			)}
 
 			<section className="sheet sheet--page stat" aria-label="Spending">
 				<h2 className="day__head">
 					<span>Spending</span>
+					<button type="button" className="text-btn" onClick={onOpenHistory}>
+						See all entries
+					</button>
 				</h2>
 				<h3 className="stat-sub">Where it went</h3>
 				<ul className="day__lines">
@@ -207,7 +199,7 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onView
 										type="button"
 										className="line line--link"
 										aria-label={`${row.category}, ${formatBaht(row.satang)}, ${share(row.share)}, ${plural(row.count, "purchase")}. Show these entries`}
-										onClick={() => onOpenCategory(row.category, historyMonth)}
+										onClick={() => onOpenCategory(row.category)}
 									>
 										<span className="line__time">{share(row.share)}</span>
 										<span className="line__body">
@@ -232,16 +224,23 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onView
 						<h3 className="stat-sub">Biggest</h3>
 						<ul className="day__lines">
 							{biggest.map((entry) => (
-								<li className="line" key={entry.id}>
-									<time className="line__time">{dayMonth(entry.at)}</time>
-									<span className="line__body">
-										<span className="line__what">{entry.category ?? NO_CATEGORY}</span>
-										{entry.note && <span className="line__note">{entry.note}</span>}
-										<span className="share" aria-hidden="true">
-											<span style={{ width: `${Math.max(2, Math.round((entry.satang / biggest[0].satang) * 100))}%` }} />
+								<li key={entry.id}>
+									<button
+										type="button"
+										className="line line--link"
+										aria-label={`${entry.category ?? NO_CATEGORY}, ${formatBaht(entry.satang)}, ${dayMonth(entry.at)}. Show details`}
+										onClick={() => onOpenEntry(entry)}
+									>
+										<time className="line__time">{dayMonth(entry.at)}</time>
+										<span className="line__body">
+											<span className="line__what">{entry.category ?? NO_CATEGORY}</span>
+											{entry.note && <span className="line__note">{entry.note}</span>}
+											<span className="share" aria-hidden="true">
+												<span style={{ width: `${Math.max(2, Math.round((entry.satang / biggest[0].satang) * 100))}%` }} />
+											</span>
 										</span>
-									</span>
-									<span className="line__amount">{formatBaht(entry.satang)}</span>
+										<span className="line__amount">{formatBaht(entry.satang)}</span>
+									</button>
 								</li>
 							))}
 						</ul>

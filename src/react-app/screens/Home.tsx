@@ -11,7 +11,7 @@ import { formatBaht } from "../lib/money";
 import { inputToSatang } from "../lib/money";
 import type { BudgetPlan, Entry } from "../lib/types";
 
-// Home shows today and the days just before it; everything older lives in History.
+// Home shows today and the days just before it; everything older lives in the History tab.
 const HOME_DAYS = 4;
 
 type Props = {
@@ -23,12 +23,12 @@ type Props = {
 	onAdd: () => void;
 	onSlips: () => void;
 	onView: (view: View) => void;
-	onHistory: () => void;
+	onOpenEntry: (entry: Entry) => void;
 	onCheckIn: (bankSatang: number) => void;
 	onBudget: () => void;
 };
 
-export function Home({ entries, plan, today, intro, justAddedId, onAdd, onSlips, onView, onHistory, onCheckIn, onBudget }: Props) {
+export function Home({ entries, plan, today, intro, justAddedId, onAdd, onSlips, onView, onOpenEntry, onCheckIn, onBudget }: Props) {
 	const budget = plan.monthly;
 	const groups = useMemo(() => groupByDay(entries, today).slice(0, HOME_DAYS), [entries, today]);
 	const s = useMemo(() => standing(entries, plan, today), [entries, plan, today]);
@@ -147,14 +147,7 @@ export function Home({ entries, plan, today, intro, justAddedId, onAdd, onSlips,
 			</section>
 
 			<section className="sheet" aria-label="Entries by day" style={{ "--i": 2 } as React.CSSProperties}>
-				<DayList groups={groups} today={today} justAddedId={justAddedId} />
-
-				<div className="more-line">
-					<button type="button" className="more-line__btn" onClick={onHistory}>
-						<span>All history</span>
-						<Icon name="forward" size={18} />
-					</button>
-				</div>
+				<DayList groups={groups} today={today} justAddedId={justAddedId} onOpenEntry={onOpenEntry} />
 			</section>
 
 			<footer className="dock">

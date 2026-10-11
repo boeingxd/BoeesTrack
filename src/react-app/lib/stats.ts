@@ -1,21 +1,23 @@
-import { addDays, addMonths, dayKey, monthKey, startOfDay, startOfMonth, startOfWeek } from "./dates";
+import { addDays, addMonths, dayKey, dayMonth, dayTitle, monthTitle, startOfDay, startOfMonth, startOfWeek } from "./dates";
 import { formatBaht } from "./money";
 import type { Entry, Kind } from "./types";
 
 export const NO_CATEGORY = "No category";
 
+export type Scale = "day" | "week" | "month";
+
+// The period (scale + anchor) is what History is showing; a typed query ignores it and searches all time.
 export type Filters = {
 	query: string;
 	category: string | null;
 	kind: "all" | Kind;
-	month: string | null;
+	scale: Scale;
+	anchor: Date;
 };
 
-export function defaultFilters(month: string | null): Filters {
-	return { query: "", category: null, kind: "all", month };
+export function defaultFilters(today: Date): Filters {
+	return { query: "", category: null, kind: "all", scale: "month", anchor: today };
 }
-
-export type Scale = "day" | "week" | "month";
 
 // `to` is exclusive: the first instant of the next period.
 export type Range = { from: Date; to: Date };
@@ -34,6 +36,12 @@ export function periodRange(scale: Scale, anchor: Date): Range {
 	}
 	const from = startOfMonth(anchor);
 	return { from, to: addMonths(from, 1) };
+}
+
+export function periodTitle(scale: Scale, range: Range, today: Date): string {
+	if (scale === "day") return dayTitle(range.from, today);
+	if (scale === "month") return monthTitle(range.from);
+	return `${dayMonth(range.from)} – ${dayMonth(addDays(range.to, -1))}`;
 }
 
 export function shiftAnchor(scale: Scale, anchor: Date, n: number): Date {
@@ -138,41 +146,13 @@ const wholeBaht = (satang: number) => Math.round(satang / 100) * 100;
 
 export type Habits = {
 	avgPerDay: number;
-	busiest: { weekday: number; satang: number } | null;
-	riser: { category: string; delta: number } | null;
 };
 
-// Habits over the days that have happened so far. The busiest weekday is by average, so a weekday
-// that occurs five times in a month does not win just for appearing more often.
-export function habits(entries: Entry[], range: Range, earlier: Range, today: Date): Habits {
+// Habits over the days that have happened so far.
+export function habits(entries: Entry[], range: Range, today: Date): Habits {
 	const elapsed = dailyTotals(entries, range).filter((day) => day.date.getTime() <= today.getTime());
 	const total = elapsed.reduce((n, day) => n + day.satang, 0);
-
-	const byWeekday = new Map<number, { satang: number; days: number }>();
-	for (const day of elapsed) {
-		const slot = byWeekday.get(day.date.getDay()) ?? { satang: 0, days: 0 };
-		slot.satang += day.satang;
-		slot.days += 1;
-		byWeekday.set(day.date.getDay(), slot);
-	}
-	let busiest: Habits["busiest"] = null;
-	for (const [weekday, { satang, days }] of byWeekday) {
-		const average = wholeBaht(satang / days);
-		if (average > 0 && (busiest === null || average > busiest.satang)) busiest = { weekday, satang: average };
-	}
-
-	const { rows } = categoryBreakdown(entries, range, earlier);
-	const hadEarlier = totalSpent(entries, earlier) > 0;
-	const grown = rows
-		.map((row) => ({ category: row.category, delta: row.satang - row.before }))
-		.filter((row) => row.delta > 0)
-		.sort((a, b) => b.delta - a.delta || a.category.localeCompare(b.category));
-
-	return {
-		avgPerDay: elapsed.length === 0 ? 0 : wholeBaht(total / elapsed.length),
-		busiest,
-		riser: hadEarlier ? (grown[0] ?? null) : null,
-	};
+	return { avgPerDay: elapsed.length === 0 ? 0 : wholeBaht(total / elapsed.length) };
 }
 
 // Lower-case and drop thousands commas, so "1,200", "1200" and "฿1,200" all find the same entry.
@@ -185,9 +165,10 @@ function haystack(entry: Entry): string {
 
 export function filterEntries(entries: Entry[], filters: Filters): Entry[] {
 	const query = normalise(filters.query.trim());
+	const range = query === "" ? periodRange(filters.scale, filters.anchor) : null;
 
 	return entries.filter((entry) => {
-		if (filters.month !== null && monthKey(entry.at) !== filters.month) return false;
+		if (range && !inRange(entry, range)) return false;
 		if (filters.kind !== "all" && entry.kind !== filters.kind) return false;
 		if (filters.category !== null) {
 			const wanted = filters.category === NO_CATEGORY ? null : filters.category;

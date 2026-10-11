@@ -1,19 +1,19 @@
 import { useEffect, useState } from "react";
 import type { View } from "./components/ViewSwitch";
-import { monthKey } from "./lib/dates";
 import { checkIn } from "./lib/balance";
 import { DEFAULT_CATEGORIES, SAMPLE_PLAN, SAMPLE_POTS, sampleEntries, sampleSlips } from "./lib/sample";
 import { defaultFilters, periodRange, type Filters, type Scale } from "./lib/stats";
 import type { BudgetPlan, Entry, Pot, Slip } from "./lib/types";
 import { AddSpend } from "./screens/AddSpend";
 import { BudgetSheet } from "./screens/BudgetSheet";
+import { EntryDetail } from "./screens/EntryDetail";
 import { History } from "./screens/History";
 import { Home } from "./screens/Home";
 import { Savings } from "./screens/Savings";
 import { SlipReview } from "./screens/SlipReview";
 import { Stats } from "./screens/Stats";
 
-type Screen = "home" | "stats" | "history" | "add" | "slips" | "savings" | "budget";
+type Screen = "home" | "stats" | "history" | "add" | "slips" | "savings" | "budget" | "entry";
 
 function App() {
 	const [today] = useState(() => new Date());
@@ -27,9 +27,9 @@ function App() {
 	const [intro, setIntro] = useState(true);
 	const [statsScale, setStatsScale] = useState<Scale>("month");
 	const [statsAnchor, setStatsAnchor] = useState(today);
-	const [filters, setFilters] = useState<Filters>(() => defaultFilters(monthKey(today)));
-	// History is reached from Home or from a category on the Stats page, and goes back to where it came from.
-	const [historyFrom, setHistoryFrom] = useState<"home" | "stats">("home");
+	const [filters, setFilters] = useState<Filters>(() => defaultFilters(today));
+	// An entry opens from any list and closes back to the screen it was opened from.
+	const [detail, setDetail] = useState<{ entry: Entry; from: Screen } | null>(null);
 
 	// The page-load entrance plays once; coming back to home from another screen stays still.
 	useEffect(() => {
@@ -59,10 +59,15 @@ function App() {
 		setStatsScale("day");
 	}
 
-	function openHistory(from: "home" | "stats", next: Filters) {
-		setHistoryFrom(from);
-		setFilters(next);
+	// "See all" and a category on Insight open History on the same day, week or month.
+	function openHistory(patch: Partial<Filters> = {}) {
+		setFilters({ ...defaultFilters(today), scale: statsScale, anchor: statsAnchor, ...patch });
 		setScreen("history");
+	}
+
+	function openEntry(entry: Entry) {
+		setDetail({ entry, from: screen });
+		setScreen("entry");
 	}
 
 	function addEntries(added: Entry[]) {
@@ -99,7 +104,7 @@ function App() {
 					onView={goToView}
 					onCheckIn={addCheckIn}
 					onBudget={() => setScreen("budget")}
-					onHistory={() => openHistory("home", defaultFilters(monthKey(today)))}
+					onOpenEntry={openEntry}
 					onSlips={() => {
 						setSlips(sampleSlips(today));
 						setScreen("slips");
@@ -116,7 +121,9 @@ function App() {
 					onScale={changeScale}
 					onView={goToView}
 					onOpenDay={openDay}
-					onOpenCategory={(category, month) => openHistory("stats", { ...defaultFilters(month), category })}
+					onOpenCategory={(category) => openHistory({ category })}
+					onOpenHistory={() => openHistory()}
+					onOpenEntry={openEntry}
 				/>
 			)}
 			{screen === "history" && (
@@ -126,9 +133,11 @@ function App() {
 					today={today}
 					filters={filters}
 					onFilters={setFilters}
-					onBack={() => setScreen(historyFrom)}
+					onView={goToView}
+					onOpenEntry={openEntry}
 				/>
 			)}
+			{screen === "entry" && detail && <EntryDetail entry={detail.entry} today={today} onClose={() => setScreen(detail.from)} />}
 			{screen === "savings" && (
 				<Savings
 					entries={entries}

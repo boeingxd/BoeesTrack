@@ -13,10 +13,11 @@ type Props = {
 	groups: DayGroup[];
 	today: Date;
 	justAddedId?: string | null;
+	onOpenEntry: (entry: Entry) => void;
 };
 
 // One page per day: a small-caps header with the day's spending, then one ruled line per entry.
-export function DayList({ groups, today, justAddedId = null }: Props) {
+export function DayList({ groups, today, justAddedId = null, onOpenEntry }: Props) {
 	return (
 		<>
 			{groups.map((group) => (
@@ -32,17 +33,24 @@ export function DayList({ groups, today, justAddedId = null }: Props) {
 							</li>
 						) : (
 							group.entries.map((entry) => (
-								<li className={entry.id === justAddedId ? "line line--new" : "line"} key={entry.id}>
-									<time className="line__time">{timeLabel(entry.at)}</time>
-									<span className="line__body">
-										<span className="line__what">{lineLabel(entry)}</span>
-										{entry.kind === "spent" && entry.pot && <span className="line__note">Paid from {entry.pot}</span>}
-										{entry.note && <span className="line__note">{entry.note}</span>}
-									</span>
-									<span className="line__amount">
-										{(entry.kind === "received" || (entry.kind === "adjust" && entry.satang > 0)) && "+"}
-										{formatBaht(entry.satang)}
-									</span>
+								<li key={entry.id}>
+									<button
+										type="button"
+										className={entry.id === justAddedId ? "line line--link line--new" : "line line--link"}
+										aria-label={`${lineLabel(entry)}, ${formatBaht(entry.satang)}. Show details`}
+										onClick={() => onOpenEntry(entry)}
+									>
+										<time className="line__time">{timeLabel(entry.at)}</time>
+										<span className="line__body">
+											<span className="line__what">{lineLabel(entry)}</span>
+											{entry.kind === "spent" && entry.pot && <span className="line__note">Paid from {entry.pot}</span>}
+											{entry.note && <span className="line__note">{entry.note}</span>}
+										</span>
+										<span className="line__amount">
+											{(entry.kind === "received" || (entry.kind === "adjust" && entry.satang > 0)) && "+"}
+											{formatBaht(entry.satang)}
+										</span>
+									</button>
 								</li>
 							))
 						)}

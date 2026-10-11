@@ -386,7 +386,8 @@ button:disabled {
 }
 
 .kind,
-.tag {
+.tag,
+.chip {
 	min-width: var(--tap);
 	min-height: var(--tap);
 	padding-inline: var(--space-2);
@@ -397,14 +398,17 @@ button:disabled {
 }
 
 .kind[aria-checked="true"],
-.tag[aria-checked="true"] {
+.tag[aria-checked="true"],
+.chip[aria-pressed="true"],
+.chip--on {
 	border-bottom-color: var(--color-ink);
 	color: var(--color-ink);
 }
 
 @media (hover: hover) {
 	.kind:hover,
-	.tag:hover {
+	.tag:hover,
+	.chip:hover {
 		color: var(--color-ink);
 	}
 }
@@ -922,13 +926,64 @@ button:disabled {
 	border-top: 1px solid var(--color-rule);
 }
 
-.bars-wrap {
-	padding: var(--space-4) var(--space-1) var(--space-5);
+/* History: a search line, then one row of filter chips that scrolls sideways instead of wrapping */
+
+.search {
+	border-bottom: 1px solid var(--color-edge);
 }
 
-/* The bars sit nearly edge to edge; the note under them lines up with the section title */
-.bars-wrap .stat-note {
-	padding-inline: calc(var(--page-pad) - var(--space-1));
+.chips {
+	display: flex;
+	gap: var(--space-2);
+	margin: var(--space-2) calc(var(--page-pad) * -1) 0;
+	padding-inline: calc(var(--page-pad) - var(--space-2));
+	overflow-x: auto;
+	scrollbar-width: none;
+}
+
+.chips::-webkit-scrollbar {
+	display: none;
+}
+
+.chips .chip {
+	flex: none;
+}
+
+.today .results {
+	padding-inline: 0;
+}
+
+.chips .select.chip {
+	width: auto;
+	min-width: 7rem;
+	margin-top: 0;
+	border-bottom: 2px solid transparent;
+}
+
+.chips .select.chip--on {
+	border-bottom-color: var(--color-ink);
+}
+
+.chips .select.chip svg {
+	inset-inline-end: var(--space-2);
+}
+
+.chips .select.chip .select__input {
+	padding-inline: var(--space-2) var(--space-5);
+	font-weight: var(--weight-medium);
+	color: var(--color-muted);
+}
+
+.chips .select.chip--on .select__input {
+	color: var(--color-ink);
+}
+
+.detail__amount {
+	padding: var(--space-3) var(--page-pad) var(--space-4);
+}
+
+.bars-wrap {
+	padding: var(--space-4) var(--space-1) var(--space-5);
 }
 
 .bars {

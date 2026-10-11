@@ -1,6 +1,6 @@
 import type { Scale } from "../lib/stats";
 
-export type View = "home" | "stats" | "savings";
+export type View = "home" | "stats" | "history" | "savings";
 
 export type Option<T extends string> = { value: T; label: string };
 
@@ -38,6 +38,7 @@ export function Segmented<T extends string>({
 const VIEWS: Option<View>[] = [
 	{ value: "home", label: "Home" },
 	{ value: "stats", label: "Insight" },
+	{ value: "history", label: "History" },
 	{ value: "savings", label: "Savings" },
 ];
 
@@ -47,7 +48,7 @@ const SCALES: Option<Scale>[] = [
 	{ value: "month", label: "Month" },
 ];
 
-// The page-level row: Home, or Insight (day, week and month all live inside Insight).
+// The page-level row: Home, Insight (day, week and month live inside it), History and Savings.
 export function ViewSwitch({ value, onChange }: { value: View; onChange: (view: View) => void }) {
 	return <Segmented label="View" options={VIEWS} value={value} onChange={onChange} className="views" />;
 }

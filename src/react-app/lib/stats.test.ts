@@ -124,33 +124,29 @@ describe("dailyTotals and topSpends", () => {
 describe("habits", () => {
 	const today = new Date(2026, 9, 8, 20, 0);
 	const month = periodRange("month", today);
-	const { range: earlier } = previousRange("month", today, today);
 
 	it("averages over the days that have happened", () => {
-		expect(habits(entries, month, earlier, today).avgPerDay).toBe(8_500);
-	});
-
-	it("finds the busiest weekday by average", () => {
-		const { busiest } = habits(entries, month, earlier, today);
-		expect(busiest).toEqual({ weekday: 4, satang: 34_000 });
-	});
-
-	it("names the category that grew most, and says nothing when there was no earlier spending", () => {
-		expect(habits(entries, month, earlier, today).riser).toBeNull();
-		const lastMonth = [entry({ baht: 100, category: "Hangouts", at: new Date(2026, 8, 3, 12, 0) }), ...entries];
-		expect(habits(lastMonth, month, earlier, today).riser).toEqual({ category: "Hangouts", delta: 32_000 });
+		expect(habits(entries, month, today).avgPerDay).toBe(8_500);
 	});
 });
 
 describe("filterEntries", () => {
-	const all = defaultFilters(null);
+	const all = defaultFilters(new Date(2026, 9, 8));
 
-	it("keeps everything when nothing is set", () => {
-		expect(filterEntries(entries, all)).toHaveLength(entries.length);
+	it("shows the month it opens on and nothing from other months", () => {
+		expect(filterEntries(entries, all)).toHaveLength(entries.length - 1);
 	});
 
-	it("narrows by month", () => {
-		expect(filterEntries(entries, { ...all, month: "2026-09" })).toHaveLength(1);
+	it("narrows to the day, week or month being looked at", () => {
+		expect(filterEntries(entries, { ...all, anchor: new Date(2026, 8, 3) })).toHaveLength(1);
+		expect(filterEntries(entries, { ...all, scale: "week", anchor: new Date(2026, 8, 16) })).toHaveLength(1);
+		expect(filterEntries(entries, { ...all, scale: "week", anchor: new Date(2026, 8, 21) })).toHaveLength(0);
+		expect(filterEntries(entries, { ...all, scale: "day", anchor: new Date(2026, 9, 8) })).toHaveLength(entries.length - 1);
+	});
+
+	it("searches all time once something is typed", () => {
+		expect(filterEntries(entries, { ...all, query: "headphones" })).toHaveLength(1);
+		expect(filterEntries(entries, { ...all, query: "  " })).toHaveLength(entries.length - 1);
 	});
 
 	it("narrows by category, with a way to ask for untagged spending", () => {
@@ -181,7 +177,7 @@ describe("filterEntries", () => {
 	});
 
 	it("combines filters", () => {
-		const hit = filterEntries(entries, { query: "lunch", category: "Food & drink", kind: "spent", month: "2026-10" });
+		const hit = filterEntries(entries, { ...all, query: "lunch", category: "Food & drink", kind: "spent" });
 		expect(hit).toHaveLength(1);
 	});
 });
