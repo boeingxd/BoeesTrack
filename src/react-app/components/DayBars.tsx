@@ -7,13 +7,15 @@ type Props = {
 	todayKey: string;
 	// Only the week's seven wide bars are tappable; a month's 28-31 are too narrow for a finger.
 	onOpenDay?: (date: Date) => void;
+	// A dashed average line, drawn as one segment per column so the segments join up.
+	average?: number;
 };
 
 const WEEKDAY_LETTERS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 // Ink-only bars, one per day, the same height scale across the range. Today is the darkest.
-export function DayBars({ days, todayKey, onOpenDay }: Props) {
-	const peak = Math.max(1, ...days.map((day) => day.satang));
+export function DayBars({ days, todayKey, onOpenDay, average = 0 }: Props) {
+	const peak = Math.max(1, ...days.map((day) => day.satang), average);
 	const wide = onOpenDay !== undefined;
 
 	return (
@@ -26,6 +28,7 @@ export function DayBars({ days, todayKey, onOpenDay }: Props) {
 						{wide && <span className="bar__value">{day.satang === 0 ? "" : Math.round(day.satang / 100).toLocaleString("en-GB")}</span>}
 						<span className="bar__track">
 							<span className={day.key === todayKey ? "bar bar--today" : "bar"} style={{ height: `${height}%` }} />
+							{average > 0 && <span className="bar__avg" style={{ bottom: `${(average / peak) * 100}%` }} />}
 						</span>
 						{wide && <span className="bar__label">{WEEKDAY_LETTERS[day.date.getDay()]}</span>}
 					</>

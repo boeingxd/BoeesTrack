@@ -4,8 +4,9 @@ import { DayList } from "../components/DayList";
 import { Figure } from "../components/Figure";
 import { Icon } from "../components/Icon";
 import { ScaleSwitch, ViewSwitch, type View } from "../components/ViewSwitch";
+import { WeekdayBars } from "../components/WeekdayBars";
 import { standing } from "../lib/allowance";
-import { addDays, dayKey, dayMonth, dayTitle, groupByDay, monthKey, monthTitle, shortDay, weekdayName } from "../lib/dates";
+import { addDays, dayKey, dayMonth, dayTitle, groupByDay, monthKey, monthTitle, shortDay } from "../lib/dates";
 import { formatBaht } from "../lib/money";
 import {
 	categoryBreakdown,
@@ -134,6 +135,13 @@ export function Stats({ entries, plan, today, scale, anchor, onAnchor, onScale, 
 							<Figure satang={inOut.saved} />
 						</p>
 					</div>
+					<div>
+						<p className="today__label">{heroLabel("Received")}</p>
+						<p className="today__figure" aria-live="polite">
+							<Figure satang={inOut.received} />
+						</p>
+						{inOut.received > 0 && <p className="today__note">{share(inOut.saved / inOut.received)} of it saved</p>}
+					</div>
 				</div>
 				{dayAllowance && (
 					<div className="allowance">
@@ -198,6 +206,7 @@ export function Stats({ entries, plan, today, scale, anchor, onAnchor, onScale, 
 							days={days}
 							todayKey={dayKey(today)}
 							onOpenDay={scale === "week" ? onOpenDay : undefined}
+							average={habit.avgPerDay}
 						/>
 						{scale === "month" && (
 							<p className="bars-foot">
@@ -205,7 +214,9 @@ export function Stats({ entries, plan, today, scale, anchor, onAnchor, onScale, 
 								<span>{dayMonth(lastDay)}</span>
 							</p>
 						)}
+						{habit.avgPerDay > 0 && <p className="stat-note">Dashed line: average {formatBaht(habit.avgPerDay)} a day</p>}
 					</div>
+					{scale === "month" && <WeekdayBars days={habit.weekdayAverages} />}
 				</section>
 			)}
 
@@ -215,11 +226,11 @@ export function Stats({ entries, plan, today, scale, anchor, onAnchor, onScale, 
 				</section>
 			)}
 
-			<section className="sheet sheet--page stat" aria-label="Where it went">
+			<section className="sheet sheet--page stat" aria-label="Spending">
 				<h2 className="day__head">
-					<span>Where it went</span>
-					<span className="day__sum">Spent</span>
+					<span>Spending</span>
 				</h2>
+				<h3 className="stat-sub">Where it went</h3>
 				{before > 0 && <p className="stat-note">+ and − compare with {reference(scale, partial)}.</p>}
 				<ul className="day__lines">
 					{breakdown.rows.length === 0 ? (
@@ -243,6 +254,7 @@ export function Stats({ entries, plan, today, scale, anchor, onAnchor, onScale, 
 											<span className="line__note">
 												{plural(row.count, "purchase")}
 												{before > 0 && change !== 0 && ` · ${signed(change)}`}
+												{row.category === habit.riser?.category && " · grew most"}
 											</span>
 											<span className="share" aria-hidden="true">
 												<span style={{ width: `${Math.max(2, Math.round(row.share * 100))}%` }} />
@@ -255,95 +267,27 @@ export function Stats({ entries, plan, today, scale, anchor, onAnchor, onScale, 
 						})
 					)}
 				</ul>
-			</section>
 
-			{scale !== "day" && biggest.length > 0 && (
-				<section className="sheet sheet--page stat" aria-label="Biggest spends">
-					<h2 className="day__head">
-						<span>Biggest spends</span>
-					</h2>
-					<ul className="day__lines">
-						{biggest.map((entry) => (
-							<li className="line" key={entry.id}>
-								<time className="line__time">{dayMonth(entry.at)}</time>
-								<span className="line__body">
-									<span className="line__what">{entry.category ?? NO_CATEGORY}</span>
-									{entry.note && <span className="line__note">{entry.note}</span>}
-								</span>
-								<span className="line__amount">{formatBaht(entry.satang)}</span>
-							</li>
-						))}
-					</ul>
-				</section>
-			)}
-
-			{scale !== "day" && breakdown.count > 0 && (
-				<section className="sheet sheet--page stat" aria-label="Habits">
-					<h2 className="day__head">
-						<span>Habits</span>
-					</h2>
-					<ul className="day__lines">
-						<li className="line">
-							<span aria-hidden="true" />
-							<span className="line__body">Average per day</span>
-							<span className="line__amount">{formatBaht(habit.avgPerDay)}</span>
-						</li>
-						{scale === "month" && habit.busiest && (
-							<li className="line">
-								<span aria-hidden="true" />
-								<span className="line__body">
-									Busiest weekday
-									<span className="line__note">{weekdayName(habit.busiest.weekday)}, on average</span>
-								</span>
-								<span className="line__amount">{formatBaht(habit.busiest.satang)}</span>
-							</li>
-						)}
-						{habit.riser && (
-							<li className="line">
-								<span aria-hidden="true" />
-								<span className="line__body">
-									Grew most
-									<span className="line__note">{habit.riser.category}</span>
-								</span>
-								<span className="line__amount">{signed(habit.riser.delta)}</span>
-							</li>
-						)}
-					</ul>
-				</section>
-			)}
-
-			<section className="sheet sheet--page stat" aria-label="Money in and out">
-				<h2 className="day__head">
-					<span>Money in and out</span>
-				</h2>
-				<ul className="day__lines">
-					{inOut.received + inOut.spent + inOut.saved === 0 ? (
-						<li className="line line--empty">
-							<span className="line__body">No money in or out in this {word}.</span>
-						</li>
-					) : (
-						<>
-							<li className="line">
-								<span aria-hidden="true" />
-								<span className="line__body">Received</span>
-								<span className="line__amount">{inOut.received > 0 && "+"}{formatBaht(inOut.received)}</span>
-							</li>
-							<li className="line">
-								<span aria-hidden="true" />
-								<span className="line__body">Spent</span>
-								<span className="line__amount">{formatBaht(inOut.spent)}</span>
-							</li>
-							<li className="line">
-								<span aria-hidden="true" />
-								<span className="line__body">
-									Saved
-									{inOut.received > 0 && <span className="line__note">{share(inOut.saved / inOut.received)} of what came in</span>}
-								</span>
-								<span className="line__amount">{formatBaht(inOut.saved)}</span>
-							</li>
-						</>
-					)}
-				</ul>
+				{scale !== "day" && biggest.length > 0 && (
+					<>
+						<h3 className="stat-sub">Biggest</h3>
+						<ul className="day__lines">
+							{biggest.map((entry) => (
+								<li className="line" key={entry.id}>
+									<time className="line__time">{dayMonth(entry.at)}</time>
+									<span className="line__body">
+										<span className="line__what">{entry.category ?? NO_CATEGORY}</span>
+										{entry.note && <span className="line__note">{entry.note}</span>}
+										<span className="share" aria-hidden="true">
+											<span style={{ width: `${Math.max(2, Math.round((entry.satang / biggest[0].satang) * 100))}%` }} />
+										</span>
+									</span>
+									<span className="line__amount">{formatBaht(entry.satang)}</span>
+								</li>
+							))}
+						</ul>
+					</>
+				)}
 			</section>
 		</main>
 	);
