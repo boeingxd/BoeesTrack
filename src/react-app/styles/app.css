@@ -180,9 +180,9 @@ button:disabled {
 	margin-block: -0.75rem;
 	padding-inline: var(--space-2);
 	margin-inline-end: calc(var(--space-2) * -1);
-	color: var(--color-ink-2);
-	text-decoration: underline;
-	text-underline-offset: 0.2em;
+	gap: var(--space-1);
+	color: var(--color-ink);
+	font-weight: var(--weight-medium);
 	white-space: nowrap;
 }
 
@@ -1065,11 +1065,6 @@ button:disabled {
 	border-block: 1px solid var(--color-rule);
 }
 
-.more-line--top {
-	margin-top: 0;
-	border-top: 0;
-}
-
 .more-line__btn strong {
 	font-weight: var(--weight-strong);
 }
@@ -1250,7 +1245,91 @@ button:disabled {
 	margin-top: 0;
 }
 
-.field__empty {
-	padding-block: var(--space-3);
+/* Balance sits under the budget note on Home; the bank check folds open from it. */
+
+.balance-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-top: var(--space-3);
+	padding-top: var(--space-3);
+	border-top: 1px solid var(--color-rule);
+}
+
+.balance-row__label {
 	color: var(--color-muted);
+}
+
+.balance-row strong {
+	margin-inline-start: var(--space-2);
+	font-size: var(--text-md);
+	font-weight: var(--weight-strong);
+}
+
+.balance-row__check {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-1);
+	min-height: var(--tap);
+	padding-inline: var(--space-2);
+	margin-inline-end: calc(var(--space-2) * -1);
+	color: var(--color-ink-2);
+	font-size: var(--text-sm);
+}
+
+.balance-row__check svg {
+	transition: transform var(--dur-micro) var(--ease-out);
+}
+
+.balance-row__check[aria-expanded="true"] svg {
+	transform: rotate(180deg);
+}
+
+.balance-check {
+	display: grid;
+	gap: var(--space-3);
+	padding-bottom: var(--space-2);
+}
+
+.bank-input {
+	width: 100%;
+	min-height: var(--tap);
+	padding: 0;
+	border: 0;
+	border-bottom: 2px solid var(--color-ink);
+	border-radius: 0;
+	background: transparent;
+	color: var(--color-ink);
+}
+
+.bank-input::placeholder {
+	color: var(--color-muted);
+}
+
+.cancel {
+	min-height: var(--tap);
+	color: var(--color-ink-2);
+	text-decoration: underline;
+	text-underline-offset: 0.2em;
+}
+
+.pot__head {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--space-2);
+}
+
+.pot__head .pot__row {
+	flex: 1;
+	min-width: 0;
+	padding-top: var(--space-2);
+}
+
+.pot__edit {
+	flex: none;
+	margin-inline-end: calc(var(--space-2) * -1);
+}
+
+.pot--editing {
+	padding: 0;
 }

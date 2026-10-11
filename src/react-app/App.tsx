@@ -9,11 +9,11 @@ import { AddSpend } from "./screens/AddSpend";
 import { BudgetSheet } from "./screens/BudgetSheet";
 import { History } from "./screens/History";
 import { Home } from "./screens/Home";
-import { Money } from "./screens/Money";
+import { Savings } from "./screens/Savings";
 import { SlipReview } from "./screens/SlipReview";
 import { Stats } from "./screens/Stats";
 
-type Screen = "home" | "stats" | "history" | "add" | "slips" | "money" | "budget";
+type Screen = "home" | "stats" | "history" | "add" | "slips" | "savings" | "budget";
 
 function App() {
 	const [today] = useState(() => new Date());
@@ -76,19 +76,28 @@ function App() {
 		if (adjustment) setEntries((current) => [...current, adjustment]);
 	}
 
+	function addPot(pot: Pot) {
+		setPots((current) => [...current, pot]);
+	}
+
+	// A renamed pot takes its entries with it, so its total survives.
+	function editPot(oldName: string, pot: Pot) {
+		setPots((current) => current.map((p) => (p.name === oldName ? pot : p)));
+		if (pot.name !== oldName) setEntries((current) => current.map((e) => (e.pot === oldName ? { ...e, pot: pot.name } : e)));
+	}
+
 	return (
 		<div className="app">
 			{screen === "home" && (
 				<Home
 					entries={entries}
 					plan={plan}
-					pots={pots}
 					today={today}
 					intro={intro}
 					justAddedId={justAddedId}
 					onAdd={() => setScreen("add")}
 					onView={goToView}
-					onMoney={() => setScreen("money")}
+					onCheckIn={addCheckIn}
 					onBudget={() => setScreen("budget")}
 					onHistory={() => openHistory("home", defaultFilters(monthKey(today)))}
 					onSlips={() => {
@@ -121,14 +130,14 @@ function App() {
 					onBack={() => setScreen(historyFrom)}
 				/>
 			)}
-			{screen === "money" && (
-				<Money
+			{screen === "savings" && (
+				<Savings
 					entries={entries}
 					pots={pots}
 					today={today}
-					onClose={() => setScreen("home")}
-					onCheckIn={addCheckIn}
-					onAddPot={(pot) => setPots((current) => [...current, pot])}
+					onView={goToView}
+					onAddPot={addPot}
+					onEditPot={editPot}
 				/>
 			)}
 			{screen === "budget" && (
@@ -145,6 +154,7 @@ function App() {
 				<AddSpend
 					categories={categories}
 					pots={pots}
+					onAddPot={addPot}
 					onAddCategory={addCategory}
 					onClose={() => setScreen("home")}
 					onSave={(draft) => addEntries([{ id: `entry-${Date.now()}`, ...draft }])}

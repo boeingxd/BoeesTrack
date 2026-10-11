@@ -1,14 +1,15 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { BudgetBar } from "../components/BudgetBar";
 import { DayList } from "../components/DayList";
 import { Figure } from "../components/Figure";
 import { Icon } from "../components/Icon";
 import { ViewSwitch, type View } from "../components/ViewSwitch";
 import { standing } from "../lib/allowance";
-import { balance, potTotals } from "../lib/balance";
+import { balance } from "../lib/balance";
 import { groupByDay, monthTitle } from "../lib/dates";
 import { formatBaht } from "../lib/money";
-import type { BudgetPlan, Entry, Pot } from "../lib/types";
+import { inputToSatang } from "../lib/money";
+import type { BudgetPlan, Entry } from "../lib/types";
 
 // Home shows today and the days just before it; everything older lives in History.
 const HOME_DAYS = 4;
@@ -16,7 +17,6 @@ const HOME_DAYS = 4;
 type Props = {
 	entries: Entry[];
 	plan: BudgetPlan;
-	pots: Pot[];
 	today: Date;
 	intro: boolean;
 	justAddedId: string | null;
@@ -24,16 +24,19 @@ type Props = {
 	onSlips: () => void;
 	onView: (view: View) => void;
 	onHistory: () => void;
-	onMoney: () => void;
+	onCheckIn: (bankSatang: number) => void;
 	onBudget: () => void;
 };
 
-export function Home({ entries, plan, pots, today, intro, justAddedId, onAdd, onSlips, onView, onHistory, onMoney, onBudget }: Props) {
+export function Home({ entries, plan, today, intro, justAddedId, onAdd, onSlips, onView, onHistory, onCheckIn, onBudget }: Props) {
 	const budget = plan.monthly;
 	const groups = useMemo(() => groupByDay(entries, today).slice(0, HOME_DAYS), [entries, today]);
 	const s = useMemo(() => standing(entries, plan, today), [entries, plan, today]);
 	const held = useMemo(() => balance(entries), [entries]);
-	const saved = useMemo(() => potTotals(entries, pots, today).reduce((sum, p) => sum + p.total, 0), [entries, pots, today]);
+	const [checking, setChecking] = useState(false);
+	const [bank, setBank] = useState("");
+	const bankSatang = inputToSatang(bank.replace(/[^\d.]/g, ""));
+	const gap = bank === "" ? 0 : bankSatang - held;
 	const overBy = formatBaht(Math.abs(s.leftToday));
 
 	return (
@@ -66,7 +69,8 @@ export function Home({ entries, plan, pots, today, intro, justAddedId, onAdd, on
 						<strong>{formatBaht(s.monthSpent)}</strong> this month
 					</span>
 					<button type="button" className="budget-labels__set" onClick={onBudget} aria-label={`Budget ${formatBaht(budget)} a month, change`}>
-						of {formatBaht(budget)}
+						Budget {formatBaht(budget)}
+						<Icon name="edit" size={14} />
 					</button>
 				</p>
 				{s.overToday || s.overMonth ? (
@@ -98,18 +102,51 @@ export function Home({ entries, plan, pots, today, intro, justAddedId, onAdd, on
 						</span>
 					</p>
 				)}
+
+				<div className="balance-row">
+					<p>
+						<span className="balance-row__label">Balance</span> <strong>{formatBaht(held)}</strong>
+					</p>
+					<button type="button" className="balance-row__check" aria-expanded={checking} onClick={() => setChecking(!checking)}>
+						Check
+						<Icon name="down" size={16} />
+					</button>
+				</div>
+				{checking && (
+					<div className="balance-check">
+						<input
+							className="bank-input"
+							inputMode="decimal"
+							value={bank}
+							onChange={(event) => setBank(event.target.value.replace(/[^\d.]/g, ""))}
+							aria-label="Your real bank balance, in baht"
+							placeholder="What your bank says"
+							maxLength={10}
+						/>
+						{bank !== "" && (
+							<p className="today__note">
+								{gap === 0
+									? "Matches the app."
+									: `The app is ${formatBaht(Math.abs(gap))} ${gap < 0 ? "above" : "below"} your bank. This adds a ${gap > 0 ? "+" : ""}${formatBaht(gap)} adjustment.`}
+							</p>
+						)}
+						<button
+							type="button"
+							className="confirm"
+							disabled={gap === 0}
+							onClick={() => {
+								onCheckIn(bankSatang);
+								setBank("");
+								setChecking(false);
+							}}
+						>
+							Add adjustment
+						</button>
+					</div>
+				)}
 			</section>
 
 			<section className="sheet" aria-label="Entries by day" style={{ "--i": 2 } as React.CSSProperties}>
-				<div className="more-line more-line--top">
-					<button type="button" className="more-line__btn" onClick={onMoney}>
-						<span>
-							Balance <strong>{formatBaht(held)}</strong> · Saved <strong>{formatBaht(saved)}</strong>
-						</span>
-						<Icon name="forward" size={18} />
-					</button>
-				</div>
-
 				<DayList groups={groups} today={today} justAddedId={justAddedId} />
 
 				<div className="more-line">
@@ -123,7 +160,7 @@ export function Home({ entries, plan, pots, today, intro, justAddedId, onAdd, on
 			<footer className="dock">
 				<button type="button" className="dock__add" onClick={onAdd}>
 					<Icon name="plus" />
-					Add a spend
+					Add
 				</button>
 				<button type="button" className="dock__slips" onClick={onSlips}>
 					<Icon name="clip" size={18} />

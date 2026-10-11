@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { CategoryTags } from "../components/CategoryTags";
+import { PotForm } from "../components/PotForm";
 import { Icon } from "../components/Icon";
 import { toInputValue, whenLabel } from "../lib/dates";
 import { formatBaht, groupInput, inputToSatang, pressKey } from "../lib/money";
@@ -8,6 +9,7 @@ import type { Kind, Pot } from "../lib/types";
 type Props = {
 	categories: string[];
 	pots: Pot[];
+	onAddPot: (pot: Pot) => void;
 	onAddCategory: (name: string) => void;
 	onClose: () => void;
 	onSave: (draft: { kind: Kind; satang: number; at: Date; category: string | null; note: string; pot?: string }) => void;
@@ -21,7 +23,7 @@ const KINDS: { value: Kind; label: string }[] = [
 
 const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "back"];
 
-export function AddSpend({ categories, pots, onAddCategory, onClose, onSave }: Props) {
+export function AddSpend({ categories, pots, onAddPot, onAddCategory, onClose, onSave }: Props) {
 	const [kind, setKind] = useState<Kind>("spent");
 	const [input, setInput] = useState("");
 	const [note, setNote] = useState("");
@@ -29,6 +31,7 @@ export function AddSpend({ categories, pots, onAddCategory, onClose, onSave }: P
 	const [category, setCategory] = useState<string | null>(null);
 	// Saved money must go into a pot; a spend can optionally be paid from one (null means from the balance).
 	const [pot, setPot] = useState<string | null>(null);
+	const [makingPot, setMakingPot] = useState(false);
 	const whenInput = useRef<HTMLInputElement>(null);
 
 	const satang = inputToSatang(input);
@@ -112,11 +115,7 @@ export function AddSpend({ categories, pots, onAddCategory, onClose, onSave }: P
 							Into
 						</span>
 						<div className="field__body">
-							{potNames.length === 0 ? (
-								<p className="field__empty">Make a pot first, from Money on Home.</p>
-							) : (
-								<CategoryTags label="Savings pot" categories={potNames} value={pot} onChange={setPot} />
-							)}
+							<CategoryTags label="Savings pot" categories={potNames} value={pot} onChange={setPot} onNew={() => setMakingPot(true)} />
 						</div>
 					</div>
 				)}
@@ -152,6 +151,18 @@ export function AddSpend({ categories, pots, onAddCategory, onClose, onSave }: P
 					</div>
 				)}
 			</div>
+			{kind === "saved" && makingPot && (
+				<PotForm
+					pots={pots}
+					submitLabel="Make pot"
+					onSubmit={(next) => {
+						onAddPot(next);
+						setPot(next.name);
+						setMakingPot(false);
+					}}
+					onCancel={() => setMakingPot(false)}
+				/>
+			)}
 
 			<div className="keys">
 				<div className="keys__grid">

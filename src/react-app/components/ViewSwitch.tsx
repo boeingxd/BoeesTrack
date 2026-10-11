@@ -1,6 +1,6 @@
 import type { Scale } from "../lib/stats";
 
-export type View = "home" | "stats";
+export type View = "home" | "stats" | "savings";
 
 export type Option<T extends string> = { value: T; label: string };
 
@@ -38,6 +38,7 @@ export function Segmented<T extends string>({
 const VIEWS: Option<View>[] = [
 	{ value: "home", label: "Home" },
 	{ value: "stats", label: "Insight" },
+	{ value: "savings", label: "Savings" },
 ];
 
 const SCALES: Option<Scale>[] = [

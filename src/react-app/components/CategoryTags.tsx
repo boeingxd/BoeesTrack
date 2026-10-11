@@ -7,10 +7,12 @@ type Props = {
 	value: string | null;
 	onChange: (category: string) => void;
 	onAddCategory?: (name: string) => void;
+	// When given, the "New" tag calls this instead of asking for a name inline (used for pots, which need more than a name).
+	onNew?: () => void;
 };
 
 // Categories are plain text tags in one ink colour; the chosen one is underlined.
-export function CategoryTags({ label, categories, value, onChange, onAddCategory }: Props) {
+export function CategoryTags({ label, categories, value, onChange, onAddCategory, onNew }: Props) {
 	const [adding, setAdding] = useState(false);
 	const [draft, setDraft] = useState("");
 
@@ -38,7 +40,13 @@ export function CategoryTags({ label, categories, value, onChange, onAddCategory
 					{name}
 				</button>
 			))}
-			{onAddCategory &&
+			{onNew ? (
+				<button type="button" className="tag tag--add" onClick={onNew}>
+					<Icon name="plus" size={16} />
+					New
+				</button>
+			) : (
+				onAddCategory &&
 				(adding ? (
 					<form
 						className="tag-new"
@@ -63,7 +71,7 @@ export function CategoryTags({ label, categories, value, onChange, onAddCategory
 						<Icon name="plus" size={16} />
 						New
 					</button>
-				))}
+				)))}
 		</div>
 	);
 }
