@@ -47,19 +47,6 @@ function title(scale: Scale, range: Range, today: Date): string {
 
 const reference = (scale: Scale, partial: boolean) => `the ${partial ? "same days of the " : ""}previous ${scale}`;
 
-// How this period compares with the one before it, in plain words.
-function versus(total: number, before: number, scale: Scale, partial: boolean, hasEarlier: boolean, verb: "spent" | "saved"): string | null {
-	const ref = reference(scale, partial);
-	if (before === 0) {
-		if (!hasEarlier) return "No earlier data to compare with yet.";
-		return total === 0 ? null : `Nothing was ${verb} in ${ref}.`;
-	}
-	const delta = total - before;
-	if (delta === 0) return `Same as ${ref}.`;
-	const percent = Math.round((Math.abs(delta) / before) * 100);
-	return `${formatBaht(Math.abs(delta))} ${delta < 0 ? "less" : "more"} than ${ref} (${delta < 0 ? "−" : "+"}${percent}%).`;
-}
-
 export function Stats({ entries, plan, today, scale, anchor, onAnchor, onScale, onView, onOpenDay, onOpenCategory }: Props) {
 	const range = useMemo(() => periodRange(scale, anchor), [scale, anchor]);
 	const { range: earlier, partial } = useMemo(() => previousRange(scale, anchor, today), [scale, anchor, today]);
@@ -91,24 +78,15 @@ export function Stats({ entries, plan, today, scale, anchor, onAnchor, onScale, 
 	const peak = days.reduce((top, d) => (d.satang > top.satang ? d : top), days[0]);
 	const hasEarlier = useMemo(() => entries.some((entry) => entry.at.getTime() < range.from.getTime()), [entries, range]);
 	const inOut = useMemo(() => flows(entries, range), [entries, range]);
-	const savedBefore = useMemo(() => flows(entries, earlier).saved, [entries, earlier]);
-	const compare = versus(breakdown.total, before, scale, partial, hasEarlier, "spent");
-	// With no earlier data the spent line already says so, so the saved line stays quiet.
-	const savedCompare = hasEarlier ? versus(inOut.saved, savedBefore, scale, partial, hasEarlier, "saved") : null;
-	const note = (label: string, text: string | null) =>
-		text && (
-			<p className="today__note">
-				{savedCompare && (
-					<>
-						<strong>{label}</strong> ·{" "}
-					</>
-				)}
-				{text}
-			</p>
-		);
+	// Two bars, this period against the one before, on one shared scale (the longer is full width).
+	const longest = Math.max(breakdown.total, before);
+	const barWidth = (satang: number) => `${satang === 0 ? 0 : Math.max(2, (satang / longest) * 100)}%`;
+	const dayAllowance = day && day.mode !== "off" ? day : null;
 	// shortcut: History filters by month only, so a day or week opens its whole month; add a date-range filter if that bothers.
 	const historyMonth = monthKey(lastDay.getTime() > today.getTime() ? today : lastDay);
 	const word = scale === "day" ? "day" : scale === "week" ? "week" : "month";
+	const nowName = scale === "day" ? (current ? "Today" : "That day") : `${current ? "This" : "That"} ${word}`;
+	const beforeName = `${scale === "day" ? "Day" : scale === "week" ? "Week" : "Month"} before`;
 	const heroLabel = (verb: string) => (current && scale === "day" ? `${verb} today` : `${verb} ${current ? "this" : "that"} ${word}`);
 
 	return (
@@ -157,16 +135,51 @@ export function Stats({ entries, plan, today, scale, anchor, onAnchor, onScale, 
 						</p>
 					</div>
 				</div>
-				{day && day.mode !== "off" && (
-					<p className={day.leftToday < 0 ? "today__note today__note--warn" : "today__note"}>
-						{day.leftToday < 0 && <Icon name="warning" size={18} />}
-						<span>
-							{formatBaht(Math.abs(day.leftToday))} {day.leftToday < 0 ? "over" : "under"} that day's {formatBaht(day.todayAllowance)}
-						</span>
-					</p>
+				{dayAllowance && (
+					<div className="allowance">
+						<div
+							className={dayAllowance.leftToday < 0 ? "budget-bar budget-bar--over" : "budget-bar"}
+							role="img"
+							aria-label={`${formatBaht(dayAllowance.spentToday)} spent of that day's ${formatBaht(dayAllowance.todayAllowance)} allowance`}
+						>
+							<span
+								className="budget-bar__today"
+								style={{ width: `${(dayAllowance.spentToday / Math.max(dayAllowance.spentToday, dayAllowance.todayAllowance, 1)) * 100}%` }}
+							/>
+							<span
+								className="budget-bar__free"
+								style={{ width: `${(Math.max(0, dayAllowance.leftToday) / Math.max(dayAllowance.spentToday, dayAllowance.todayAllowance, 1)) * 100}%` }}
+							/>
+						</div>
+						<p className={dayAllowance.leftToday < 0 ? "allowance__text allowance__text--warn" : "allowance__text"}>
+							{dayAllowance.leftToday < 0 && <Icon name="warning" size={16} />}
+							{formatBaht(Math.abs(dayAllowance.leftToday))} {dayAllowance.leftToday < 0 ? "over" : "left"}
+						</p>
+					</div>
 				)}
-				{note("Spent", compare)}
-				{note("Saved", savedCompare)}
+				{!hasEarlier ? (
+					<p className="today__note">No earlier data to compare with yet.</p>
+				) : (
+					longest > 0 && (
+						<ul className="compare" aria-label="Spent compared with the period before">
+							{[
+								{ name: nowName, note: null, satang: breakdown.total, mine: true },
+								{ name: beforeName, note: partial ? "same days" : null, satang: before, mine: false },
+							].map((row) => (
+								<li className="compare__row" key={row.name}>
+									<span className="compare__name">
+										{row.name}
+										{row.note && <span className="compare__note">{row.note}</span>}
+									</span>
+									<span className="compare__track" aria-hidden="true">
+										<span className={row.mine ? "compare__fill" : "compare__fill compare__fill--before"} style={{ width: barWidth(row.satang) }} />
+									</span>
+									<span className="compare__amount">{formatBaht(row.satang)}</span>
+								</li>
+							))}
+						</ul>
+					)
+				)}
 				{breakdown.count === 0 && <p className="today__note">Nothing spent in this {word}.</p>}
 			</section>
 
