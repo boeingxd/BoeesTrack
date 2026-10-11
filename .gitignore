@@ -207,3 +207,6 @@ slipsScreenShots/
 .impeccable/review/
 .impeccable/hook.cache.json
 .hallmark/
+
+# Claude Code background-job worktrees (temporary copies of the repo)
+.claude/worktrees/
