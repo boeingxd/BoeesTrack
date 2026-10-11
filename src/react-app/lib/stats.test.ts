@@ -5,6 +5,7 @@ import {
 	dailyTotals,
 	defaultFilters,
 	filterEntries,
+	flows,
 	habits,
 	NO_CATEGORY,
 	periodRange,
@@ -182,5 +183,28 @@ describe("filterEntries", () => {
 	it("combines filters", () => {
 		const hit = filterEntries(entries, { query: "lunch", category: "Food & drink", kind: "spent", month: "2026-10" });
 		expect(hit).toHaveLength(1);
+	});
+});
+
+describe("flows", () => {
+	const range = periodRange("month", new Date(2026, 9, 15));
+
+	it("totals received, spent and saved inside the period", () => {
+		const list = [
+			entry({ baht: 2_500, kind: "received" }),
+			entry({ baht: 100 }),
+			entry({ baht: 50, pot: "Trip" }),
+			entry({ baht: 300, kind: "saved", pot: "Trip" }),
+		];
+		expect(flows(list, range)).toEqual({ received: 250_000, spent: 15_000, saved: 30_000 });
+	});
+
+	it("ignores adjustments and entries outside the period", () => {
+		const list = [
+			entry({ baht: 800, kind: "adjust" }),
+			entry({ baht: 400, kind: "saved", pot: "Trip", at: new Date(2026, 8, 30, 23, 59) }),
+			entry({ baht: 70, kind: "saved", pot: "Trip", at: new Date(2026, 9, 1, 0, 0) }),
+		];
+		expect(flows(list, range)).toEqual({ received: 0, spent: 0, saved: 7_000 });
 	});
 });

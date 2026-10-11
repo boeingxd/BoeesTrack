@@ -61,6 +61,13 @@ const sum = (entries: Entry[]) => entries.reduce((total, entry) => total + entry
 
 export const totalSpent = (entries: Entry[], range: Range) => sum(spentIn(entries, range));
 
+// Money moving in a period: what came in, what went out, what was set aside. Adjustments are corrections, not flows.
+export function flows(entries: Entry[], range: Range) {
+	const inside = entries.filter((entry) => inRange(entry, range));
+	const by = (kind: Entry["kind"]) => sum(inside.filter((entry) => entry.kind === kind));
+	return { received: by("received"), spent: by("spent"), saved: by("saved") };
+}
+
 export type CategoryRow = {
 	category: string;
 	satang: number;

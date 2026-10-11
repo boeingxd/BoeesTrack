@@ -10,6 +10,7 @@ import { formatBaht } from "../lib/money";
 import {
 	categoryBreakdown,
 	dailyTotals,
+	flows,
 	habits,
 	NO_CATEGORY,
 	periodRange,
@@ -47,11 +48,11 @@ function title(scale: Scale, range: Range, today: Date): string {
 const reference = (scale: Scale, partial: boolean) => `the ${partial ? "same days of the " : ""}previous ${scale}`;
 
 // How this period compares with the one before it, in plain words.
-function versus(total: number, before: number, scale: Scale, partial: boolean, hasEarlier: boolean): string | null {
+function versus(total: number, before: number, scale: Scale, partial: boolean, hasEarlier: boolean, verb: "spent" | "saved"): string | null {
 	const ref = reference(scale, partial);
 	if (before === 0) {
 		if (!hasEarlier) return "No earlier data to compare with yet.";
-		return total === 0 ? null : `Nothing was spent in ${ref}.`;
+		return total === 0 ? null : `Nothing was ${verb} in ${ref}.`;
 	}
 	const delta = total - before;
 	if (delta === 0) return `Same as ${ref}.`;
@@ -89,11 +90,26 @@ export function Stats({ entries, plan, today, scale, anchor, onAnchor, onScale, 
 
 	const peak = days.reduce((top, d) => (d.satang > top.satang ? d : top), days[0]);
 	const hasEarlier = useMemo(() => entries.some((entry) => entry.at.getTime() < range.from.getTime()), [entries, range]);
-	const compare = versus(breakdown.total, before, scale, partial, hasEarlier);
+	const inOut = useMemo(() => flows(entries, range), [entries, range]);
+	const savedBefore = useMemo(() => flows(entries, earlier).saved, [entries, earlier]);
+	const compare = versus(breakdown.total, before, scale, partial, hasEarlier, "spent");
+	// With no earlier data the spent line already says so, so the saved line stays quiet.
+	const savedCompare = hasEarlier ? versus(inOut.saved, savedBefore, scale, partial, hasEarlier, "saved") : null;
+	const note = (label: string, text: string | null) =>
+		text && (
+			<p className="today__note">
+				{savedCompare && (
+					<>
+						<strong>{label}</strong> ·{" "}
+					</>
+				)}
+				{text}
+			</p>
+		);
 	// shortcut: History filters by month only, so a day or week opens its whole month; add a date-range filter if that bothers.
 	const historyMonth = monthKey(lastDay.getTime() > today.getTime() ? today : lastDay);
 	const word = scale === "day" ? "day" : scale === "week" ? "week" : "month";
-	const heroLabel = current && scale === "day" ? "Spent today" : `Spent ${current ? "this" : "that"} ${word}`;
+	const heroLabel = (verb: string) => (current && scale === "day" ? `${verb} today` : `${verb} ${current ? "this" : "that"} ${word}`);
 
 	return (
 		<main className="home">
@@ -125,12 +141,22 @@ export function Stats({ entries, plan, today, scale, anchor, onAnchor, onScale, 
 					</div>
 				</div>
 				<ScaleSwitch scale={scale} onChange={onScale} />
-				<p className="today__label" id="stats-label">
-					{heroLabel}
-				</p>
-				<p className="today__figure" aria-live="polite">
-					<Figure satang={breakdown.total} />
-				</p>
+				<div className="hero-pair">
+					<div>
+						<p className="today__label" id="stats-label">
+							{heroLabel("Spent")}
+						</p>
+						<p className="today__figure" aria-live="polite">
+							<Figure satang={breakdown.total} />
+						</p>
+					</div>
+					<div>
+						<p className="today__label">{heroLabel("Saved")}</p>
+						<p className="today__figure" aria-live="polite">
+							<Figure satang={inOut.saved} />
+						</p>
+					</div>
+				</div>
 				{day && day.mode !== "off" && (
 					<p className={day.leftToday < 0 ? "today__note today__note--warn" : "today__note"}>
 						{day.leftToday < 0 && <Icon name="warning" size={18} />}
@@ -139,7 +165,8 @@ export function Stats({ entries, plan, today, scale, anchor, onAnchor, onScale, 
 						</span>
 					</p>
 				)}
-				{compare && <p className="today__note">{compare}</p>}
+				{note("Spent", compare)}
+				{note("Saved", savedCompare)}
 				{breakdown.count === 0 && <p className="today__note">Nothing spent in this {word}.</p>}
 			</section>
 
@@ -271,6 +298,40 @@ export function Stats({ entries, plan, today, scale, anchor, onAnchor, onScale, 
 					</ul>
 				</section>
 			)}
+
+			<section className="sheet sheet--page stat" aria-label="Money in and out">
+				<h2 className="day__head">
+					<span>Money in and out</span>
+				</h2>
+				<ul className="day__lines">
+					{inOut.received + inOut.spent + inOut.saved === 0 ? (
+						<li className="line line--empty">
+							<span className="line__body">No money in or out in this {word}.</span>
+						</li>
+					) : (
+						<>
+							<li className="line">
+								<span aria-hidden="true" />
+								<span className="line__body">Received</span>
+								<span className="line__amount">{inOut.received > 0 && "+"}{formatBaht(inOut.received)}</span>
+							</li>
+							<li className="line">
+								<span aria-hidden="true" />
+								<span className="line__body">Spent</span>
+								<span className="line__amount">{formatBaht(inOut.spent)}</span>
+							</li>
+							<li className="line">
+								<span aria-hidden="true" />
+								<span className="line__body">
+									Saved
+									{inOut.received > 0 && <span className="line__note">{share(inOut.saved / inOut.received)} of what came in</span>}
+								</span>
+								<span className="line__amount">{formatBaht(inOut.saved)}</span>
+							</li>
+						</>
+					)}
+				</ul>
+			</section>
 		</main>
 	);
 }
