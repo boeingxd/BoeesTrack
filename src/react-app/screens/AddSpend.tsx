@@ -71,9 +71,9 @@ export function AddSpend({ editing, categories, pots, goneNames, onAddPot, onAdd
 					</div>
 				)}
 				{onSlips && !editing ? (
-					<button type="button" className="topbar__slips" onClick={onSlips}>
+					<button type="button" className="topbar__slips" onClick={onSlips} aria-label="Add from slips">
 						<Icon name="clip" size={18} />
-						Slips
+						<span className="topbar__slips-label">Slips</span>
 					</button>
 				) : (
 					<span className="topbar__spacer" aria-hidden="true" />

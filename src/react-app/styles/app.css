@@ -897,7 +897,7 @@ button:disabled {
 	outline: none;
 }
 
-/* Slips, offered from the Add screen's top bar */
+/* Slips, offered from the Add screen's top bar; at 320px it is only the clip, to leave the kinds their room */
 .topbar__slips {
 	display: inline-flex;
 	align-items: center;
@@ -908,6 +908,16 @@ button:disabled {
 	padding-inline: var(--space-2);
 	color: var(--color-ink);
 	font-weight: var(--weight-medium);
+}
+
+@media (max-width: 23rem) {
+	.topbar__slips-label {
+		display: none;
+	}
+
+	.topbar .kinds {
+		gap: 0;
+	}
 }
 
 /* Home | Stats switch, the Stats page, History, and the end of Home's list */
