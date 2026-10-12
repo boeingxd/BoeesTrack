@@ -123,70 +123,10 @@ button:disabled {
 	white-space: nowrap;
 }
 
-.budget-bar {
-	display: flex;
-	height: 0.625rem;
-	margin-top: var(--space-3);
-	border-radius: 2px;
-	background: var(--color-rule);
-	overflow: hidden;
-}
-
-.budget-bar > span {
-	flex: none;
-}
-
-.budget-bar__before {
-	background: var(--color-edge);
-}
-
-.budget-bar__today {
-	background: var(--color-ink);
-}
-
-/* What is still free to spend today: an outline, not a fill */
-.budget-bar__free {
-	box-shadow: inset 0 0 0 1px var(--color-ink);
-}
-
-.budget-bar--over .budget-bar__before,
-.budget-bar--over .budget-bar__today,
-.budget-bar--today-over .budget-bar__today {
-	background: var(--color-accent);
-}
-
 .nowrap {
 	white-space: nowrap;
 }
 
-.budget-labels {
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: space-between;
-	gap: 0 var(--space-3);
-	margin-top: var(--space-2);
-	font-size: var(--text-sm);
-	color: var(--color-muted);
-}
-
-.budget-labels > span {
-	white-space: nowrap;
-}
-
-.budget-labels__set {
-	display: inline-flex;
-	align-items: center;
-	min-height: var(--tap);
-	margin-block: -0.75rem;
-	padding-inline: var(--space-2);
-	margin-inline-end: calc(var(--space-2) * -1);
-	gap: var(--space-1);
-	color: var(--color-ink);
-	font-weight: var(--weight-medium);
-	white-space: nowrap;
-}
-
-.budget-labels strong,
 .today__note strong {
 	font-weight: var(--weight-strong);
 	color: var(--color-ink);
@@ -211,11 +151,13 @@ button:disabled {
 .today__note {
 	margin-top: var(--space-3);
 	color: var(--color-ink-2);
+	text-align: center;
 }
 
 .today__note--warn {
 	display: flex;
 	align-items: flex-start;
+	justify-content: center;
 	gap: var(--space-2);
 	color: var(--color-accent-text);
 }
@@ -1331,16 +1273,6 @@ button:disabled {
 	border-top: 1px solid var(--color-rule);
 }
 
-.balance-row__label {
-	color: var(--color-muted);
-}
-
-.balance-row strong {
-	margin-inline-start: var(--space-2);
-	font-size: var(--text-md);
-	font-weight: var(--weight-strong);
-}
-
 .balance-row__check {
 	display: inline-flex;
 	align-items: center;
@@ -1432,7 +1364,8 @@ button:disabled {
 	text-align: end;
 }
 
-.hero-pair .today__figure {
+.hero-pair .today__figure,
+.balance-row .today__figure {
 	font-size: var(--text-md);
 }
 
@@ -1483,6 +1416,23 @@ button:disabled {
 
 .meter__fill--over {
 	background: var(--color-accent);
+}
+
+.meter__edit {
+	display: inline-flex;
+	align-items: center;
+	align-self: start;
+	gap: var(--space-1);
+	min-height: var(--tap);
+	margin-block: -0.75rem;
+	margin-inline-start: -0.5rem;
+	padding-inline: var(--space-2);
+	color: var(--color-ink-2);
+}
+
+.pot__bar {
+	display: block;
+	margin-top: var(--space-3);
 }
 
 .meter__amount {

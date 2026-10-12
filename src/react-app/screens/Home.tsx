@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
-import { BudgetBar } from "../components/BudgetBar";
 import { DayList } from "../components/DayList";
 import { Figure } from "../components/Figure";
 import { Icon } from "../components/Icon";
+import { Meter } from "../components/Meter";
 import { ViewSwitch, type View } from "../components/ViewSwitch";
 import { standing } from "../lib/allowance";
 import { balance } from "../lib/balance";
@@ -49,29 +49,39 @@ export function Home({ entries, plan, today, intro, justAddedId, onAdd, onSlips,
 				<div className="ledger-head__top">
 					<h1 className="month">{monthTitle(today)}</h1>
 				</div>
-				<p className="today__label" id="today-label">
-					Spent today
-				</p>
-				<p className="today__figure" aria-live="polite">
-					<Figure satang={s.spentToday} />
-				</p>
-				<BudgetBar
-					budget={budget}
-					monthSpent={s.monthSpent}
-					spentToday={s.spentToday}
-					leftToday={s.leftToday}
-					overMonth={s.overMonth}
-					overToday={s.overToday}
-				/>
-				<p className="budget-labels">
-					<span>
-						<strong>{formatBaht(s.monthSpent)}</strong> this month
-					</span>
-					<button type="button" className="budget-labels__set" onClick={onBudget} aria-label={`Budget ${formatBaht(budget)} a month, change`}>
-						Budget {formatBaht(budget)}
-						<Icon name="edit" size={14} />
-					</button>
-				</p>
+				<div className="hero-main">
+					<p className="today__label" id="today-label">
+						Spent today
+					</p>
+					<p className="today__figure" aria-live="polite">
+						<Figure satang={s.spentToday} />
+					</p>
+				</div>
+				<ul className="meters" aria-label="Spending against your budget">
+					{s.mode !== "off" && (
+						<Meter
+							name="Today"
+							note={`of ${formatBaht(s.todayAllowance)}`}
+							value={s.spentToday}
+							max={s.todayAllowance}
+							tone={s.overToday ? "over" : "ink"}
+							amount={formatBaht(s.spentToday)}
+						/>
+					)}
+					<Meter
+						name={
+							<button type="button" className="meter__edit" onClick={onBudget} aria-label={`Budget ${formatBaht(budget)} a month, change`}>
+								Month
+								<Icon name="edit" size={14} />
+							</button>
+						}
+						note={`of ${formatBaht(budget)}`}
+						value={s.monthSpent}
+						max={budget}
+						tone={s.overMonth ? "over" : "ink"}
+						amount={formatBaht(s.monthSpent)}
+					/>
+				</ul>
 				{s.overToday || s.overMonth ? (
 					<p className="today__note today__note--warn" role="status">
 						<Icon name="warning" size={18} />
@@ -103,9 +113,12 @@ export function Home({ entries, plan, today, intro, justAddedId, onAdd, onSlips,
 				)}
 
 				<div className="balance-row">
-					<p>
-						<span className="balance-row__label">Balance</span> <strong>{formatBaht(held)}</strong>
-					</p>
+					<div>
+						<p className="today__label">Balance</p>
+						<p className="today__figure" aria-live="polite">
+							<Figure satang={held} />
+						</p>
+					</div>
 					<button type="button" className="balance-row__check" aria-expanded={checking} onClick={() => setChecking(!checking)}>
 						Check
 						<Icon name="down" size={16} />

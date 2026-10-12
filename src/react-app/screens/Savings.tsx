@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Figure } from "../components/Figure";
 import { Icon } from "../components/Icon";
+import { MeterTrack } from "../components/Meter";
 import { PotForm } from "../components/PotForm";
 import { ViewSwitch, type View } from "../components/ViewSwitch";
 import { potTotals } from "../lib/balance";
@@ -32,12 +33,14 @@ export function Savings({ entries, pots, today, onView, onAddPot, onEditPot }: P
 				<div className="ledger-head__top">
 					<h1 className="month">Savings</h1>
 				</div>
-				<p className="today__label" id="saved-label">
-					Saved in total
-				</p>
-				<p className="today__figure" aria-live="polite">
-					<Figure satang={saved} />
-				</p>
+				<div className="hero-main">
+					<p className="today__label" id="saved-label">
+						Saved in total
+					</p>
+					<p className="today__figure" aria-live="polite">
+						<Figure satang={saved} />
+					</p>
+				</div>
 			</section>
 
 			<h2 className="money-head">Pots</h2>
@@ -60,7 +63,6 @@ export function Savings({ entries, pots, today, onView, onAddPot, onEditPot }: P
 							</li>
 						);
 					}
-					const pct = Math.min(100, Math.max(0, (total / pot.target) * 100));
 					return (
 						<li className="pot" key={pot.name}>
 							<div className="pot__head">
@@ -74,8 +76,8 @@ export function Savings({ entries, pots, today, onView, onAddPot, onEditPot }: P
 									<Icon name="edit" size={18} />
 								</button>
 							</div>
-							<div className="budget-bar" role="img" aria-label={`${pot.name}: ${formatBaht(total)} of ${formatBaht(pot.target)}`}>
-								<span className="budget-bar__today" style={{ width: `${pct}%` }} />
+							<div className="pot__bar" role="img" aria-label={`${pot.name}: ${formatBaht(total)} of ${formatBaht(pot.target)}`}>
+								<MeterTrack value={total} max={pot.target} />
 							</div>
 							{pot.monthly > 0 && (
 								<p className="pot__month">
