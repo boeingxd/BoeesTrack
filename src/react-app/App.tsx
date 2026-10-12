@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { View } from "./components/ViewSwitch";
-import { checkIn } from "./lib/balance";
+import { balance, checkIn } from "./lib/balance";
 import * as api from "./lib/api";
 import { saveOrUndo } from "./lib/optimistic";
 import { flagDuplicates, newSlip, readBatch } from "./lib/slipBatch";
@@ -379,6 +379,7 @@ function App() {
 			{screen === "budget" && (
 				<BudgetSheet
 					plan={plan}
+					balance={balance(entries)}
 					onClose={() => setScreen("home")}
 					onSave={savePlan}
 				/>

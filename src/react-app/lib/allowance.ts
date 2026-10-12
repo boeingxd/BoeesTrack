@@ -46,3 +46,8 @@ export function standing(entries: Entry[], plan: BudgetPlan, today: Date): Stand
 		overMonth: monthSpent > budget,
 	};
 }
+
+// A share of the balance as a monthly budget, in whole baht. Nothing to share when the balance is zero or below.
+export function fromBalance(balanceSatang: number, percent: number): number {
+	return wholeBaht((balanceSatang * percent) / 100);
+}

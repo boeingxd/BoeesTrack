@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { standing } from "./allowance";
+import { fromBalance, standing } from "./allowance";
 import type { BudgetPlan, Entry } from "./types";
 
 const baht = (n: number) => n * 100;
@@ -82,5 +82,19 @@ describe("standing", () => {
 		expect(s.overToday).toBe(false);
 		expect(s.tomorrowAllowance).toBeNull();
 		expect(s.monthLeft).toBe(baht(19_100));
+	});
+});
+
+describe("fromBalance", () => {
+	it("takes a share of the balance", () => {
+		expect(fromBalance(baht(10_000), 30)).toBe(baht(3_000));
+		expect(fromBalance(baht(10_000), 100)).toBe(baht(10_000));
+	});
+	it("rounds down to whole baht", () => {
+		expect(fromBalance(baht(1_001), 33)).toBe(baht(330));
+	});
+	it("is zero when the balance is zero or negative", () => {
+		expect(fromBalance(0, 30)).toBe(0);
+		expect(fromBalance(-baht(500), 30)).toBe(0);
 	});
 });

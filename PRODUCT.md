@@ -26,7 +26,7 @@ Thailand, baht. Money moves mostly through bank transfer slips (screenshots, eac
 
 - Entries are labelled spent, received ("add money") or saved; only spent counts toward budgets.
 - Categories are by occasion (for example hangouts versus food and drink), with a free-text note; categories can be added with a plus.
-- Monthly budget with a daily allowance that is derived from the month by default, can be set manually, or can be off; a warning shows when over; overspending lowers later days' derived allowance.
+- Monthly budget (typed as an amount, or set as a percentage of the balance at the moment of saving, kept as a plain amount) with a daily allowance that is derived from the month by default, can be set manually, or can be off; a warning shows when over; overspending lowers later days' derived allowance.
 - Goals: a fixed monthly savings amount, plus extra contributions at any time. Saving is separate from spending.
 - Add a spend: one tap from the main screen, amount first, time defaults to now and is editable, one category, optional note.
 - Edit or delete an entry from its page: amount, tag, note and date can change (kind and pot stay fixed); deleting asks first; bank check-in adjustments can only be deleted. A slip entry can be edited like any other and keeps its slip reference and picture.
