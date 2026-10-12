@@ -1543,18 +1543,10 @@ button:disabled {
 	font-size: var(--text-sm);
 }
 
-.balance-row__check svg {
-	transition: transform var(--dur-micro) var(--ease-out);
-}
-
-.balance-row__check[aria-expanded="true"] svg {
-	transform: rotate(180deg);
-}
-
 .balance-check {
 	display: grid;
 	gap: var(--space-3);
-	padding-bottom: var(--space-2);
+	padding: var(--space-2) var(--page-pad) var(--space-4);
 }
 
 .bank-input {

@@ -3,6 +3,7 @@ import { DayList } from "../components/DayList";
 import { Figure } from "../components/Figure";
 import { Icon } from "../components/Icon";
 import { Meter } from "../components/Meter";
+import { Sheet } from "../components/Sheet";
 import { standing } from "../lib/allowance";
 import { balance } from "../lib/balance";
 import { groupByDay, monthTitle } from "../lib/dates";
@@ -114,12 +115,12 @@ export function Home({ entries, plan, today, intro, justAddedId, onOpenEntry, on
 							<Figure satang={held} />
 						</p>
 					</div>
-					<button type="button" className="balance-row__check" aria-expanded={checking} onClick={() => setChecking(!checking)}>
+					<button type="button" className="balance-row__check" aria-haspopup="dialog" onClick={() => setChecking(true)}>
 						Check
-						<Icon name="down" size={16} />
 					</button>
 				</div>
 				{checking && (
+					<Sheet title="Check balance" onClose={() => setChecking(false)}>
 					<div className="balance-check">
 						<input
 							className="bank-input"
@@ -150,13 +151,13 @@ export function Home({ entries, plan, today, intro, justAddedId, onOpenEntry, on
 							Add adjustment
 						</button>
 					</div>
+					</Sheet>
 				)}
 			</section>
 
 			<section className="sheet" aria-label="Entries by day" style={{ "--i": 2 } as React.CSSProperties}>
 				<DayList groups={groups} today={today} justAddedId={justAddedId} onOpenEntry={onOpenEntry} />
 			</section>
-
 		</main>
 	);
 }
