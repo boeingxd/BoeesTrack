@@ -46,6 +46,7 @@ export function SlipReview({ slips, categories, onChange, onClose, onAddByHand, 
 				<span className="topbar__spacer" aria-hidden="true" />
 			</header>
 
+			<p className="sample-note">Sample slips, not yours. Confirming adds them as real entries.</p>
 			<p className="review-intro">
 				{slips.length} uploaded · {ready.length} readable{skipped > 0 && ` · ${skipped} skipped`}. Check each value
 				against its slip, and choose a category.{uncategorised > 0 && ` ${uncategorised} still without one.`}

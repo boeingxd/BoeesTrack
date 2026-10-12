@@ -31,7 +31,6 @@ export function Savings({ entries, pots, today, onView, onAddPot, onEditPot }: P
 			<section className="today" aria-labelledby="saved-label">
 				<div className="ledger-head__top">
 					<h1 className="month">Savings</h1>
-					<p className="sample-note">Sample data</p>
 				</div>
 				<p className="today__label" id="saved-label">
 					Saved in total

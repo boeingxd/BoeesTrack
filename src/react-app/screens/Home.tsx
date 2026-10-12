@@ -48,7 +48,6 @@ export function Home({ entries, plan, today, intro, justAddedId, onAdd, onSlips,
 			<section className="today" aria-labelledby="today-label" style={{ "--i": 1 } as React.CSSProperties}>
 				<div className="ledger-head__top">
 					<h1 className="month">{monthTitle(today)}</h1>
-					<p className="sample-note">Sample data</p>
 				</div>
 				<p className="today__label" id="today-label">
 					Spent today
