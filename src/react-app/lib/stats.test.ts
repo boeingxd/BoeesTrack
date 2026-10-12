@@ -135,6 +135,16 @@ describe("habits", () => {
 describe("filterEntries", () => {
 	const all = defaultFilters(new Date(2026, 9, 8));
 
+	it("splits slips from manual entries by slip reference, with or without a picture", () => {
+		const day = new Date(2026, 9, 8, 12);
+		const mk = (id: string, extra: Partial<Entry>): Entry => ({ id, kind: "spent", satang: 100, at: day, category: null, note: "", ...extra });
+		const list = [mk("a", { slipRef: "R1", hasImage: true }), mk("b", { slipRef: "R2" }), mk("c", {})];
+		const ids = (source: "all" | "slips" | "manual") => filterEntries(list, { ...all, source }).map((e) => e.id);
+		expect(ids("slips")).toEqual(["a", "b"]);
+		expect(ids("manual")).toEqual(["c"]);
+		expect(ids("all")).toEqual(["a", "b", "c"]);
+	});
+
 	it("shows the month it opens on and nothing from other months", () => {
 		expect(filterEntries(entries, all)).toHaveLength(entries.length - 1);
 	});

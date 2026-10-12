@@ -77,6 +77,7 @@ export function History({ entries, categories, today, filters, onFilters, onView
 		filters.query === "" &&
 		filters.category === null &&
 		filters.kind === "all" &&
+		filters.source === "all" &&
 		filters.sort === "newest" &&
 		filters.scale === "month" &&
 		monthKey(filters.anchor) === monthKey(today);
@@ -156,6 +157,19 @@ export function History({ entries, categories, today, filters, onFilters, onView
 									{name}
 								</option>
 							))}
+						</select>
+						<Icon name="down" size={16} />
+					</label>
+					<label className={filters.source === "all" ? "select select--bare chip filters__wide" : "select select--bare chip chip--on filters__wide"}>
+						<select
+							className="select__input"
+							value={filters.source}
+							aria-label="Filter by source"
+							onChange={(event) => set({ source: event.target.value as Filters["source"] })}
+						>
+							<option value="all">All sources</option>
+							<option value="slips">Slips</option>
+							<option value="manual">Typed in by hand</option>
 						</select>
 						<Icon name="down" size={16} />
 					</label>

@@ -940,6 +940,10 @@ button:disabled {
 	border-bottom: 2px solid transparent;
 }
 
+.filters .filters__wide {
+	grid-column: 1 / -1;
+}
+
 .filters .select.chip--on {
 	border-bottom-color: var(--color-ink);
 }

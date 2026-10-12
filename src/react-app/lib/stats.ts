@@ -12,13 +12,14 @@ export type Filters = {
 	query: string;
 	category: string | null;
 	kind: "all" | Kind;
+	source: "all" | "slips" | "manual";
 	scale: Scale;
 	anchor: Date;
 	sort: Sort;
 };
 
 export function defaultFilters(today: Date): Filters {
-	return { query: "", category: null, kind: "all", scale: "month", anchor: today, sort: "newest" };
+	return { query: "", category: null, kind: "all", source: "all", scale: "month", anchor: today, sort: "newest" };
 }
 
 // `to` is exclusive: the first instant of the next period.
@@ -172,6 +173,8 @@ export function filterEntries(entries: Entry[], filters: Filters): Entry[] {
 	return entries.filter((entry) => {
 		if (range && !inRange(entry, range)) return false;
 		if (filters.kind !== "all" && entry.kind !== filters.kind) return false;
+		// A slip is told by its reference, not by whether its picture is still stored.
+		if (filters.source !== "all" && Boolean(entry.slipRef) !== (filters.source === "slips")) return false;
 		if (filters.category !== null) {
 			const wanted = filters.category === NO_CATEGORY ? null : filters.category;
 			if (entry.kind !== "spent" || entry.category !== wanted) return false;
