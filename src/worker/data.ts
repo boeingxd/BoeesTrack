@@ -6,6 +6,7 @@ import {
 	entryFromRow,
 	parseCategory,
 	parseEntries,
+	parseEntry,
 	parsePlan,
 	parsePot,
 	planFromRow,
@@ -51,6 +52,27 @@ data.post("/entries", async (c) => {
 		await db.batch(parsed.value.map((e) => insert.bind(e.id, e.kind, e.satang, e.at, e.category, e.note, e.slipRef ?? null, e.pot ?? null)));
 		return c.json({ ok: true }, 201);
 	});
+});
+
+// An edit rewrites the whole row; the id in the path must match the body so one entry cannot be saved over another.
+data.put("/entries/:id", async (c) => {
+	const parsed = parseEntry(await json(c));
+	if (!parsed.ok) return c.text(parsed.error, 400);
+	const e = parsed.value;
+	if (e.id !== c.req.param("id")) return c.text("id does not match", 400);
+	return guard(c, async () => {
+		const res = await c.env.DB.prepare("UPDATE entries SET kind = ?, satang = ?, at = ?, category = ?, note = ?, slip_ref = ?, pot = ? WHERE id = ?")
+			.bind(e.kind, e.satang, e.at, e.category, e.note, e.slipRef ?? null, e.pot ?? null, e.id)
+			.run();
+		if (res.meta.changes === 0) return c.text("No such entry", 404);
+		return c.json({ ok: true });
+	});
+});
+
+data.delete("/entries/:id", async (c) => {
+	const res = await c.env.DB.prepare("DELETE FROM entries WHERE id = ?").bind(c.req.param("id")).run();
+	if (res.meta.changes === 0) return c.text("No such entry", 404);
+	return c.json({ ok: true });
 });
 
 data.post("/pots", async (c) => {

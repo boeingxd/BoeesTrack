@@ -30,6 +30,8 @@ export async function loadAll(): Promise<{ entries: Entry[]; pots: Pot[]; catego
 }
 
 export const addEntries = (entries: Entry[]) => call("POST", "/entries", entries.map(toWire)).then(() => undefined);
+export const editEntry = (entry: Entry) => call("PUT", `/entries/${encodeURIComponent(entry.id)}`, toWire(entry)).then(() => undefined);
+export const deleteEntry = (id: string) => call("DELETE", `/entries/${encodeURIComponent(id)}`).then(() => undefined);
 export const addPot = (pot: Pot) => call("POST", "/pots", pot).then(() => undefined);
 export const editPot = (oldName: string, pot: Pot) => call("PUT", `/pots/${encodeURIComponent(oldName)}`, pot).then(() => undefined);
 export const savePlan = (plan: BudgetPlan) => call("PUT", "/plan", plan).then(() => undefined);

@@ -4,9 +4,11 @@ import { PotForm } from "../components/PotForm";
 import { Icon } from "../components/Icon";
 import { toInputValue, whenLabel } from "../lib/dates";
 import { formatBaht, groupInput, inputToSatang, pressKey } from "../lib/money";
-import type { Kind, Pot } from "../lib/types";
+import type { Entry, Kind, Pot } from "../lib/types";
 
 type Props = {
+	// Set to change an existing entry: its kind and pot stay as they were, only the amount, note, date and tag change.
+	editing?: Entry;
 	categories: string[];
 	pots: Pot[];
 	onAddPot: (pot: Pot) => void;
@@ -23,21 +25,21 @@ const KINDS: { value: Kind; label: string }[] = [
 
 const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "back"];
 
-export function AddSpend({ categories, pots, onAddPot, onAddCategory, onClose, onSave }: Props) {
-	const [kind, setKind] = useState<Kind>("spent");
-	const [input, setInput] = useState("");
-	const [note, setNote] = useState("");
-	const [at, setAt] = useState(() => new Date());
-	const [category, setCategory] = useState<string | null>(null);
+export function AddSpend({ editing, categories, pots, onAddPot, onAddCategory, onClose, onSave }: Props) {
+	const [kind, setKind] = useState<Kind>(editing?.kind ?? "spent");
+	const [input, setInput] = useState(editing ? String(editing.satang / 100) : "");
+	const [note, setNote] = useState(editing?.note ?? "");
+	const [at, setAt] = useState(() => editing?.at ?? new Date());
+	const [category, setCategory] = useState<string | null>(editing?.category ?? null);
 	// Saved money must go into a pot; a spend can optionally be paid from one (null means from the balance).
-	const [pot, setPot] = useState<string | null>(null);
+	const [pot, setPot] = useState<string | null>(editing?.pot ?? null);
 	const [makingPot, setMakingPot] = useState(false);
 	const whenInput = useRef<HTMLInputElement>(null);
 
 	const satang = inputToSatang(input);
 	const potNames = pots.map((p) => p.name);
 	const ready = satang > 0 && (kind !== "saved" || pot !== null);
-	const verb = kind === "spent" ? "Add" : kind === "received" ? "Add money" : "Set aside";
+	const verb = editing ? "Save" : kind === "spent" ? "Add" : kind === "received" ? "Add money" : "Set aside";
 
 	return (
 		<div className="screen screen--sheet">
@@ -45,20 +47,24 @@ export function AddSpend({ categories, pots, onAddPot, onAddCategory, onClose, o
 				<button type="button" className="icon-btn" onClick={onClose} aria-label="Close without saving">
 					<Icon name="close" />
 				</button>
-				<div className="kinds" role="radiogroup" aria-label="What kind of entry">
-					{KINDS.map((k) => (
-						<button
-							key={k.value}
-							type="button"
-							role="radio"
-							aria-checked={kind === k.value}
-							className="kind"
-							onClick={() => setKind(k.value)}
-						>
-							{k.label}
-						</button>
-					))}
-				</div>
+				{editing ? (
+					<h1 className="topbar__title">Edit {KINDS.find((k) => k.value === kind)?.label.toLowerCase()}</h1>
+				) : (
+					<div className="kinds" role="radiogroup" aria-label="What kind of entry">
+						{KINDS.map((k) => (
+							<button
+								key={k.value}
+								type="button"
+								role="radio"
+								aria-checked={kind === k.value}
+								className="kind"
+								onClick={() => setKind(k.value)}
+							>
+								{k.label}
+							</button>
+						))}
+					</div>
+				)}
 				<span className="topbar__spacer" aria-hidden="true" />
 			</header>
 
@@ -109,7 +115,7 @@ export function AddSpend({ categories, pots, onAddPot, onAddCategory, onClose, o
 						/>
 					</label>
 				</div>
-				{kind === "saved" && (
+				{kind === "saved" && !editing && (
 					<div className="field field--tags">
 						<span className="field__label" aria-hidden="true">
 							Into
@@ -119,7 +125,7 @@ export function AddSpend({ categories, pots, onAddPot, onAddCategory, onClose, o
 						</div>
 					</div>
 				)}
-				{kind === "spent" && potNames.length > 0 && (
+				{kind === "spent" && !editing && potNames.length > 0 && (
 					<div className="field field--tags">
 						<span className="field__label" aria-hidden="true">
 							Paid from

@@ -27,7 +27,7 @@ const isObject = (v: unknown): v is Record<string, unknown> => typeof v === "obj
 const isInt = (v: unknown): v is number => typeof v === "number" && Number.isSafeInteger(v);
 const isText = (v: unknown, max: number): v is string => typeof v === "string" && v.trim() !== "" && v.length <= max;
 
-function parseEntry(raw: unknown): Parsed<WireEntry> {
+export function parseEntry(raw: unknown): Parsed<WireEntry> {
 	if (!isObject(raw)) return fail("entry must be an object");
 	const { id, kind, satang, at, category, note, slipRef, pot } = raw;
 	if (!isText(id, 100)) return fail("bad id");

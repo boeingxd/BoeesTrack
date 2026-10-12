@@ -15,7 +15,7 @@ import { Savings } from "./screens/Savings";
 import { SlipReview } from "./screens/SlipReview";
 import { Stats } from "./screens/Stats";
 
-type Screen = "home" | "stats" | "history" | "add" | "slips" | "savings" | "budget" | "entry";
+type Screen = "home" | "stats" | "history" | "add" | "slips" | "savings" | "budget" | "entry" | "edit";
 
 function App() {
 	const [today] = useState(() => new Date());
@@ -106,6 +106,22 @@ function App() {
 	function openEntry(entry: Entry) {
 		setDetail({ entry, from: screen });
 		setScreen("entry");
+	}
+
+	// The change shows at once and is saved behind it; a failed save puts the old entry back.
+	function editEntry(updated: Entry) {
+		const before = entries.find((e) => e.id === updated.id);
+		if (!before) return;
+		setEntries((current) => current.map((e) => (e.id === updated.id ? updated : e)));
+		setDetail((current) => (current ? { ...current, entry: updated } : current));
+		save(() => api.editEntry(updated), () => setEntries((current) => current.map((e) => (e.id === updated.id ? before : e))));
+		setScreen("entry");
+	}
+
+	function deleteEntry(entry: Entry) {
+		setEntries((current) => current.filter((e) => e.id !== entry.id));
+		save(() => api.deleteEntry(entry.id), () => setEntries((current) => [...current, entry]));
+		setScreen(detail?.from ?? "home");
 	}
 
 	function storeEntries(added: Entry[]) {
@@ -228,7 +244,26 @@ function App() {
 					onOpenEntry={openEntry}
 				/>
 			)}
-			{screen === "entry" && detail && <EntryDetail entry={detail.entry} today={today} onClose={() => setScreen(detail.from)} />}
+			{screen === "entry" && detail && (
+				<EntryDetail
+					entry={detail.entry}
+					today={today}
+					onClose={() => setScreen(detail.from)}
+					onEdit={() => setScreen("edit")}
+					onDelete={() => deleteEntry(detail.entry)}
+				/>
+			)}
+			{screen === "edit" && detail && (
+				<AddSpend
+					editing={detail.entry}
+					categories={categories}
+					pots={pots}
+					onAddPot={addPot}
+					onAddCategory={addCategory}
+					onClose={() => setScreen("entry")}
+					onSave={(draft) => editEntry({ ...detail.entry, ...draft })}
+				/>
+			)}
 			{screen === "savings" && (
 				<Savings
 					entries={entries}
