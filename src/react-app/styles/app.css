@@ -1418,16 +1418,26 @@ button:disabled {
 	background: var(--color-accent);
 }
 
-.meter__edit {
-	display: inline-flex;
+.meters-head {
+	display: flex;
 	align-items: center;
-	align-self: start;
-	gap: var(--space-1);
-	min-height: var(--tap);
-	margin-block: -0.75rem;
-	margin-inline-start: -0.5rem;
-	padding-inline: var(--space-2);
-	color: var(--color-ink-2);
+	justify-content: space-between;
+	margin-top: var(--space-4);
+}
+
+.meters-head__title {
+	font-size: var(--text-base);
+	font-weight: var(--weight-strong);
+	color: var(--color-ink);
+}
+
+/* The icon sits flush with the right edge of the content, like the amounts below it */
+.meters-head__edit {
+	margin-inline-end: -0.75rem;
+}
+
+.meters-head + .meters {
+	margin-top: 0;
 }
 
 .pot__bar {

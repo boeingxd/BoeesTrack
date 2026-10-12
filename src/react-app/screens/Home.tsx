@@ -57,7 +57,15 @@ export function Home({ entries, plan, today, intro, justAddedId, onAdd, onSlips,
 						<Figure satang={s.spentToday} />
 					</p>
 				</div>
-				<ul className="meters" aria-label="Spending against your budget">
+				<div className="meters-head">
+					<h2 className="meters-head__title" id="budget-title">
+						Budget
+					</h2>
+					<button type="button" className="icon-btn meters-head__edit" onClick={onBudget} aria-label={`Edit budget, ${formatBaht(budget)} a month`}>
+						<Icon name="settings" />
+					</button>
+				</div>
+				<ul className="meters" aria-labelledby="budget-title">
 					{s.mode !== "off" && (
 						<Meter
 							name="Today"
@@ -69,12 +77,7 @@ export function Home({ entries, plan, today, intro, justAddedId, onAdd, onSlips,
 						/>
 					)}
 					<Meter
-						name={
-							<button type="button" className="meter__edit" onClick={onBudget} aria-label={`Budget ${formatBaht(budget)} a month, change`}>
-								Month
-								<Icon name="edit" size={14} />
-							</button>
-						}
+						name="Month"
 						note={`of ${formatBaht(budget)}`}
 						value={s.monthSpent}
 						max={budget}
