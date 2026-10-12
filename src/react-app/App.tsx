@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import type { View } from "./components/ViewSwitch";
 import { checkIn } from "./lib/balance";
-import { DEFAULT_CATEGORIES, SAMPLE_PLAN, SAMPLE_POTS, sampleEntries, sampleSlips } from "./lib/sample";
+import * as api from "./lib/api";
+import { saveOrUndo } from "./lib/optimistic";
+import { sampleSlips } from "./lib/sample";
 import { defaultFilters, periodRange, type Filters, type Scale } from "./lib/stats";
 import type { BudgetPlan, Entry, Pot, Slip } from "./lib/types";
 import { AddSpend } from "./screens/AddSpend";
@@ -17,10 +19,13 @@ type Screen = "home" | "stats" | "history" | "add" | "slips" | "savings" | "budg
 
 function App() {
 	const [today] = useState(() => new Date());
-	const [entries, setEntries] = useState<Entry[]>(() => sampleEntries(today));
-	const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
-	const [plan, setPlan] = useState<BudgetPlan>(SAMPLE_PLAN);
-	const [pots, setPots] = useState<Pot[]>(SAMPLE_POTS);
+	const [entries, setEntries] = useState<Entry[]>([]);
+	const [categories, setCategories] = useState<string[]>([]);
+	const [plan, setPlan] = useState<BudgetPlan>({ monthly: 0, daily: "auto" });
+	const [pots, setPots] = useState<Pot[]>([]);
+	const [load, setLoad] = useState<"loading" | "failed" | "ready">("loading");
+	const [attempt, setAttempt] = useState(0);
+	const [notice, setNotice] = useState<string | null>(null);
 	const [slips, setSlips] = useState<Slip[]>([]);
 	const [screen, setScreen] = useState<Screen>("home");
 	const [justAddedId, setJustAddedId] = useState<string | null>(null);
@@ -37,8 +42,36 @@ function App() {
 		return () => clearTimeout(timer);
 	}, []);
 
+	// Everything comes from D1 once; the screens then work on this copy and save each change behind it.
+	useEffect(() => {
+		let cancelled = false;
+		api.loadAll().then(
+			(all) => {
+				if (cancelled) return;
+				setEntries(all.entries);
+				setPots(all.pots);
+				setCategories(all.categories);
+				setPlan(all.plan);
+				setLoad("ready");
+			},
+			() => {
+				if (!cancelled) setLoad("failed");
+			},
+		);
+		return () => {
+			cancelled = true;
+		};
+	}, [attempt]);
+
+	// Each change shows at once; if the save fails it is taken back and a notice appears.
+	function save(request: () => Promise<unknown>, undo: () => void) {
+		void saveOrUndo(request, undo, setNotice);
+	}
+
 	function addCategory(name: string) {
-		setCategories((current) => (current.includes(name) ? current : [...current, name]));
+		if (categories.includes(name)) return;
+		setCategories((current) => [...current, name]);
+		save(() => api.addCategory(name), () => setCategories((current) => current.filter((c) => c !== name)));
 	}
 
 	// Opening Insight from Home shows today's period at the scale you last used.
@@ -70,29 +103,81 @@ function App() {
 		setScreen("entry");
 	}
 
-	function addEntries(added: Entry[]) {
+	function storeEntries(added: Entry[]) {
 		setEntries((current) => [...current, ...added]);
+		const ids = new Set(added.map((e) => e.id));
+		save(() => api.addEntries(added), () => setEntries((current) => current.filter((e) => !ids.has(e.id))));
+	}
+
+	function addEntries(added: Entry[]) {
+		storeEntries(added);
 		setJustAddedId(added[0]?.id ?? null);
 		setScreen("home");
 	}
 
 	function addCheckIn(bankSatang: number) {
 		const adjustment = checkIn(entries, bankSatang, new Date());
-		if (adjustment) setEntries((current) => [...current, adjustment]);
+		if (adjustment) storeEntries([adjustment]);
 	}
 
 	function addPot(pot: Pot) {
 		setPots((current) => [...current, pot]);
+		save(() => api.addPot(pot), () => setPots((current) => current.filter((p) => p.name !== pot.name)));
 	}
 
-	// A renamed pot takes its entries with it, so its total survives.
+	// A renamed pot takes its entries with it, so its total survives; a failed rename puts both back.
 	function editPot(oldName: string, pot: Pot) {
+		const before = pots.find((p) => p.name === oldName);
 		setPots((current) => current.map((p) => (p.name === oldName ? pot : p)));
 		if (pot.name !== oldName) setEntries((current) => current.map((e) => (e.pot === oldName ? { ...e, pot: pot.name } : e)));
+		save(
+			() => api.editPot(oldName, pot),
+			() => {
+				if (before) setPots((current) => current.map((p) => (p.name === pot.name ? before : p)));
+				if (pot.name !== oldName) setEntries((current) => current.map((e) => (e.pot === pot.name ? { ...e, pot: oldName } : e)));
+			},
+		);
+	}
+
+	function savePlan(next: BudgetPlan) {
+		const before = plan;
+		setPlan(next);
+		save(() => api.savePlan(next), () => setPlan(before));
+		setScreen("home");
+	}
+
+	if (load !== "ready") {
+		return (
+			<div className="app">
+				<p className="boot" role="status">
+					{load === "loading" ? (
+						"Opening your notebook…"
+					) : (
+						<>
+							Couldn't load your data.
+							<button
+								type="button"
+								onClick={() => {
+									setLoad("loading");
+									setAttempt((n) => n + 1);
+								}}
+							>
+								Try again
+							</button>
+						</>
+					)}
+				</p>
+			</div>
+		);
 	}
 
 	return (
 		<div className="app">
+			{notice && (
+				<button type="button" className="notice" role="alert" onClick={() => setNotice(null)}>
+					{notice} Tap to dismiss.
+				</button>
+			)}
 			{screen === "home" && (
 				<Home
 					entries={entries}
@@ -152,10 +237,7 @@ function App() {
 				<BudgetSheet
 					plan={plan}
 					onClose={() => setScreen("home")}
-					onSave={(next) => {
-						setPlan(next);
-						setScreen("home");
-					}}
+					onSave={savePlan}
 				/>
 			)}
 			{screen === "add" && (
