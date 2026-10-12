@@ -653,6 +653,12 @@ button:disabled {
 	word-break: break-all;
 }
 
+.slip__hint {
+	font-size: var(--text-xs);
+	line-height: 1.35;
+	color: var(--color-muted);
+}
+
 .slip__x {
 	position: absolute;
 	top: var(--space-2);

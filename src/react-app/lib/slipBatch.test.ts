@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { fingerprint, flagDuplicates, isReady, newSlip } from "./slipBatch";
-import type { Slip } from "./types";
+import { fingerprint, flagDuplicates, isReady, newSlip, rememberPayee } from "./slipBatch";
+import type { Entry, Slip } from "./types";
 
 const slip = (over: Partial<Slip>): Slip => ({ id: "s", fileName: "a.jpeg", status: "ok", note: "", category: null, removed: false, ...over });
 const file = (type: string, size = 10) => new File([new Uint8Array(size)], "a", { type });
@@ -41,6 +41,22 @@ describe("newSlip and isReady", () => {
 		expect(isReady({ ...full, satang: undefined })).toBe(false);
 		expect(isReady({ ...full, at: undefined })).toBe(false);
 		expect(isReady({ ...full, removed: true })).toBe(false);
+	});
+});
+
+describe("rememberPayee", () => {
+	const past = (over: Partial<Entry>): Entry => ({ id: "e", kind: "spent", satang: 100, at: new Date(2026, 9, 1), category: "Food & drink", note: "TEST SHOP", payeeKey: "b:010000000000001", ...over });
+
+	it("fills in the newest earlier note and tag for the same shop", () => {
+		const old = past({ id: "old", note: "OLD NAME", category: "Other" });
+		const out = rememberPayee(slip({ payeeKey: "b:010000000000001", note: "garbled" }), [old, past({ at: new Date(2026, 9, 5) })]);
+		expect(out).toMatchObject({ note: "TEST SHOP", autoNote: "TEST SHOP", category: "Food & drink", remembered: true });
+	});
+
+	it("leaves a slip alone when the shop is new or has no key", () => {
+		const s = slip({ payeeKey: "b:999", note: "mine" });
+		expect(rememberPayee(s, [past({})])).toBe(s);
+		expect(rememberPayee(slip({ note: "x" }), [past({})]).remembered).toBeUndefined();
 	});
 });
 

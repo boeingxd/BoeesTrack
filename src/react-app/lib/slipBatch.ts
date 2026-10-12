@@ -1,6 +1,7 @@
 import { IMAGE_TYPES, MAX_IMAGE_BYTES } from "../../worker/wire";
-import { readSlip } from "./ocr";
-import type { Slip } from "./types";
+import { pickName, type Names } from "./nameRead";
+import { cropName, readFull, readName, type NameModel } from "./ocr";
+import type { Entry, Slip } from "./types";
 
 // A short code made from the picture itself, for a slip whose bank reference could not be read.
 // The same screenshot gives the same code, so it is still caught as a duplicate.
@@ -16,22 +17,76 @@ export function newSlip(file: File, id: string): Slip {
 	return reason ? { ...base, status: "unreadable", reason } : { ...base, status: "reading", file, url: URL.createObjectURL(file) };
 }
 
-// Fills a slip in from its picture. What the reader could not find stays empty for you to type; it never guesses a date.
+// First look at a slip: amount, time, reference and a first guess at the name. What the reader could not find stays
+// empty for you to type; it never guesses a date.
 export async function readInto(slip: Slip): Promise<Slip> {
 	if (!slip.file) return slip;
 	try {
-		const fields = await readSlip(slip.file);
+		const { fields, box } = await readFull(slip.file);
+		const note = fields.receiver.slice(0, 80);
 		return {
 			...slip,
 			status: "ok",
 			satang: fields.satang ?? undefined,
 			at: fields.at ?? undefined,
-			note: fields.receiver.slice(0, 80),
+			note,
+			autoNote: note,
 			ref: fields.slipRef ?? (await fingerprint(slip.file)),
+			payeeKey: fields.payeeKey ?? undefined,
+			nameBox: box ?? undefined,
 		};
 	} catch {
 		return { ...slip, status: "unreadable", reason: "The reader failed on this picture." };
 	}
+}
+
+// A shop or person you have paid from a slip before: reuse the note and tag you gave the newest time.
+export function rememberPayee(slip: Slip, entries: Entry[]): Slip {
+	if (!slip.payeeKey) return slip;
+	const past = entries.filter((e) => e.payeeKey === slip.payeeKey).sort((a, b) => b.at.getTime() - a.at.getTime())[0];
+	return past ? { ...slip, note: past.note, autoNote: past.note, category: past.category, remembered: true } : slip;
+}
+
+const MODELS: [NameModel, keyof Names][] = [
+	["tha+eng", "both"],
+	["tha", "thai"],
+	["eng", "eng"],
+];
+
+type Update = (id: string, change: (slip: Slip) => Slip) => void;
+
+// Reads a batch in two rounds. Round one fills in every slip's fields. Round two takes a closer look at each name, one
+// model at a time (switching model is the slow part), and improves the note after each look unless you have changed it.
+export async function readBatch(batch: Slip[], entries: Entry[], update: Update, stopped: () => boolean): Promise<void> {
+	const read: Slip[] = [];
+	for (const slip of batch) {
+		if (stopped()) return;
+		if (slip.status !== "reading") continue;
+		const done = rememberPayee(await readInto(slip), entries);
+		read.push(done);
+		update(done.id, () => done);
+	}
+
+	const todo = read.filter((s) => s.status === "ok" && s.nameBox && s.file && !s.remembered);
+	todo.forEach((s) => update(s.id, (cur) => ({ ...cur, refining: true })));
+	const crops = new Map<string, HTMLCanvasElement>();
+	const names = new Map<string, Partial<Names>>();
+	for (const [model, key] of MODELS) {
+		for (const slip of todo) {
+			if (stopped()) return;
+			try {
+				const crop = crops.get(slip.id) ?? (await cropName(slip.file as File, slip.nameBox as NonNullable<Slip["nameBox"]>));
+				crops.set(slip.id, crop);
+				const got = { ...names.get(slip.id), [key]: await readName(crop, model) };
+				names.set(slip.id, got);
+				const best = pickName({ both: got.both ?? "", thai: got.thai ?? "", eng: got.eng ?? "" }).slice(0, 80);
+				if (best) update(slip.id, (cur) => (cur.note === cur.autoNote ? { ...cur, note: best, autoNote: best } : cur));
+			} catch {
+				// The first guess stays; a failed closer look is not worth stopping the batch.
+			}
+		}
+	}
+	todo.forEach((s) => update(s.id, (cur) => ({ ...cur, refining: false })));
 }
 
 // The first slip with a reference stays; later ones with the same reference, or one already saved, are skipped.

@@ -30,7 +30,7 @@ const json = (c: Context) => c.req.json().catch(() => null);
 data.get("/data", async (c) => {
 	const db = c.env.DB;
 	const [entries, pots, categories, plan] = await db.batch([
-		db.prepare("SELECT id, kind, satang, at, category, note, slip_ref, pot, has_image FROM entries ORDER BY at, id"),
+		db.prepare("SELECT id, kind, satang, at, category, note, slip_ref, pot, payee_key, has_image FROM entries ORDER BY at, id"),
 		db.prepare("SELECT name, target, monthly FROM pots ORDER BY rowid"),
 		db.prepare("SELECT name FROM categories ORDER BY position"),
 		db.prepare("SELECT monthly, daily_mode, daily_fixed FROM plan WHERE id = 1"),
@@ -48,8 +48,8 @@ data.post("/entries", async (c) => {
 	if (!parsed.ok) return c.text(parsed.error, 400);
 	return guard(c, async () => {
 		const db = c.env.DB;
-		const insert = db.prepare("INSERT INTO entries (id, kind, satang, at, category, note, slip_ref, pot) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-		await db.batch(parsed.value.map((e) => insert.bind(e.id, e.kind, e.satang, e.at, e.category, e.note, e.slipRef ?? null, e.pot ?? null)));
+		const insert = db.prepare("INSERT INTO entries (id, kind, satang, at, category, note, slip_ref, pot, payee_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+		await db.batch(parsed.value.map((e) => insert.bind(e.id, e.kind, e.satang, e.at, e.category, e.note, e.slipRef ?? null, e.pot ?? null, e.payeeKey ?? null)));
 		return c.json({ ok: true }, 201);
 	});
 });

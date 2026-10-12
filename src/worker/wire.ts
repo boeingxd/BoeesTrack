@@ -14,6 +14,7 @@ export type WireEntry = {
 	note: string;
 	slipRef?: string;
 	pot?: string;
+	payeeKey?: string;
 	// Set by the Worker only: true when the slip's picture is stored. parseEntry ignores it if the browser sends it.
 	hasImage?: true;
 };
@@ -36,7 +37,7 @@ const isText = (v: unknown, max: number): v is string => typeof v === "string" &
 
 export function parseEntry(raw: unknown): Parsed<WireEntry> {
 	if (!isObject(raw)) return fail("entry must be an object");
-	const { id, kind, satang, at, category, note, slipRef, pot } = raw;
+	const { id, kind, satang, at, category, note, slipRef, pot, payeeKey } = raw;
 	if (!isText(id, 100)) return fail("bad id");
 	if (!KINDS.includes(kind as WireKind)) return fail("bad kind");
 	if (!isInt(satang) || satang === 0 || (kind !== "adjust" && satang < 0)) return fail("bad satang");
@@ -45,6 +46,7 @@ export function parseEntry(raw: unknown): Parsed<WireEntry> {
 	if (typeof note !== "string" || note.length > 500) return fail("bad note");
 	if (slipRef !== undefined && !isText(slipRef, 100)) return fail("bad slipRef");
 	if (pot !== undefined && !isText(pot, 50)) return fail("bad pot");
+	if (payeeKey !== undefined && !isText(payeeKey, 100)) return fail("bad payeeKey");
 	if (kind === "saved" && pot === undefined) return fail("a saved entry needs a pot");
 	return {
 		ok: true,
@@ -57,6 +59,7 @@ export function parseEntry(raw: unknown): Parsed<WireEntry> {
 			note,
 			...(slipRef !== undefined ? { slipRef } : {}),
 			...(pot !== undefined ? { pot } : {}),
+			...(payeeKey !== undefined ? { payeeKey } : {}),
 		},
 	};
 }
@@ -105,6 +108,7 @@ export type EntryRow = {
 	note: string;
 	slip_ref: string | null;
 	pot: string | null;
+	payee_key: string | null;
 	has_image: number;
 };
 
@@ -118,6 +122,7 @@ export function entryFromRow(r: EntryRow): WireEntry {
 		note: r.note,
 		...(r.slip_ref ? { slipRef: r.slip_ref } : {}),
 		...(r.pot ? { pot: r.pot } : {}),
+		...(r.payee_key ? { payeeKey: r.payee_key } : {}),
 		...(r.has_image ? { hasImage: true as const } : {}),
 	};
 }

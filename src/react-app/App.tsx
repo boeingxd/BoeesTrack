@@ -3,7 +3,7 @@ import type { View } from "./components/ViewSwitch";
 import { checkIn } from "./lib/balance";
 import * as api from "./lib/api";
 import { saveOrUndo } from "./lib/optimistic";
-import { flagDuplicates, newSlip, readInto } from "./lib/slipBatch";
+import { flagDuplicates, newSlip, readBatch } from "./lib/slipBatch";
 import { defaultFilters, periodRange, type Filters, type Scale } from "./lib/stats";
 import type { BudgetPlan, Entry, Pot, Slip } from "./lib/types";
 import { AddSpend } from "./screens/AddSpend";
@@ -28,6 +28,8 @@ function App() {
 	const [notice, setNotice] = useState<string | null>(null);
 	const [slips, setSlips] = useState<Slip[]>([]);
 	const picker = useRef<HTMLInputElement>(null);
+	// Counts batches, so a batch you closed stops being read.
+	const batchId = useRef(0);
 	const [screen, setScreen] = useState<Screen>("home");
 	const [justAddedId, setJustAddedId] = useState<string | null>(null);
 	const [intro, setIntro] = useState(true);
@@ -139,21 +141,24 @@ function App() {
 
 	const savedRefs = () => new Set(entries.flatMap((e) => (e.slipRef ? [e.slipRef] : [])));
 
-	// Picking pictures opens the review at once; each slip is read in turn and fills in as it finishes.
+	// Picking pictures opens the review at once; each slip fills in as it is read, then its name is looked at again more closely.
 	async function startBatch(files: File[]) {
+		const id = ++batchId.current;
 		const stamp = Date.now();
 		const batch = files.map((file, i) => newSlip(file, `slip-${stamp}-${i}`));
 		setSlips(flagDuplicates(batch, savedRefs()));
 		setScreen("slips");
-		for (const slip of batch) {
-			if (slip.status !== "reading") continue;
-			const done = await readInto(slip);
-			setSlips((current) => flagDuplicates(current.map((s) => (s.id === done.id ? done : s)), savedRefs()));
-		}
+		await readBatch(
+			batch,
+			entries,
+			(slipId, change) => setSlips((current) => flagDuplicates(current.map((s) => (s.id === slipId ? change(s) : s)), savedRefs())),
+			() => batchId.current !== id,
+		);
 	}
 
 	// Closing a batch frees the picture previews it was holding.
 	function endBatch() {
+		batchId.current++;
 		slips.forEach((slip) => slip.url && URL.revokeObjectURL(slip.url));
 		setSlips([]);
 		setScreen("home");
@@ -170,6 +175,7 @@ function App() {
 			category: slip.category,
 			note: slip.note,
 			slipRef: slip.ref,
+			payeeKey: slip.payeeKey,
 		}));
 		setEntries((current) => [...current, ...added]);
 		setJustAddedId(added[0]?.id ?? null);

@@ -11,6 +11,7 @@ export const toWire = (e: Entry): WireEntry => ({
 	note: e.note,
 	...(e.slipRef ? { slipRef: e.slipRef } : {}),
 	...(e.pot ? { pot: e.pot } : {}),
+	...(e.payeeKey ? { payeeKey: e.payeeKey } : {}),
 });
 
 export const fromWire = (w: WireEntry): Entry => ({ ...w, at: new Date(w.at) });

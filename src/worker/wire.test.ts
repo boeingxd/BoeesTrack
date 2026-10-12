@@ -84,15 +84,21 @@ describe("parseCategory", () => {
 
 describe("row mapping", () => {
 	it("turns null columns into missing fields", () => {
-		const row = { id: "e1", kind: "spent" as const, satang: 100, at: 5, category: null, note: "", slip_ref: null, pot: null, has_image: 0 };
+		const row = { id: "e1", kind: "spent" as const, satang: 100, at: 5, category: null, note: "", slip_ref: null, pot: null, payee_key: null, has_image: 0 };
 		expect(entryFromRow(row)).toEqual({ id: "e1", kind: "spent", satang: 100, at: 5, category: null, note: "" });
 	});
 	it("keeps slip_ref and pot as slipRef and pot", () => {
-		const row = { id: "e1", kind: "spent" as const, satang: 100, at: 5, category: "Bills", note: "", slip_ref: "r", pot: "Trip", has_image: 0 };
+		const row = { id: "e1", kind: "spent" as const, satang: 100, at: 5, category: "Bills", note: "", slip_ref: "r", pot: "Trip", payee_key: null, has_image: 0 };
 		expect(entryFromRow(row)).toMatchObject({ slipRef: "r", pot: "Trip" });
 	});
+	it("round-trips payeeKey and keeps it out when empty", () => {
+		expect(parseEntries([{ ...entry, payeeKey: "b:010000000000001" }])).toMatchObject({ ok: true, value: [{ payeeKey: "b:010000000000001" }] });
+		expect(parseEntries([{ ...entry, payeeKey: "" }]).ok).toBe(false);
+		const row = { id: "e1", kind: "spent" as const, satang: 100, at: 5, category: null, note: "", slip_ref: null, pot: null, payee_key: "a:094-xxx-6338", has_image: 0 };
+		expect(entryFromRow(row)).toMatchObject({ payeeKey: "a:094-xxx-6338" });
+	});
 	it("shows hasImage only when a picture is stored", () => {
-		const row = { id: "e1", kind: "spent" as const, satang: 100, at: 5, category: null, note: "", slip_ref: "r", pot: null, has_image: 1 };
+		const row = { id: "e1", kind: "spent" as const, satang: 100, at: 5, category: null, note: "", slip_ref: "r", pot: null, payee_key: null, has_image: 1 };
 		expect(entryFromRow(row)).toMatchObject({ hasImage: true });
 	});
 	it("round-trips the plan through its columns", () => {

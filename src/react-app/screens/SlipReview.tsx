@@ -45,6 +45,7 @@ export function SlipReview({ slips, categories, onChange, onClose, onAddByHand, 
 	const total = ready.reduce((sum, slip) => sum + (slip.satang ?? 0), 0);
 	const uncategorised = ready.filter((slip) => slip.category === null).length;
 	const reading = slips.filter((slip) => slip.status === "reading").length;
+	const refining = slips.some((slip) => slip.refining);
 	const skipped = slips.filter((slip) => slip.status === "unreadable" || slip.status === "duplicate").length;
 	const unfinished = slips.filter((slip) => slip.status === "ok" && !slip.removed && !isReady(slip)).length;
 	const noun = ready.length === 1 ? "slip" : "slips";
@@ -61,7 +62,7 @@ export function SlipReview({ slips, categories, onChange, onClose, onAddByHand, 
 
 			<p className="review-intro" aria-live="polite">
 				{reading > 0 ? `Reading ${reading} of ${slips.length} slips…` : `${slips.length} picked · ${ready.length} ready${skipped > 0 ? ` · ${skipped} skipped` : ""}.`}{" "}
-				The reader's values are guesses: check each against its picture and fix anything wrong.
+				{refining && "Checking the names more closely… "}The reader's values are guesses: check each against its picture and fix anything wrong.
 				{unfinished > 0 && ` ${unfinished} still need an amount or a time.`}
 				{uncategorised > 0 && ` ${uncategorised} without a category.`}
 			</p>
@@ -182,6 +183,7 @@ export function SlipReview({ slips, categories, onChange, onClose, onAddByHand, 
 										</select>
 										<Icon name="down" size={16} />
 									</label>
+									{slip.remembered && <p className="slip__hint">Name and tag filled in from your earlier slip</p>}
 									{slip.ref && !slip.ref.startsWith("img") && <p className="slip__ref">Ref {slip.ref}</p>}
 								</div>
 								<button
