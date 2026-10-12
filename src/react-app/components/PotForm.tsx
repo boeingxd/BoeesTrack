@@ -4,6 +4,8 @@ import type { Pot } from "../lib/types";
 
 type Props = {
 	pots: Pot[];
+	reserved?: string[];
+	children?: React.ReactNode;
 	initial?: Pot;
 	submitLabel: string;
 	onSubmit: (pot: Pot) => void;
@@ -14,13 +16,13 @@ const clean = (text: string) => text.replace(/[^\d.]/g, "");
 const toText = (satang: number) => (satang > 0 ? String(satang / 100) : "");
 
 // Name, target and monthly amount for a savings pot; used to make a pot (Savings, Add) and to edit one.
-export function PotForm({ pots, initial, submitLabel, onSubmit, onCancel }: Props) {
+export function PotForm({ pots, reserved = [], children, initial, submitLabel, onSubmit, onCancel }: Props) {
 	const [name, setName] = useState(initial?.name ?? "");
 	const [target, setTarget] = useState(initial ? toText(initial.target) : "");
 	const [monthly, setMonthly] = useState(initial ? toText(initial.monthly) : "");
 
-	// "Balance" is the other choice under "Paid from", so a pot cannot take that name.
-	const taken = [...pots.map((p) => p.name).filter((n) => n !== initial?.name), "Balance"];
+	// "Balance" is the other choice under "Paid from", so a pot cannot take that name; nor can the name of a pot that was deleted.
+	const taken = [...pots.map((p) => p.name).filter((n) => n !== initial?.name), ...reserved, "Balance"];
 	const ready = name.trim() !== "" && inputToSatang(clean(target)) > 0 && !taken.some((n) => n.toLowerCase() === name.trim().toLowerCase());
 
 	const rows = [
@@ -63,6 +65,7 @@ export function PotForm({ pots, initial, submitLabel, onSubmit, onCancel }: Prop
 				<button type="button" className="cancel" onClick={onCancel}>
 					Cancel
 				</button>
+				{children}
 			</div>
 		</>
 	);

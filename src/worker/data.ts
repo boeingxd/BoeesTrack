@@ -124,6 +124,32 @@ data.put("/pots/:name", async (c) => {
 	});
 });
 
+// Deleting returns the pot's money in the same batch as the removal, so it can never vanish halfway.
+// The entries keep their pot name on purpose: History stays as it was. The adjustment is skipped when the pot is already gone.
+data.post("/pots/:name/delete", async (c) => {
+	const raw = (await json(c)) as { adjust?: unknown } | null;
+	const adjust = raw?.adjust == null ? null : parseEntry(raw.adjust);
+	if (adjust && !adjust.ok) return c.text(adjust.error, 400);
+	return guard(c, async () => {
+		const name = c.req.param("name");
+		const db = c.env.DB;
+		const e = adjust?.ok ? adjust.value : null;
+		const steps = [
+			...(e
+				? [
+						db
+							.prepare("INSERT INTO entries (id, kind, satang, at, category, note) SELECT ?, ?, ?, ?, ?, ? WHERE EXISTS (SELECT 1 FROM pots WHERE name = ?)")
+							.bind(e.id, e.kind, e.satang, e.at, e.category, e.note, name),
+					]
+				: []),
+			db.prepare("DELETE FROM pots WHERE name = ?").bind(name),
+		];
+		const results = await db.batch(steps);
+		if (results[results.length - 1].meta.changes === 0) return c.text("No such pot", 404);
+		return c.json({ ok: true });
+	});
+});
+
 data.put("/plan", async (c) => {
 	const parsed = parsePlan(await json(c));
 	if (!parsed.ok) return c.text(parsed.error, 400);

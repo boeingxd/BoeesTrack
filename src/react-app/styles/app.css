@@ -1534,6 +1534,17 @@ button:disabled {
 	text-underline-offset: 0.2em;
 }
 
+.cancel--danger {
+	margin-top: calc(var(--space-3) * -1);
+	font-size: var(--text-sm);
+	color: var(--color-accent-text);
+}
+
+/* The delete question sits in the form's own button column, so it needs no page-level gap above it. */
+.money-gap > .detail__confirm {
+	margin: 0;
+}
+
 .pot__head {
 	display: flex;
 	align-items: flex-start;

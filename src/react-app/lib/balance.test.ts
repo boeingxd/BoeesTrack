@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { balance, checkIn, potTotals } from "./balance";
+import { balance, checkIn, potTotals, returnFromPot } from "./balance";
 import type { Entry, Pot } from "./types";
 
 const baht = (n: number) => n * 100;
@@ -51,5 +51,25 @@ describe("checkIn", () => {
 
 	it("returns nothing when they already match", () => {
 		expect(checkIn([entry("adjust", 100)], baht(100), today)).toBeNull();
+	});
+});
+
+describe("returnFromPot", () => {
+	const inPot = [entry("saved", 400, { pot: "Trip" }), entry("saved", 300, { pot: "Trip" }), entry("spent", 200, { pot: "Trip" })];
+
+	it("hands back what is left in the pot, so the balance gains exactly that", () => {
+		const back = returnFromPot(inPot, pots[0], today);
+		expect(back?.kind).toBe("adjust");
+		expect(back?.satang).toBe(baht(500));
+		expect(balance([...inPot, back!]) - balance(inPot)).toBe(baht(500));
+	});
+
+	it("takes money back out when the pot was overdrawn", () => {
+		const over = [entry("saved", 100, { pot: "Trip" }), entry("spent", 300, { pot: "Trip" })];
+		expect(returnFromPot(over, pots[0], today)?.satang).toBe(-baht(200));
+	});
+
+	it("does nothing for an empty pot", () => {
+		expect(returnFromPot([], pots[0], today)).toBeNull();
 	});
 });

@@ -11,6 +11,7 @@ type Props = {
 	editing?: Entry;
 	categories: string[];
 	pots: Pot[];
+	goneNames: string[];
 	onAddPot: (pot: Pot) => void;
 	onAddCategory: (name: string) => void;
 	onClose: () => void;
@@ -25,7 +26,7 @@ const KINDS: { value: Kind; label: string }[] = [
 
 const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "back"];
 
-export function AddSpend({ editing, categories, pots, onAddPot, onAddCategory, onClose, onSave }: Props) {
+export function AddSpend({ editing, categories, pots, goneNames, onAddPot, onAddCategory, onClose, onSave }: Props) {
 	const [kind, setKind] = useState<Kind>(editing?.kind ?? "spent");
 	const [input, setInput] = useState(editing ? String(editing.satang / 100) : "");
 	const [note, setNote] = useState(editing?.note ?? "");
@@ -160,6 +161,7 @@ export function AddSpend({ editing, categories, pots, onAddPot, onAddCategory, o
 			{kind === "saved" && makingPot && (
 				<PotForm
 					pots={pots}
+					reserved={goneNames}
 					submitLabel="Make pot"
 					onSubmit={(next) => {
 						onAddPot(next);

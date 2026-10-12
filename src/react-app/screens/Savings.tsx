@@ -15,13 +15,16 @@ type Props = {
 	onView: (view: View) => void;
 	onAddPot: (pot: Pot) => void;
 	onEditPot: (oldName: string, pot: Pot) => void;
+	onDeletePot: (pot: Pot) => void;
+	goneNames: string[];
 };
 
-export function Savings({ entries, pots, today, onView, onAddPot, onEditPot }: Props) {
+export function Savings({ entries, pots, today, onView, onAddPot, onEditPot, onDeletePot, goneNames }: Props) {
 	const totals = useMemo(() => potTotals(entries, pots, today), [entries, pots, today]);
 	const saved = totals.reduce((sum, p) => sum + p.total, 0);
 	const [adding, setAdding] = useState(false);
 	const [editing, setEditing] = useState<string | null>(null);
+	const [deleting, setDeleting] = useState(false);
 
 	return (
 		<main className="home">
@@ -52,14 +55,54 @@ export function Savings({ entries, pots, today, onView, onAddPot, onEditPot }: P
 							<li className="pot pot--editing" key={pot.name}>
 								<PotForm
 									pots={pots}
+									reserved={goneNames}
 									initial={pot}
 									submitLabel="Save pot"
 									onSubmit={(next) => {
 										onEditPot(pot.name, next);
 										setEditing(null);
+										setDeleting(false);
 									}}
-									onCancel={() => setEditing(null)}
-								/>
+									onCancel={() => {
+										setEditing(null);
+										setDeleting(false);
+									}}
+								>
+									{deleting ? (
+										<div className="detail__confirm">
+											<p className="today__note today__note--warn" role="alert">
+												<Icon name="warning" size={18} />
+												<span>
+													Delete {pot.name}?{" "}
+													{total > 0
+														? `${formatBaht(total)} goes back to your balance.`
+														: total < 0
+															? `It is ${formatBaht(-total)} overdrawn, so that comes off your balance.`
+															: ""}{" "}
+													Its entries stay in History. This can't be undone.
+												</span>
+											</p>
+											<button type="button" className="detail__btn detail__btn--keep" onClick={() => setDeleting(false)}>
+												Keep it
+											</button>
+											<button
+												type="button"
+												className="detail__btn detail__btn--delete"
+												onClick={() => {
+													onDeletePot(pot);
+													setEditing(null);
+													setDeleting(false);
+												}}
+											>
+												Yes, delete
+											</button>
+										</div>
+									) : (
+										<button type="button" className="cancel cancel--danger" onClick={() => setDeleting(true)}>
+											Delete pot
+										</button>
+									)}
+								</PotForm>
 							</li>
 						);
 					}
@@ -92,6 +135,7 @@ export function Savings({ entries, pots, today, onView, onAddPot, onEditPot }: P
 			{adding ? (
 				<PotForm
 					pots={pots}
+					reserved={goneNames}
 					submitLabel="Add pot"
 					onSubmit={(pot) => {
 						onAddPot(pot);

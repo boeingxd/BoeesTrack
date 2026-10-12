@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { View } from "./components/ViewSwitch";
-import { balance, checkIn } from "./lib/balance";
+import { balance, checkIn, returnFromPot } from "./lib/balance";
 import * as api from "./lib/api";
 import { saveOrUndo } from "./lib/optimistic";
 import { flagDuplicates, newSlip, readBatch } from "./lib/slipBatch";
@@ -250,6 +250,24 @@ function App() {
 		);
 	}
 
+	// A deleted pot's name stays on its old entries, so a new pot may not reuse it or those entries would count again.
+	const goneNames = [...new Set(entries.flatMap((e) => (e.pot && !pots.some((p) => p.name === e.pot) ? [e.pot] : [])))];
+
+	// The pot goes and what it held returns to the balance as one adjustment; a failed save puts both back.
+	function deletePot(pot: Pot) {
+		const back = returnFromPot(entries, pot, new Date());
+		const index = pots.findIndex((p) => p.name === pot.name);
+		setPots((current) => current.filter((p) => p.name !== pot.name));
+		if (back) setEntries((current) => [...current, back]);
+		save(
+			() => api.deletePot(pot.name, back),
+			() => {
+				setPots((current) => [...current.slice(0, index), pot, ...current.slice(index)]);
+				if (back) setEntries((current) => current.filter((e) => e.id !== back.id));
+			},
+		);
+	}
+
 	function savePlan(next: BudgetPlan) {
 		const before = plan;
 		setPlan(next);
@@ -360,6 +378,7 @@ function App() {
 					editing={detail.entry}
 					categories={categories}
 					pots={pots}
+					goneNames={goneNames}
 					onAddPot={addPot}
 					onAddCategory={addCategory}
 					onClose={() => setScreen("entry")}
@@ -374,6 +393,8 @@ function App() {
 					onView={goToView}
 					onAddPot={addPot}
 					onEditPot={editPot}
+					onDeletePot={deletePot}
+					goneNames={goneNames}
 				/>
 			)}
 			{screen === "budget" && (
@@ -388,6 +409,7 @@ function App() {
 				<AddSpend
 					categories={categories}
 					pots={pots}
+					goneNames={goneNames}
 					onAddPot={addPot}
 					onAddCategory={addCategory}
 					onClose={() => setScreen("home")}

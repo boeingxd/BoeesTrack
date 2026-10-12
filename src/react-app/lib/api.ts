@@ -36,6 +36,8 @@ export const deleteEntry = (id: string) => call("DELETE", `/entries/${encodeURIC
 export const deleteEntries = (ids: string[]) => call("POST", "/entries/delete", { ids }).then(() => undefined);
 export const addPot = (pot: Pot) => call("POST", "/pots", pot).then(() => undefined);
 export const editPot = (oldName: string, pot: Pot) => call("PUT", `/pots/${encodeURIComponent(oldName)}`, pot).then(() => undefined);
+export const deletePot = (name: string, adjust: Entry | null) =>
+	call("POST", `/pots/${encodeURIComponent(name)}/delete`, { adjust: adjust ? toWire(adjust) : null }).then(() => undefined);
 export const savePlan = (plan: BudgetPlan) => call("PUT", "/plan", plan).then(() => undefined);
 export const addCategory = (name: string) => call("POST", "/categories", { name }).then(() => undefined);
 

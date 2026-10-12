@@ -33,3 +33,11 @@ export function checkIn(entries: Entry[], bankSatang: number, at: Date): Entry |
 	if (gap === 0) return null;
 	return { id: `adjust-${at.getTime()}`, kind: "adjust", satang: gap, at, category: null, note: "Checked against bank" };
 }
+
+// Deleting a pot hands what is left in it back to the balance as one dated adjustment, or null when it holds nothing.
+// The pot's own entries stay as they were, so History keeps its record; only the money moves.
+export function returnFromPot(entries: Entry[], pot: Pot, at: Date): Entry | null {
+	const [{ total }] = potTotals(entries, [pot], at);
+	if (total === 0) return null;
+	return { id: `adjust-${at.getTime()}`, kind: "adjust", satang: total, at, category: null, note: `Returned from ${pot.name}` };
+}
