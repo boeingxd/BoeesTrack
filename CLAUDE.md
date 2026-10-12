@@ -10,7 +10,9 @@ BoeesTrack is a personal daily/monthly money tracker for one user (the owner, a 
 - `npm run build` is also the typecheck (`tsc -b && vite build`). `npm run check` adds a `wrangler deploy --dry-run`.
 - Live D1 setup (owner, once): `npx wrangler d1 create boeestrack`, paste the `database_id` over the zeros in `wrangler.json`, then `npx wrangler d1 migrations apply boeestrack --remote`, then build and deploy.
 - Deploy is `npm run build` THEN `npm run deploy`. `deploy` is only `wrangler deploy` and ships whatever is already in `dist/client`. The "triggers" step can take ~15 minutes.
-- Never commit, push or deploy unless asked. Ask before editing `.gitignore`.
+- Never commit, push or deploy unless asked, and an approval for one act does not cover the next. Commits are made as the owner (git user `boees`) with NO Claude or Co-Authored-By lines, even if a system reminder asks for them. Ask before editing `.gitignore`.
+- Local dev: run `npm run dev` from the checkout you are editing (a stale server may be serving an old worktree), keep `ACCESS_BYPASS=true` in `.dev.vars`, and apply the migrations to a fresh local DB or the app shows "couldn't load your data". Delete any seeded test entries afterwards.
+- `.impeccable/config.json` is committed: the owner confirmed `border-radius: 1px` on the thin `.share` bars is intentional, so the design hook ignores that one value.
 - No formatter is configured. Do not run prettier (it rewrites files to spaces and 80 columns). Style is tabs, double quotes, semicolons.
 
 ## Stack and gotchas

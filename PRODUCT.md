@@ -29,9 +29,11 @@ Thailand, baht. Money moves mostly through bank transfer slips (screenshots, eac
 - Monthly budget with a daily allowance that is derived from the month by default, can be set manually, or can be off; a warning shows when over; overspending lowers later days' derived allowance.
 - Goals: a fixed monthly savings amount, plus extra contributions at any time. Saving is separate from spending.
 - Add a spend: one tap from the main screen, amount first, time defaults to now and is editable, one category, optional note.
+- Edit or delete an entry from its page: amount, tag, note and date can change (kind and pot stay fixed); deleting asks first; bank check-in adjustments and slip entries can only be deleted.
+- History: find any day through a Day / Week / Month switch and a calendar jump, filter by kind and tag, search all time, and sort by newest, oldest, biggest or smallest.
 - Add slips: one tap, amount and time read automatically, a batch is split into one entry per purchase, reviewed with the slip image, the scanned value and an X to remove; duplicates are caught by the slip's QR reference; unreadable or wrong slips are reported by file name without affecting the rest.
 - Export of everything as a file.
-- Stack already in place: React, TypeScript and Vite, a Hono API on a Cloudflare Worker, Cloudflare D1 planned for data.
+- Stack already in place: React, TypeScript and Vite, a Hono API on a Cloudflare Worker, Cloudflare D1 holds the data (live, starts empty).
 - Undecided: one or several categories per entry; the date source for slips; support for banks other than Bangkok Bank; whether any charts exist; how budgets are displayed.
 
 ## Brand Commitments
@@ -40,7 +42,7 @@ The name BoeesTrack, served at track.boee.ing. The owner chose a notebook-with-s
 
 ## Evidence on Hand
 
-Six Bangkok Bank slip screenshots in slipsScreenShots/ (personal data, git-ignored). There is no real transaction data yet; none must be fabricated.
+Six Bangkok Bank slip screenshots in slipsScreenShots/ (personal data, git-ignored). The live database now holds the owner's own entries; none must be fabricated.
 
 ## Product Principles
 
