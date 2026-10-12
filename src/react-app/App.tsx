@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { View } from "./components/ViewSwitch";
+import { TabBar, type View } from "./components/ViewSwitch";
 import { balance, checkIn, returnFromPot } from "./lib/balance";
 import * as api from "./lib/api";
 import { saveOrUndo } from "./lib/optimistic";
@@ -326,12 +326,9 @@ function App() {
 					today={today}
 					intro={intro}
 					justAddedId={justAddedId}
-					onAdd={() => setScreen("add")}
-					onView={goToView}
 					onCheckIn={addCheckIn}
 					onBudget={() => setScreen("budget")}
 					onOpenEntry={openEntry}
-					onSlips={() => picker.current?.click()}
 				/>
 			)}
 			{screen === "stats" && (
@@ -342,7 +339,6 @@ function App() {
 					anchor={statsAnchor}
 					onAnchor={setStatsAnchor}
 					onScale={changeScale}
-					onView={goToView}
 					onOpenDay={openDay}
 					onOpenWeek={openWeek}
 					onOpenCategory={(category) => openHistory({ category })}
@@ -357,7 +353,6 @@ function App() {
 					today={today}
 					filters={filters}
 					onFilters={setFilters}
-					onView={goToView}
 					onOpenEntry={openEntry}
 					onDeleteShown={deleteEntries}
 					onClearPictures={clearOldPictures}
@@ -390,7 +385,6 @@ function App() {
 					entries={entries}
 					pots={pots}
 					today={today}
-					onView={goToView}
 					onAddPot={addPot}
 					onEditPot={editPot}
 					onDeletePot={deletePot}
@@ -412,6 +406,7 @@ function App() {
 					goneNames={goneNames}
 					onAddPot={addPot}
 					onAddCategory={addCategory}
+					onSlips={() => picker.current?.click()}
 					onClose={() => setScreen("home")}
 					onSave={(draft) => addEntries([{ id: `entry-${Date.now()}`, ...draft }])}
 				/>
@@ -425,6 +420,9 @@ function App() {
 					onAddByHand={() => setScreen("add")}
 					onConfirm={confirmSlips}
 				/>
+			)}
+			{(screen === "home" || screen === "stats" || screen === "history" || screen === "savings") && (
+				<TabBar value={screen} onChange={goToView} onAdd={() => setScreen("add")} />
 			)}
 		</div>
 	);

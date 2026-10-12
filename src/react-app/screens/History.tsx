@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { ClearPictures } from "../components/ClearPictures";
 import { DayList, EntryLine } from "../components/DayList";
 import { Icon } from "../components/Icon";
-import { ScaleSwitch, ViewSwitch, type View } from "../components/ViewSwitch";
+import { ScaleSwitch } from "../components/ViewSwitch";
 import { entriesToCsv } from "../lib/csv";
 import { dayKey, dayMonth, groupByDay, monthKey } from "../lib/dates";
 import { formatBaht } from "../lib/money";
@@ -15,7 +15,6 @@ type Props = {
 	today: Date;
 	filters: Filters;
 	onFilters: (filters: Filters) => void;
-	onView: (view: View) => void;
 	onOpenEntry: (entry: Entry) => void;
 	onDeleteShown: (entries: Entry[]) => void;
 	onClearPictures: (before: Date) => void;
@@ -45,7 +44,7 @@ function downloadCsv(entries: Entry[], today: Date) {
 	URL.revokeObjectURL(url);
 }
 
-export function History({ entries, categories, today, filters, onFilters, onView, onOpenEntry, onDeleteShown, onClearPictures }: Props) {
+export function History({ entries, categories, today, filters, onFilters, onOpenEntry, onDeleteShown, onClearPictures }: Props) {
 	const results = useMemo(() => filterEntries(entries, filters), [entries, filters]);
 	const [filtersOpen, setFiltersOpen] = useState(false);
 	const filtersSet = [filters.kind !== "all", filters.category !== null, filters.source !== "all"].filter(Boolean).length;
@@ -88,10 +87,6 @@ export function History({ entries, categories, today, filters, onFilters, onView
 
 	return (
 		<main className="home">
-			<header className="topnav">
-				<ViewSwitch value="history" onChange={onView} />
-			</header>
-
 			<section className="today" aria-label="Find entries">
 				<div className="ledger-head__top">
 					<div className="month-pick">

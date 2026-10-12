@@ -3,7 +3,6 @@ import { DayList } from "../components/DayList";
 import { Figure } from "../components/Figure";
 import { Icon } from "../components/Icon";
 import { Meter } from "../components/Meter";
-import { ViewSwitch, type View } from "../components/ViewSwitch";
 import { standing } from "../lib/allowance";
 import { balance } from "../lib/balance";
 import { groupByDay, monthTitle } from "../lib/dates";
@@ -20,15 +19,12 @@ type Props = {
 	today: Date;
 	intro: boolean;
 	justAddedId: string | null;
-	onAdd: () => void;
-	onSlips: () => void;
-	onView: (view: View) => void;
 	onOpenEntry: (entry: Entry) => void;
 	onCheckIn: (bankSatang: number) => void;
 	onBudget: () => void;
 };
 
-export function Home({ entries, plan, today, intro, justAddedId, onAdd, onSlips, onView, onOpenEntry, onCheckIn, onBudget }: Props) {
+export function Home({ entries, plan, today, intro, justAddedId, onOpenEntry, onCheckIn, onBudget }: Props) {
 	const budget = plan.monthly;
 	const groups = useMemo(() => groupByDay(entries, today).slice(0, HOME_DAYS), [entries, today]);
 	const s = useMemo(() => standing(entries, plan, today), [entries, plan, today]);
@@ -41,10 +37,6 @@ export function Home({ entries, plan, today, intro, justAddedId, onAdd, onSlips,
 
 	return (
 		<main className={intro ? "home home--intro" : "home"}>
-			<header className="topnav" style={{ "--i": 0 } as React.CSSProperties}>
-				<ViewSwitch value="home" onChange={onView} />
-			</header>
-
 			<section className="today" aria-labelledby="today-label" style={{ "--i": 1 } as React.CSSProperties}>
 				<div className="ledger-head__top">
 					<h1 className="month">{monthTitle(today)}</h1>
@@ -165,16 +157,6 @@ export function Home({ entries, plan, today, intro, justAddedId, onAdd, onSlips,
 				<DayList groups={groups} today={today} justAddedId={justAddedId} onOpenEntry={onOpenEntry} />
 			</section>
 
-			<footer className="dock">
-				<button type="button" className="dock__add" onClick={onAdd}>
-					<Icon name="plus" />
-					Add
-				</button>
-				<button type="button" className="dock__slips" onClick={onSlips}>
-					<Icon name="clip" size={18} />
-					Slips
-				</button>
-			</footer>
 		</main>
 	);
 }

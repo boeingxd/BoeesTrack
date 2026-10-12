@@ -1,4 +1,5 @@
 import type { Scale } from "../lib/stats";
+import { Icon } from "./Icon";
 
 export type View = "home" | "stats" | "history" | "savings";
 
@@ -48,9 +49,17 @@ const SCALES: Option<Scale>[] = [
 	{ value: "month", label: "Month" },
 ];
 
-// The page-level row: Home, Insight (day, week and month live inside it), History and Savings.
-export function ViewSwitch({ value, onChange }: { value: View; onChange: (view: View) => void }) {
-	return <Segmented label="View" options={VIEWS} value={value} onChange={onChange} className="views" />;
+// The bottom bar on the four main screens: Home, Insight (day, week and month live inside it), History and Savings, with Add beside it as its own button.
+export function TabBar({ value, onChange, onAdd }: { value: View; onChange: (view: View) => void; onAdd: () => void }) {
+	return (
+		<nav className="tabbar" aria-label="Main">
+			<Segmented label="View" options={VIEWS} value={value} onChange={onChange} className="views" />
+			<button type="button" className="tabbar__add" onClick={onAdd} aria-label="Add">
+				<Icon name="plus" />
+				<span className="tabbar__label">Add</span>
+			</button>
+		</nav>
+	);
 }
 
 export function ScaleSwitch({ scale, onChange }: { scale: Scale; onChange: (scale: Scale) => void }) {

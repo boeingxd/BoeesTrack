@@ -3,7 +3,6 @@ import { Figure } from "../components/Figure";
 import { Icon } from "../components/Icon";
 import { MeterTrack } from "../components/Meter";
 import { PotForm } from "../components/PotForm";
-import { ViewSwitch, type View } from "../components/ViewSwitch";
 import { potTotals } from "../lib/balance";
 import { formatBaht } from "../lib/money";
 import type { Entry, Pot } from "../lib/types";
@@ -12,14 +11,13 @@ type Props = {
 	entries: Entry[];
 	pots: Pot[];
 	today: Date;
-	onView: (view: View) => void;
 	onAddPot: (pot: Pot) => void;
 	onEditPot: (oldName: string, pot: Pot) => void;
 	onDeletePot: (pot: Pot) => void;
 	goneNames: string[];
 };
 
-export function Savings({ entries, pots, today, onView, onAddPot, onEditPot, onDeletePot, goneNames }: Props) {
+export function Savings({ entries, pots, today, onAddPot, onEditPot, onDeletePot, goneNames }: Props) {
 	const totals = useMemo(() => potTotals(entries, pots, today), [entries, pots, today]);
 	const saved = totals.reduce((sum, p) => sum + p.total, 0);
 	const [adding, setAdding] = useState(false);
@@ -28,10 +26,6 @@ export function Savings({ entries, pots, today, onView, onAddPot, onEditPot, onD
 
 	return (
 		<main className="home">
-			<header className="topnav">
-				<ViewSwitch value="savings" onChange={onView} />
-			</header>
-
 			<section className="today" aria-labelledby="saved-label">
 				<div className="ledger-head__top">
 					<h1 className="month">Savings</h1>

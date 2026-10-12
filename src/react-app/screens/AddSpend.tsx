@@ -14,6 +14,8 @@ type Props = {
 	goneNames: string[];
 	onAddPot: (pot: Pot) => void;
 	onAddCategory: (name: string) => void;
+	// Reading slips starts from here; not offered while editing an entry.
+	onSlips?: () => void;
 	onClose: () => void;
 	onSave: (draft: { kind: Kind; satang: number; at: Date; category: string | null; note: string; pot?: string }) => void;
 };
@@ -26,7 +28,7 @@ const KINDS: { value: Kind; label: string }[] = [
 
 const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "back"];
 
-export function AddSpend({ editing, categories, pots, goneNames, onAddPot, onAddCategory, onClose, onSave }: Props) {
+export function AddSpend({ editing, categories, pots, goneNames, onAddPot, onAddCategory, onSlips, onClose, onSave }: Props) {
 	const [kind, setKind] = useState<Kind>(editing?.kind ?? "spent");
 	const [input, setInput] = useState(editing ? String(editing.satang / 100) : "");
 	const [note, setNote] = useState(editing?.note ?? "");
@@ -66,7 +68,14 @@ export function AddSpend({ editing, categories, pots, goneNames, onAddPot, onAdd
 						))}
 					</div>
 				)}
-				<span className="topbar__spacer" aria-hidden="true" />
+				{onSlips && !editing ? (
+					<button type="button" className="topbar__slips" onClick={onSlips}>
+						<Icon name="clip" size={18} />
+						Slips
+					</button>
+				) : (
+					<span className="topbar__spacer" aria-hidden="true" />
+				)}
 			</header>
 
 			<div className="amount">

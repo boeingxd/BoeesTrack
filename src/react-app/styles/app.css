@@ -95,11 +95,6 @@ button:disabled {
 	min-height: 100dvh;
 }
 
-/* One full-width navigation row, then the page content on the notebook grid */
-.topnav {
-	border-bottom: 1px solid var(--color-rule);
-}
-
 .ledger-head__top {
 	display: flex;
 	align-items: center;
@@ -811,57 +806,80 @@ button:disabled {
 	font-weight: var(--weight-strong);
 }
 
-/* The pinned action bar: one filled button for the main job, one outlined for the second */
+/* The bottom bar: four text tabs and, beside them, Add as its own filled button */
 
-.dock {
+.tabbar {
 	position: sticky;
 	bottom: 0;
 	z-index: 2;
 	display: flex;
-	gap: var(--space-3);
+	align-items: stretch;
+	gap: var(--space-2);
 	margin-top: auto;
-	padding: var(--space-3) var(--page-pad) calc(var(--space-3) + env(safe-area-inset-bottom));
+	padding: var(--space-2) var(--space-3) calc(var(--space-2) + env(safe-area-inset-bottom));
 	border-top: 1px solid var(--color-rule);
 	background: var(--color-paper);
 }
 
-.dock__add,
-.dock__slips {
+.tabbar .views {
+	flex: 1;
+	min-width: 0;
+}
+
+.tabbar .views .kind {
+	min-height: 3.5rem;
+	margin-bottom: 0;
+	padding-inline: 0;
+	font-size: var(--text-sm);
+	border-bottom: 0;
+	border-top: 2px solid transparent;
+}
+
+.tabbar .views .kind[aria-checked="true"] {
+	border-top-color: var(--color-ink);
+}
+
+.tabbar__add {
+	flex: none;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	gap: var(--space-2);
+	gap: var(--space-1);
 	min-height: 3.5rem;
+	padding-inline: var(--space-4);
 	border-radius: var(--radius-s);
-	font-weight: var(--weight-strong);
-}
-
-.dock__add {
-	flex: 1;
 	background: var(--color-ink);
 	color: var(--color-paper);
+	font-weight: var(--weight-strong);
 	transition: transform var(--dur-micro) var(--ease-out);
 }
 
-.dock__add:active {
+.tabbar__add:active {
 	transform: translateY(1px);
 }
 
-.dock__slips {
-	padding-inline: var(--space-4);
-	box-shadow: inset 0 0 0 1px var(--color-ink);
-	color: var(--color-ink);
-	font-weight: var(--weight-medium);
-}
+/* At 320px the labels have no room, so Add shrinks to its plus. */
+@media (max-width: 23rem) {
+	.tabbar__add {
+		padding-inline: var(--space-3);
+	}
 
-@media (hover: hover) {
-	.dock__slips:hover {
-		background: var(--color-paper-2);
+	.tabbar__label {
+		display: none;
 	}
 }
 
-.dock__slips:active {
-	background: var(--color-paper-3);
+/* Slips, offered from the Add screen's top bar */
+.topbar__slips {
+	display: inline-flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: var(--space-1);
+	min-width: var(--tap);
+	min-height: var(--tap);
+	padding-inline: var(--space-2);
+	color: var(--color-ink);
+	font-weight: var(--weight-medium);
 }
 
 /* Home | Stats switch, the Stats page, History, and the end of Home's list */
@@ -1061,7 +1079,7 @@ button:disabled {
 	width: calc(100% - 2 * var(--page-pad));
 }
 
-/* Full-size buttons, like the Home dock. Red is for warnings, and deleting is one. */
+/* Full-size buttons. Red is for warnings, and deleting is one. */
 .detail__btn {
 	display: flex;
 	align-items: center;
@@ -1357,7 +1375,6 @@ button:disabled {
 
 /* Motion: one entrance, one sheet, one settle. Reduced motion keeps only a quick fade. */
 
-.home--intro .topnav,
 .home--intro .today,
 .home--intro .sheet {
 	animation: reveal var(--dur-long) var(--ease-out) both;
@@ -1386,7 +1403,6 @@ button:disabled {
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.home--intro .topnav,
 	.home--intro .today,
 	.home--intro .sheet,
 	.screen--sheet,
@@ -1398,13 +1414,13 @@ button:disabled {
 
 	.key,
 	.confirm,
-	.dock__add {
+	.tabbar__add {
 		transition-duration: 0ms;
 	}
 
 	.key:active,
 	.confirm:active:not(:disabled),
-	.dock__add:active {
+	.tabbar__add:active {
 		transform: none;
 	}
 

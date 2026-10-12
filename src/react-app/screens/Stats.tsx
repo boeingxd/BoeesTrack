@@ -4,7 +4,7 @@ import { DayList } from "../components/DayList";
 import { Figure } from "../components/Figure";
 import { Icon } from "../components/Icon";
 import { Meter } from "../components/Meter";
-import { ScaleSwitch, ViewSwitch, type View } from "../components/ViewSwitch";
+import { ScaleSwitch } from "../components/ViewSwitch";
 import { dayKey, dayMonth, groupByDay } from "../lib/dates";
 import { formatBaht } from "../lib/money";
 import {
@@ -30,7 +30,6 @@ type Props = {
 	anchor: Date;
 	onAnchor: (anchor: Date) => void;
 	onScale: (scale: Scale) => void;
-	onView: (view: View) => void;
 	onOpenDay: (date: Date) => void;
 	onOpenWeek: (date: Date) => void;
 	onOpenCategory: (category: string) => void;
@@ -41,7 +40,7 @@ type Props = {
 const share = (value: number) => (value > 0 && value < 0.01 ? "<1%" : `${Math.round(value * 100)}%`);
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
-export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onView, onOpenDay, onOpenWeek, onOpenCategory, onOpenHistory, onOpenEntry }: Props) {
+export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onOpenDay, onOpenWeek, onOpenCategory, onOpenHistory, onOpenEntry }: Props) {
 	const range = useMemo(() => periodRange(scale, anchor), [scale, anchor]);
 	const { range: earlier, partial } = useMemo(() => previousRange(scale, anchor, today), [scale, anchor, today]);
 	const current = range.to.getTime() > today.getTime();
@@ -75,10 +74,6 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onView
 
 	return (
 		<main className="home">
-			<header className="topnav">
-				<ViewSwitch value="stats" onChange={onView} />
-			</header>
-
 			<section className="today" aria-labelledby="stats-label">
 				<div className="ledger-head__top">
 					<h1 className="month">{periodTitle(scale, range, today)}</h1>
