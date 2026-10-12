@@ -3,6 +3,7 @@ import { DayBars } from "../components/DayBars";
 import { DayList } from "../components/DayList";
 import { Figure } from "../components/Figure";
 import { Icon } from "../components/Icon";
+import { Meter } from "../components/Meter";
 import { ScaleSwitch, ViewSwitch, type View } from "../components/ViewSwitch";
 import { addDays, dayKey, dayMonth, groupByDay } from "../lib/dates";
 import { formatBaht } from "../lib/money";
@@ -65,7 +66,6 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onView
 	const inOut = useMemo(() => flows(entries, range), [entries, range]);
 	// Two bars, this period against the one before, on one shared scale (the longer is full width).
 	const longest = Math.max(breakdown.total, before);
-	const barWidth = (satang: number) => `${satang === 0 ? 0 : Math.max(2, (satang / longest) * 100)}%`;
 	const word = scale === "day" ? "day" : scale === "week" ? "week" : "month";
 	const nowName = scale === "day" ? (current ? "Today" : "That day") : `${current ? "This" : "That"} ${word}`;
 	const beforeName = `${scale === "day" ? "Day" : scale === "week" ? "Week" : "Month"} before`;
@@ -127,22 +127,9 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onView
 					<p className="today__note">No earlier data to compare with yet.</p>
 				) : (
 					longest > 0 && (
-						<ul className="compare" aria-label="Spent compared with the period before">
-							{[
-								{ name: nowName, note: null, satang: breakdown.total, mine: true },
-								{ name: beforeName, note: partial ? "same days" : null, satang: before, mine: false },
-							].map((row) => (
-								<li className="compare__row" key={row.name}>
-									<span className="compare__name">
-										{row.name}
-										{row.note && <span className="compare__note">{row.note}</span>}
-									</span>
-									<span className="compare__track" aria-hidden="true">
-										<span className={row.mine ? "compare__fill" : "compare__fill compare__fill--before"} style={{ width: barWidth(row.satang) }} />
-									</span>
-									<span className="compare__amount">{formatBaht(row.satang)}</span>
-								</li>
-							))}
+						<ul className="meters" aria-label="Spent compared with the period before">
+							<Meter name={nowName} value={breakdown.total} max={longest} amount={formatBaht(breakdown.total)} />
+							<Meter name={beforeName} note={partial ? "same days" : undefined} value={before} max={longest} tone="edge" amount={formatBaht(before)} />
 						</ul>
 					)
 				)}

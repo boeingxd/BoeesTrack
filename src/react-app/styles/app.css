@@ -1436,9 +1436,9 @@ button:disabled {
 	font-size: var(--text-md);
 }
 
-/* Insight hero: the comparison with the period before, drawn instead of written */
+/* One bar row for the whole app: Home (today, month), Insight (against the period before), Savings pots (track only) */
 
-.compare {
+.meters {
 	display: grid;
 	gap: var(--space-2);
 	margin-top: var(--space-4);
@@ -1446,24 +1446,24 @@ button:disabled {
 	font-size: var(--text-sm);
 }
 
-.compare__row {
+.meter {
 	display: grid;
 	grid-template-columns: 5.5rem minmax(0, 1fr) auto;
 	align-items: center;
 	gap: var(--space-3);
 }
 
-.compare__name {
+.meter__name {
 	display: grid;
 	color: var(--color-ink-2);
 }
 
-.compare__note {
+.meter__note {
 	font-size: var(--text-xs);
 	color: var(--color-muted);
 }
 
-.compare__track {
+.meter__track {
 	display: block;
 	height: 0.625rem;
 	border-radius: 2px;
@@ -1471,17 +1471,21 @@ button:disabled {
 	overflow: hidden;
 }
 
-.compare__fill {
+.meter__fill {
 	display: block;
 	height: 100%;
 	background: var(--color-ink);
 }
 
-.compare__fill--before {
+.meter__fill--edge {
 	background: var(--color-edge);
 }
 
-.compare__amount {
+.meter__fill--over {
+	background: var(--color-accent);
+}
+
+.meter__amount {
 	min-width: 3.25rem;
 	text-align: end;
 	font-weight: var(--weight-medium);
