@@ -39,8 +39,9 @@ function receiverFrom(lines: string[]): string {
 	if (start < 0) return "";
 	const found: string[] = [];
 	for (const line of lines.slice(start, start + 4)) {
-		// Drop the label and the stray icon symbols OCR reads at the start of a line.
-		const text = line.replace("ไปที่", "").replace(/^[^\p{L}\p{N}(]+/u, "").trim();
+		// Drop the label and the stray icon OCR reads at the start of a line: symbols, or a short lowercase "word" like "fn".
+		// shortcut: a real name that starts with a 1-2 letter lowercase word would lose it; upper case and digits ("MR", "7 Eleven") are safe.
+		const text = line.replace("ไปที่", "").replace(/^[^\p{L}\p{N}(]+/u, "").replace(/^\p{Ll}{1,2}\s+/u, "").trim();
 		if (!text) continue;
 		if (RECEIVER_END.test(text)) break;
 		found.push(text);
@@ -52,7 +53,8 @@ export function parseSlip(raw: string): SlipFields {
 	// OCR writes the Thai "ำ" as two characters, which would break the word matching below.
 	const text = raw.replace(/ํา/g, "ำ");
 	const lines = text.split("\n").map((l) => l.trim());
-	const slipRef = text.match(/\b\d{20,}[A-Z]{0,3}\b/)?.[0] ?? null;
+	// It must start with a real date (YYYYMMDD): a shop slip also prints a 20-digit shop code, which is not unique per payment.
+	const slipRef = text.match(/\b20\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01])\d{9,}[A-Z]{0,3}\b/)?.[0] ?? null;
 	// The amount is the first money figure above the sender block; later 0.00 is the fee.
 	const sender = lines.findIndex((l) => l.includes("จาก"));
 	const top = lines.slice(0, sender < 0 ? undefined : sender).join("\n");

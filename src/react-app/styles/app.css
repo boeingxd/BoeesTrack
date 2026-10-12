@@ -117,12 +117,6 @@ button:disabled {
 	letter-spacing: -0.01em;
 }
 
-.sample-note {
-	font-size: var(--text-xs);
-	color: var(--color-muted);
-	white-space: nowrap;
-}
-
 .nowrap {
 	white-space: nowrap;
 }
@@ -609,49 +603,15 @@ button:disabled {
 	align-content: start;
 }
 
-.slip-thumb {
-	display: grid;
-	align-content: start;
-	gap: var(--space-2);
+/* The real picture, cropped to the top of the slip where the amount and date are. */
+.slip-photo {
+	display: block;
+	width: 100%;
 	aspect-ratio: 9 / 14;
-	padding: var(--space-3) var(--space-2);
-}
-
-.slip-thumb span {
-	height: 4px;
-	border-radius: 2px;
-	background: var(--color-rule);
-}
-
-.slip-thumb span:nth-child(1) {
-	justify-self: center;
-	width: 55%;
-	height: 6px;
-	background: var(--color-edge);
-}
-
-.slip-thumb span:nth-child(2) {
-	width: 70%;
-}
-
-.slip-thumb span:nth-child(3) {
-	width: 90%;
-}
-
-.slip-thumb span:nth-child(5) {
-	width: 80%;
-}
-
-.slip-thumb span:nth-child(6) {
-	width: 45%;
-}
-
-/* The scanned value is what gets checked, so it is the loudest thing on the page. */
-.slip__value {
-	font-family: var(--font-mono);
-	font-size: var(--text-md);
-	font-weight: var(--weight-strong);
-	letter-spacing: -0.01em;
+	object-fit: cover;
+	object-position: top;
+	border: 1px solid var(--color-rule);
+	background: var(--color-paper-2);
 }
 
 .slip__details {
@@ -662,10 +622,27 @@ button:disabled {
 	min-width: 0;
 }
 
-.slip__when {
+/* The amount is the value being checked, so it is the loudest field; it leaves room for the remove button. */
+.slip__money {
+	display: flex;
+	align-items: center;
+	gap: var(--space-1);
 	padding-inline-end: var(--tap);
+	font-family: var(--font-mono);
+	font-size: var(--text-md);
+	font-weight: var(--weight-strong);
+	letter-spacing: -0.01em;
+}
+
+.slip__money .note {
+	min-width: 0;
+	font-weight: inherit;
+}
+
+.slip__field {
+	min-width: 0;
+	border-bottom: 1px solid var(--color-rule);
 	font-size: var(--text-sm);
-	color: var(--color-ink-2);
 }
 
 .slip__ref {

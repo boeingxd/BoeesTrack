@@ -36,3 +36,9 @@ export const addPot = (pot: Pot) => call("POST", "/pots", pot).then(() => undefi
 export const editPot = (oldName: string, pot: Pot) => call("PUT", `/pots/${encodeURIComponent(oldName)}`, pot).then(() => undefined);
 export const savePlan = (plan: BudgetPlan) => call("PUT", "/plan", plan).then(() => undefined);
 export const addCategory = (name: string) => call("POST", "/categories", { name }).then(() => undefined);
+
+// The picture goes up as raw bytes, after its entry is saved: the Worker only stores pictures for entries that exist.
+export async function putSlip(ref: string, file: Blob): Promise<void> {
+	const res = await fetch(`/api/slips/${ref}`, { method: "PUT", headers: { "content-type": file.type }, body: file });
+	if (!res.ok) throw new Error(`PUT /slips failed: ${res.status}`);
+}

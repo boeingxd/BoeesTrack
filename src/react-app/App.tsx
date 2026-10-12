@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { View } from "./components/ViewSwitch";
 import { checkIn } from "./lib/balance";
 import * as api from "./lib/api";
 import { saveOrUndo } from "./lib/optimistic";
-import { sampleSlips } from "./lib/sample";
+import { flagDuplicates, newSlip, readInto } from "./lib/slipBatch";
 import { defaultFilters, periodRange, type Filters, type Scale } from "./lib/stats";
 import type { BudgetPlan, Entry, Pot, Slip } from "./lib/types";
 import { AddSpend } from "./screens/AddSpend";
@@ -27,6 +27,7 @@ function App() {
 	const [attempt, setAttempt] = useState(0);
 	const [notice, setNotice] = useState<string | null>(null);
 	const [slips, setSlips] = useState<Slip[]>([]);
+	const picker = useRef<HTMLInputElement>(null);
 	const [screen, setScreen] = useState<Screen>("home");
 	const [justAddedId, setJustAddedId] = useState<string | null>(null);
 	const [intro, setIntro] = useState(true);
@@ -136,6 +137,63 @@ function App() {
 		setScreen("home");
 	}
 
+	const savedRefs = () => new Set(entries.flatMap((e) => (e.slipRef ? [e.slipRef] : [])));
+
+	// Picking pictures opens the review at once; each slip is read in turn and fills in as it finishes.
+	async function startBatch(files: File[]) {
+		const stamp = Date.now();
+		const batch = files.map((file, i) => newSlip(file, `slip-${stamp}-${i}`));
+		setSlips(flagDuplicates(batch, savedRefs()));
+		setScreen("slips");
+		for (const slip of batch) {
+			if (slip.status !== "reading") continue;
+			const done = await readInto(slip);
+			setSlips((current) => flagDuplicates(current.map((s) => (s.id === done.id ? done : s)), savedRefs()));
+		}
+	}
+
+	// Closing a batch frees the picture previews it was holding.
+	function endBatch() {
+		slips.forEach((slip) => slip.url && URL.revokeObjectURL(slip.url));
+		setSlips([]);
+		setScreen("home");
+	}
+
+	// The entries save first, because the Worker only keeps a picture for an entry that exists.
+	// A picture that fails to upload never undoes its entry: the money is saved, so it only warns.
+	function confirmSlips(ready: Slip[]) {
+		const added: Entry[] = ready.map((slip) => ({
+			id: `entry-${slip.id}`,
+			kind: "spent",
+			satang: slip.satang ?? 0,
+			at: slip.at ?? new Date(),
+			category: slip.category,
+			note: slip.note,
+			slipRef: slip.ref,
+		}));
+		setEntries((current) => [...current, ...added]);
+		setJustAddedId(added[0]?.id ?? null);
+		endBatch();
+		const ids = new Set(added.map((e) => e.id));
+		save(
+			async () => {
+				await api.addEntries(added);
+				const stored = new Set<string>();
+				for (const slip of ready) {
+					try {
+						if (slip.file && slip.ref) await api.putSlip(slip.ref, slip.file);
+						if (slip.ref) stored.add(slip.ref);
+					} catch {
+						// counted below
+					}
+				}
+				setEntries((current) => current.map((e) => (e.slipRef && stored.has(e.slipRef) ? { ...e, hasImage: true } : e)));
+				if (stored.size < ready.length) setNotice(`Saved the entries, but ${ready.length - stored.size} of the pictures did not upload.`);
+			},
+			() => setEntries((current) => current.filter((e) => !ids.has(e.id))),
+		);
+	}
+
 	function addCheckIn(bankSatang: number) {
 		const adjustment = checkIn(entries, bankSatang, new Date());
 		if (adjustment) storeEntries([adjustment]);
@@ -194,6 +252,18 @@ function App() {
 
 	return (
 		<div className="app">
+			<input
+				ref={picker}
+				type="file"
+				accept="image/jpeg,image/png,image/webp"
+				multiple
+				hidden
+				onChange={(event) => {
+					const files = [...(event.target.files ?? [])];
+					event.target.value = "";
+					if (files.length > 0) void startBatch(files);
+				}}
+			/>
 			{notice && (
 				<button type="button" className="notice" role="alert" onClick={() => setNotice(null)}>
 					{notice} Tap to dismiss.
@@ -211,10 +281,7 @@ function App() {
 					onCheckIn={addCheckIn}
 					onBudget={() => setScreen("budget")}
 					onOpenEntry={openEntry}
-					onSlips={() => {
-						setSlips(sampleSlips(today));
-						setScreen("slips");
-					}}
+					onSlips={() => picker.current?.click()}
 				/>
 			)}
 			{screen === "stats" && (
@@ -295,22 +362,10 @@ function App() {
 				<SlipReview
 					slips={slips}
 					categories={categories}
-					onChange={setSlips}
-					onClose={() => setScreen("home")}
+					onChange={(next) => setSlips(flagDuplicates(next, savedRefs()))}
+					onClose={endBatch}
 					onAddByHand={() => setScreen("add")}
-					onConfirm={(ready) =>
-						addEntries(
-							ready.map((slip) => ({
-								id: `entry-${slip.id}`,
-								kind: "spent" as const,
-								satang: slip.satang ?? 0,
-								at: slip.at ?? new Date(),
-								category: slip.category,
-								note: "",
-								slipRef: slip.ref,
-							})),
-						)
-					}
+					onConfirm={confirmSlips}
 				/>
 			)}
 		</div>

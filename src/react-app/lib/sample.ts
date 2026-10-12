@@ -1,5 +1,5 @@
-import { addDays, dayKey } from "./dates";
-import type { BudgetPlan, Entry, Kind, Pot, Slip } from "./types";
+import { addDays } from "./dates";
+import type { BudgetPlan, Entry, Kind, Pot } from "./types";
 
 // Everything in this file is synthetic sample data for the first design pass.
 // Amounts echo the real slips; names, notes and reference numbers are invented.
@@ -110,40 +110,4 @@ export function sampleEntries(today: Date): Entry[] {
 			...(pot ? { pot } : {}),
 		})),
 	);
-}
-
-// A real slip's reference starts with its timestamp (YYYYMMDDHHMMSS); the tail here is invented.
-function refFor(d: Date, tail: string): string {
-	const stamp = `${dayKey(d).replace(/-/g, "")}${String(d.getHours()).padStart(2, "0")}${String(d.getMinutes()).padStart(2, "0")}27`;
-	return `${stamp}${tail}`;
-}
-
-export function sampleSlips(today: Date): Slip[] {
-	const base = (id: number, fileName: string): Pick<Slip, "id" | "fileName" | "category" | "removed"> => ({
-		id: `slip-${id}`,
-		fileName,
-		category: null,
-		removed: false,
-	});
-	const slipAt = (daysAgo: number, time: string, tail: string, satang: number, id: number): Slip => {
-		const when = at(today, daysAgo, time);
-		return {
-			...base(id, `BBl-Screenshot-000${id}.jpeg`),
-			status: "ok",
-			satang,
-			at: when,
-			ref: refFor(when, tail),
-		};
-	};
-
-	const second = slipAt(1, "13:54", "0023002524", 46100, 2);
-	return [
-		slipAt(1, "10:32", "0031807368", 4500, 1),
-		second,
-		slipAt(1, "16:56", "0066603083", 18000, 3),
-		{ ...base(4, "BBl-Screenshot-0004.jpeg"), status: "unreadable" },
-		slipAt(0, "11:24", "0334122763", 3500, 5),
-		{ ...base(6, "BBl-Screenshot-0006.jpeg"), status: "duplicate", satang: second.satang, at: second.at, ref: second.ref, duplicateOf: 2 },
-		slipAt(0, "11:51", "0337327089", 2500, 7),
-	];
 }

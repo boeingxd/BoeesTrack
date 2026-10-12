@@ -42,6 +42,20 @@ describe("parseSlip", () => {
 		expect(slip.slipRef).toBe("2030010309150012345678AD");
 	});
 
+	it("takes the dated reference, not the shop code a shop slip prints above it", () => {
+		const withCode = SHOP.replace("000000000000000\nคําธรรมเนียม", "08000000000000000000\nคําธรรมเนียม");
+		expect(withCode).toContain("08000000000000000000");
+		expect(parseSlip(withCode).slipRef).toBe("2030010309150012345678AD");
+	});
+
+	it("drops the shop icon OCR reads as a short lowercase word, but keeps MR and 7 Eleven", () => {
+		const receiver = (first: string) => parseSlip(`12 ธ.ค. 69, 18:40\n75.00\nจาก x\nไปที่ ${first}\nพร้อมเพย์`).receiver;
+		expect(receiver("fn TEST SHOP")).toBe("TEST SHOP");
+		expect(receiver("© fn TEST SHOP")).toBe("TEST SHOP");
+		expect(receiver("MR TEST")).toBe("MR TEST");
+		expect(receiver("7 Eleven")).toBe("7 Eleven");
+	});
+
 	it("stops the receiver at the account line on a person-to-person slip", () => {
 		const slip = parseSlip(PERSON);
 		expect(slip.satang).toBe(7500);

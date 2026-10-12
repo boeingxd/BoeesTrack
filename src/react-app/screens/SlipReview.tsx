@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { ClipMark, Icon } from "../components/Icon";
-import { shortDay, timeLabel } from "../lib/dates";
-import { formatBaht } from "../lib/money";
+import { toInputValue } from "../lib/dates";
+import { formatBaht, inputToSatang } from "../lib/money";
+import { isReady } from "../lib/slipBatch";
 import type { Slip } from "../lib/types";
 
 type Props = {
@@ -12,17 +14,26 @@ type Props = {
 	onConfirm: (slips: Slip[]) => void;
 };
 
-// Stand-in for the slip image: ruled bars, drawn in code, never a real slip.
-function SlipThumb() {
+// The amount is typed as text ("12.5") so the dot behaves; only a whole-baht or two-decimal figure is accepted.
+function AmountField({ value, label, onChange }: { value: number | undefined; label: string; onChange: (satang: number | undefined) => void }) {
+	const [text, setText] = useState(value ? String(value / 100) : "");
 	return (
-		<div className="slip-thumb" role="img" aria-label="Slip image (sample placeholder)">
-			<span />
-			<span />
-			<span />
-			<span />
-			<span />
-			<span />
-		</div>
+		<label className="slip__money">
+			<span aria-hidden="true">฿</span>
+			<input
+				className="note"
+				inputMode="decimal"
+				value={text}
+				placeholder="Amount"
+				aria-label={label}
+				onChange={(event) => {
+					const next = event.target.value;
+					if (!/^\d{0,7}(\.\d{0,2})?$/.test(next)) return;
+					setText(next);
+					onChange(inputToSatang(next) || undefined);
+				}}
+			/>
+		</label>
 	);
 }
 
@@ -30,10 +41,12 @@ export function SlipReview({ slips, categories, onChange, onClose, onAddByHand, 
 	const update = (id: string, patch: Partial<Slip>) =>
 		onChange(slips.map((slip) => (slip.id === id ? { ...slip, ...patch } : slip)));
 
-	const ready = slips.filter((slip) => slip.status === "ok" && !slip.removed);
+	const ready = slips.filter(isReady);
 	const total = ready.reduce((sum, slip) => sum + (slip.satang ?? 0), 0);
 	const uncategorised = ready.filter((slip) => slip.category === null).length;
-	const skipped = slips.filter((slip) => slip.status !== "ok").length;
+	const reading = slips.filter((slip) => slip.status === "reading").length;
+	const skipped = slips.filter((slip) => slip.status === "unreadable" || slip.status === "duplicate").length;
+	const unfinished = slips.filter((slip) => slip.status === "ok" && !slip.removed && !isReady(slip)).length;
 	const noun = ready.length === 1 ? "slip" : "slips";
 
 	return (
@@ -46,10 +59,11 @@ export function SlipReview({ slips, categories, onChange, onClose, onAddByHand, 
 				<span className="topbar__spacer" aria-hidden="true" />
 			</header>
 
-			<p className="sample-note">Sample slips, not yours. Confirming adds them as real entries.</p>
-			<p className="review-intro">
-				{slips.length} uploaded · {ready.length} readable{skipped > 0 && ` · ${skipped} skipped`}. Check each value
-				against its slip, and choose a category.{uncategorised > 0 && ` ${uncategorised} still without one.`}
+			<p className="review-intro" aria-live="polite">
+				{reading > 0 ? `Reading ${reading} of ${slips.length} slips…` : `${slips.length} picked · ${ready.length} ready${skipped > 0 ? ` · ${skipped} skipped` : ""}.`}{" "}
+				The reader's values are guesses: check each against its picture and fix anything wrong.
+				{unfinished > 0 && ` ${unfinished} still need an amount or a time.`}
+				{uncategorised > 0 && ` ${uncategorised} without a category.`}
 			</p>
 
 			<div className="review-sheet">
@@ -68,6 +82,20 @@ export function SlipReview({ slips, categories, onChange, onClose, onAddByHand, 
 							);
 						}
 
+						if (slip.status === "reading") {
+							return (
+								<li className="slip slip--warn" key={slip.id}>
+									<span className="slip__clip">
+										<ClipMark />
+									</span>
+									<div className="slip__warning" role="status">
+										<p className="warn-title">Reading slip {number}…</p>
+										<p className="slip__file">{slip.fileName}</p>
+									</div>
+								</li>
+							);
+						}
+
 						if (slip.status === "unreadable") {
 							return (
 								<li className="slip slip--warn" key={slip.id}>
@@ -80,7 +108,7 @@ export function SlipReview({ slips, categories, onChange, onClose, onAddByHand, 
 											Couldn't read slip {number}
 										</p>
 										<p className="slip__file">{slip.fileName}</p>
-										<p>It was left out. The other slips are not affected.</p>
+										<p>{slip.reason ?? "It was left out."} The other slips are not affected.</p>
 										<button type="button" className="text-btn" onClick={onAddByHand}>
 											Add it by hand
 										</button>
@@ -102,8 +130,8 @@ export function SlipReview({ slips, categories, onChange, onClose, onAddByHand, 
 										</p>
 										<p className="slip__file">{slip.fileName}</p>
 										<p>
-											Same reference as slip {slip.duplicateOf}, so it was skipped. The other slips are not
-											affected.
+											{slip.duplicateOf ? `Same reference as slip ${slip.duplicateOf}` : "Already in your entries (same reference)"}, so it
+											was skipped. The other slips are not affected.
 										</p>
 									</div>
 								</li>
@@ -116,12 +144,28 @@ export function SlipReview({ slips, categories, onChange, onClose, onAddByHand, 
 									<ClipMark />
 								</span>
 								<figure className="slip__figure">
-									<SlipThumb />
-									<figcaption className="slip__value">{formatBaht(slip.satang ?? 0)}</figcaption>
+									<img className="slip-photo" src={slip.url} alt={`Slip ${number}, the picture you picked`} />
 								</figure>
 								<div className="slip__details">
-									<p className="slip__when">{slip.at && `${shortDay(slip.at)} · ${timeLabel(slip.at)}`}</p>
-									<p className="slip__ref">Ref {slip.ref}</p>
+									<AmountField key={slip.id} value={slip.satang} label={`Amount for slip ${number}`} onChange={(satang) => update(slip.id, { satang })} />
+									<input
+										type="datetime-local"
+										className="note slip__field"
+										value={slip.at ? toInputValue(slip.at) : ""}
+										aria-label={`When slip ${number} was paid`}
+										onChange={(event) => {
+											const next = new Date(event.target.value);
+											update(slip.id, { at: Number.isNaN(next.getTime()) ? undefined : next });
+										}}
+									/>
+									<input
+										className="note slip__field"
+										value={slip.note}
+										maxLength={80}
+										placeholder="Add a note"
+										aria-label={`Note for slip ${number}`}
+										onChange={(event) => update(slip.id, { note: event.target.value })}
+									/>
 									<label className="select">
 										<select
 											className="select__input"
@@ -138,6 +182,7 @@ export function SlipReview({ slips, categories, onChange, onClose, onAddByHand, 
 										</select>
 										<Icon name="down" size={16} />
 									</label>
+									{slip.ref && !slip.ref.startsWith("img") && <p className="slip__ref">Ref {slip.ref}</p>}
 								</div>
 								<button
 									type="button"
