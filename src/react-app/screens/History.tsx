@@ -197,43 +197,44 @@ export function History({ entries, categories, today, filters, onFilters, onView
 			</section>
 
 			<footer className="backup">
-				<a className="text-btn" href="/api/data" download={`boeestrack-backup-${dayKey(today)}.json`}>
-					Download backup
-				</a>
-				<button type="button" className="text-btn" onClick={() => downloadCsv(entries, today)}>
-					Spreadsheet (CSV)
-				</button>
-			</footer>
-
-			{results.length > 0 &&
-				(confirming ? (
-					<div className="detail__confirm">
-						<p className="today__note today__note--warn" role="alert">
-							<Icon name="warning" size={18} />
-							<span>
-								Delete {results.length} {results.length === 1 ? "entry" : "entries"} ({formatBaht(total)} {totalKind}) and their slip pictures? Download a backup first. This
-								can't be undone.
-							</span>
-						</p>
-						<button type="button" className="detail__btn detail__btn--keep" onClick={() => setConfirming(false)}>
-							Keep them
-						</button>
-						<button
-							type="button"
-							className="detail__btn detail__btn--delete"
-							onClick={() => {
-								setConfirming(false);
-								onDeleteShown(results);
-							}}
-						>
-							Yes, delete {results.length}
-						</button>
-					</div>
-				) : (
-					<button type="button" className="detail__btn detail__btn--outline detail__delete" onClick={() => setConfirming(true)}>
-						Delete these {results.length} {results.length === 1 ? "entry" : "entries"}
+				<div className="backup__links">
+					<a className="text-btn" href="/api/data" download={`boeestrack-backup-${dayKey(today)}.json`}>
+						Download backup
+					</a>
+					<button type="button" className="text-btn" onClick={() => downloadCsv(entries, today)}>
+						Spreadsheet
 					</button>
-				))}
+				</div>
+				{results.length > 0 &&
+					(confirming ? (
+						<div className="detail__confirm">
+							<p className="today__note today__note--warn" role="alert">
+								<Icon name="warning" size={18} />
+								<span>
+									Delete {results.length} {results.length === 1 ? "entry" : "entries"} ({formatBaht(total)} {totalKind}) and their slip pictures? Download a backup first. This
+									can't be undone.
+								</span>
+							</p>
+							<button type="button" className="detail__btn detail__btn--keep" onClick={() => setConfirming(false)}>
+								Keep them
+							</button>
+							<button
+								type="button"
+								className="detail__btn detail__btn--delete"
+								onClick={() => {
+									setConfirming(false);
+									onDeleteShown(results);
+								}}
+							>
+								Yes, delete {results.length}
+							</button>
+						</div>
+					) : (
+						<button type="button" className="detail__btn detail__btn--outline detail__delete" onClick={() => setConfirming(true)}>
+							Delete these {results.length} {results.length === 1 ? "entry" : "entries"}
+						</button>
+					))}
+			</footer>
 		</main>
 	);
 }

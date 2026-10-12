@@ -745,18 +745,31 @@ button:disabled {
 	text-align: start;
 }
 
+/* One block at the end of History: save a copy, then the one-way button, with room under it so it never sits on the screen edge. */
 .backup {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
 	margin: var(--space-4) var(--page-pad) 0;
-	padding-top: var(--space-2);
+	padding: var(--space-2) 0 calc(var(--space-6) + env(safe-area-inset-bottom));
 	border-top: 1px solid var(--color-rule);
+}
+
+.backup__links {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: var(--space-2);
 }
 
 .backup .text-btn {
 	display: inline-flex;
 	align-items: center;
+	justify-content: center;
+	padding-inline: 0;
+	white-space: nowrap;
+}
+
+.backup .detail__delete,
+.backup .detail__confirm {
+	width: 100%;
+	margin: var(--space-3) 0 0;
 }
 
 .text-btn--center {
