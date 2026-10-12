@@ -127,6 +127,17 @@ function App() {
 		setScreen(detail?.from ?? "home");
 	}
 
+	// Only the picture goes; the entry stays. A failed save puts the picture back on screen.
+	function removePicture(entry: Entry) {
+		if (!entry.slipRef) return;
+		const mark = (hasImage: boolean) => {
+			setEntries((current) => current.map((e) => (e.id === entry.id ? { ...e, hasImage } : e)));
+			setDetail((current) => (current && current.entry.id === entry.id ? { ...current, entry: { ...current.entry, hasImage } } : current));
+		};
+		mark(false);
+		save(() => api.deleteSlip(entry.slipRef as string), () => mark(true));
+	}
+
 	// History's "delete these": gone from the screen at once, and put back if the save fails.
 	function deleteEntries(list: Entry[]) {
 		const ids = new Set(list.map((e) => e.id));
@@ -332,6 +343,7 @@ function App() {
 					onClose={() => setScreen(detail.from)}
 					onEdit={() => setScreen("edit")}
 					onDelete={() => deleteEntry(detail.entry)}
+					onRemovePicture={() => removePicture(detail.entry)}
 				/>
 			)}
 			{screen === "edit" && detail && (

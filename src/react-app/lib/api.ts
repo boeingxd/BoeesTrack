@@ -44,3 +44,5 @@ export async function putSlip(ref: string, file: Blob): Promise<void> {
 	const res = await fetch(`/api/slips/${ref}`, { method: "PUT", headers: { "content-type": file.type }, body: file });
 	if (!res.ok) throw new Error(`PUT /slips failed: ${res.status}`);
 }
+
+export const deleteSlip = (ref: string) => call("DELETE", `/slips/${ref}`).then(() => undefined);

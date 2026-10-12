@@ -958,6 +958,28 @@ button:disabled {
 	color: var(--color-ink);
 }
 
+.detail__photo {
+	display: block;
+	margin: var(--space-5) var(--page-pad) 0;
+	border: 1px solid var(--color-rule);
+	background: var(--color-paper-2);
+}
+
+.detail__photo img {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+.screen--sheet > .detail__delete:last-child,
+.screen--sheet > .detail__confirm:last-child {
+	margin-bottom: calc(var(--space-6) + env(safe-area-inset-bottom));
+}
+
+.detail__delete + .detail__delete {
+	margin-top: var(--space-2);
+}
+
 .detail__delete,
 .detail__confirm {
 	margin: var(--space-5) var(--page-pad) 0;
