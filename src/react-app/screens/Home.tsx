@@ -91,7 +91,7 @@ export function Home({ entries, plan, today, intro, justAddedId, onAdd, onSlips,
 						<span>
 							{s.overMonth
 								? s.mode === "auto"
-									? "The month's budget is used up, so today's allowance is ฿0."
+									? "The month's budget is used up, so no allowance is left."
 									: `${formatBaht(-s.monthLeft)} over the month's budget.`
 								: `${overBy} over today's ${formatBaht(s.todayAllowance)}.`}
 							{!s.overMonth && s.mode === "auto" && s.tomorrowAllowance !== null && ` Tomorrow's allowance drops to ${formatBaht(s.tomorrowAllowance)}.`}
