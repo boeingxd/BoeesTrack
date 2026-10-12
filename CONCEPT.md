@@ -1,7 +1,7 @@
 # BoeesTrack: design concept
 
 **Concept: the notebook with slips clipped in.**
-The app is a notebook. Slips are guests, and they appear only where they are real: the batch review, shown as clipped pages.
+The app is a notebook. Slips are guests, and they appear only where they are real: the batch review, shown as clipped pages, and the picture on the entry made from a slip.
 
 ## Evidence (the owner's own words)
 
@@ -53,13 +53,24 @@ Kitsch from skeuomorphic detail; two metaphors blurring into each other. Check e
 - **Drop:** the colourful category tiles (categories become plain text tags).
 - **Still open:** charts, how budgets are shown (Dime uses a gauge and cards), and the bottom bar.
 
+## Since the first pass (2026-10-12)
+
+The slips are real now, and the owner's decisions shaped how:
+
+- **Read on the device, kept private.** Slips are read in the browser (no AI-vision button for now). The picture is kept in a private bucket, so the owner can look back at the evidence.
+- **Review row: picture beside fields.** In the review the slip picture sits on the left, cropped to the top where the amount and time are, with the amount, time, note and tag to its right and an X at the corner. The receiver's name goes into the note.
+- **Shop memory.** A slip from a shop seen before starts with that shop's earlier note and tag, and a small line says so. Reading is two rounds: the whole slip for amount, time and reference, then a closer look at just the name.
+- **The guest stays a guest.** Slips still never take over the notebook. Besides the review, the only other place a slip shows is the entry screen: its picture sits below the entry's fields as a clipped page, with "Remove picture" beside "Delete entry". A slip entry is edited like any other.
+- **Clearing.** Pictures can be removed one at a time, in bulk by age (3, 6 or 12 months, with the count and size shown first), or with the entry. History gets a Source filter (all, slips, typed in by hand).
+- **Calm filters.** History keeps its period, search and result line in view and tucks Kind, Tag and Source behind one "Filters" row, after the first version with three dropdowns felt overwhelming.
+
 ## Confirmed design brief (first pass)
 
 - **Mode:** Operate. Phone-first; short visits of seconds.
 - **Screens:** home, add a spend, slip batch review. Labelled synthetic sample data. Not wired to the database. Untouched: login, Worker, API. Budgets and goals screens later.
 - **Structure:** each day is a ruled page (small-caps day header, daily subtotal, hairline rule, entries as lines, category as a plain text tag, amount at the right). Focal moment: today's big number and the next empty line.
 - **Add:** the next empty line at the top of today adds a spend; a smaller action beside it adds slips. Amount first, Dime-style on-screen keypad inside the page, time defaults to now and is editable, one category, optional note.
-- **Slip review:** slips appear only here, as pages clipped to the notebook, with the slip image, the scanned value, an X to remove, and per-file warnings for unreadable or duplicate slips.
+- **Slip review:** slips appear here, as pages clipped to the notebook, with the slip image, the scanned value, an X to remove, and per-file warnings for unreadable or duplicate slips. (Since then the entry screen also shows a saved slip's picture; see above.)
 - **Month at a glance (no chart):** numbers for spent, budget and today's allowance, plus one thin ruled progress line; over-budget warning state.
 - **Excluded:** charts, cards, colourful tiles, textures like leather or stitching, a bottom bar (for now).
 - **States:** empty day, typical (3-8 entries), heavy (15+), a month of day pages, over budget; add (empty, typing, time edited, category chosen or not); review batch of 1-10 slips including one unreadable, one duplicate, one removed. Amounts roughly 25-461 baht.

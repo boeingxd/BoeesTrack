@@ -20,7 +20,7 @@ A personal tool built around Thai bank transfer slips and irregular income, with
 
 ## Operating Context
 
-Thailand, baht. Money moves mostly through bank transfer slips (screenshots, each with a reference number and a QR code) and cash. The app is online-only, installable on the phone, and sits behind a Cloudflare Access login (Google, with an emailed one-time code as backup, one-month sessions). Slip images are read on the owner's device.
+Thailand, baht. Money moves mostly through bank transfer slips (screenshots, each with a reference number and a QR code) and cash. The app is online-only, installable on the phone, and sits behind a Cloudflare Access login (Google, with an emailed one-time code as backup, one-month sessions). Slip images are read on the owner's device (in the browser, nothing is sent to a reading service) and the pictures are kept in a private storage bucket behind the same login.
 
 ## Capabilities and Constraints
 
@@ -29,12 +29,15 @@ Thailand, baht. Money moves mostly through bank transfer slips (screenshots, eac
 - Monthly budget with a daily allowance that is derived from the month by default, can be set manually, or can be off; a warning shows when over; overspending lowers later days' derived allowance.
 - Goals: a fixed monthly savings amount, plus extra contributions at any time. Saving is separate from spending.
 - Add a spend: one tap from the main screen, amount first, time defaults to now and is editable, one category, optional note.
-- Edit or delete an entry from its page: amount, tag, note and date can change (kind and pot stay fixed); deleting asks first; bank check-in adjustments and slip entries can only be deleted.
-- History: find any day through a Day / Week / Month switch and a calendar jump, filter by kind and tag, search all time, and sort by newest, oldest, biggest or smallest.
-- Add slips: one tap, amount and time read automatically, a batch is split into one entry per purchase, reviewed with the slip image, the scanned value and an X to remove; duplicates are caught by the slip's QR reference; unreadable or wrong slips are reported by file name without affecting the rest.
-- Export of everything as a file.
-- Stack already in place: React, TypeScript and Vite, a Hono API on a Cloudflare Worker, Cloudflare D1 holds the data (live, starts empty).
-- Undecided: one or several categories per entry; the date source for slips; support for banks other than Bangkok Bank; whether any charts exist; how budgets are displayed.
+- Edit or delete an entry from its page: amount, tag, note and date can change (kind and pot stay fixed); deleting asks first; bank check-in adjustments can only be deleted. A slip entry can be edited like any other and keeps its slip reference and picture.
+- History: find any day through a Day / Week / Month switch and a calendar jump, search all time, filter by kind, tag and source (all, slips, or typed in by hand, told apart by the slip reference, not by whether a picture is still stored), and sort by newest, oldest, biggest or smallest. The filters sit behind one "Filters" row that shows how many are set. A button at the bottom deletes exactly the entries on screen (and their pictures) after a warning with the count and total.
+- Add slips: one tap, amount, time and the receiver's name are read automatically (Thai and English, in the browser), a batch is split into one entry per purchase, reviewed with the slip picture beside editable fields and an X to remove; duplicates are caught by the slip's bank reference (a slip with no readable reference gets a fingerprint of the picture instead); unreadable or wrong slips are reported by file name without affecting the rest. The first batch downloads about 9 MB of reading files once.
+- Names are guesses: the amount and time are read reliably on the owner's real Bangkok Bank slips, names less so (about two in three exact, most of the rest close), and names that mix Thai and English letters can come out garbled. The note is the receiver's name and the owner corrects it in the review; a note they have edited is never overwritten by a later reading.
+- Shop memory: a slip's shop is identified by its Biller ID plus shop code (a Biller ID alone is shared by many shops), or by the masked account or phone number, or by the e-wallet number. The next slip from the same shop starts with the note and tag of the newest earlier entry from it, and says so. Corrections to a note or tag therefore teach the next slip. A biller with no readable shop code is not remembered.
+- Slip pictures: each saved slip keeps its picture (up to 6 MB). The entry screen shows it below the fields (tap for full size) with "Remove picture"; History can clear pictures older than 3, 6 or 12 months by the entry's own date, showing the count and size first. Removing pictures never removes entries, and deleting an entry deletes its picture.
+- Export of everything: a JSON backup and a spreadsheet (CSV) of the entries, at the bottom of History. There is no restore yet.
+- Stack already in place: React, TypeScript and Vite, a Hono API on a Cloudflare Worker, Cloudflare D1 holds the data and a private R2 bucket holds the slip pictures (both live).
+- Undecided: one or several categories per entry; support for banks other than Bangkok Bank and for paper receipts; whether transfers or e-wallet top-ups to the owner's own name count as spending (they are probably not spending, and are read like any other slip for now); a restore for the backup; whether any charts exist; how budgets are displayed.
 
 ## Brand Commitments
 
@@ -42,12 +45,12 @@ The name BoeesTrack, served at track.boee.ing. The owner chose a notebook-with-s
 
 ## Evidence on Hand
 
-Six Bangkok Bank slip screenshots in slipsScreenShots/ (personal data, git-ignored). The live database now holds the owner's own entries; none must be fabricated.
+The owner's real Bangkok Bank slip screenshots in slipsScreenShots/ (personal data, git-ignored, with the true values kept beside them for measuring reading changes; never quote or commit them). On 38 of them the amount and time are right every time, names exact on 27 and close on 36. The live database holds the owner's own entries; none must be fabricated.
 
 ## Product Principles
 
 - Amount first, and fast: logging must take seconds.
 - Today at a glance: the main screen answers how much was spent today and where the month stands.
-- Slips are evidence the owner verifies; they are never silently trusted.
+- Slips are evidence the owner verifies; they are never silently trusted. A reading is a first guess shown for correcting, and the picture stays beside it.
 - Self-explanatory: the screen shows what can be done without a tutorial.
-- Private by default: login in front, slip reading on the device, and the owner can export everything.
+- Private by default: login in front, slip reading on the device, slip pictures in a private bucket the owner can clear, and the owner can export everything.

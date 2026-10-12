@@ -89,7 +89,7 @@ components:
 
 **Creative North Star: "The Ruled Page"**
 
-A cool near-white sheet with pale blue rules, blue-black ink, and one red. The notebook lives in structure only: each day is a page with a bold date over a 1px ink rule, one purchase per ruled line, a red margin line beside the rows. There is no texture, no cards, no tiles. Slips are guests: they appear as lighter pages with a clip, and only in batch review.
+A cool near-white sheet with pale blue rules, blue-black ink, and one red. The notebook lives in structure only: each day is a page with a bold date over a 1px ink rule, one purchase per ruled line, a red margin line beside the rows. There is no texture, no cards, no tiles. Slips are guests: they appear as lighter pages with a clip in batch review, and as a picture below the fields of an entry saved from a slip.
 
 Density is calm and phone-first (a 30rem column, centred on wider screens, with a thin rule either side). The big figure is light (weight 200) and sits on the left page edge together with the titles; emphasis comes from weight 500 to 600 and ink, never from colour.
 
@@ -135,7 +135,7 @@ Restrained: blue-leaning neutrals plus ink, one red, and a focus blue. Neutrals 
 - **Title** (600, 1rem): day headers, top-bar titles, button labels. Day-header sums are 500 in soft ink.
 - **Body** (400, 1rem, 1.5): entry category, notes at 0.875rem muted.
 - **Label** (400, 0.875rem / 0.75rem): budget labels, times, field labels (0.75rem), bar values.
-- **Scanned value** (Geist Mono 600, 1.25rem): the number read from a slip, the loudest thing on that card.
+- **Scanned value** (Geist Mono 600, 1.25rem): the number read from a slip, the loudest thing on that card. The receiver's name is read into the note, in Geist, not mono.
 
 ### Named Rules
 **The Light Figure Rule.** Big numbers are weight 200 and left-aligned on the page edge; bolder weights are for headers and the small sums.
@@ -144,7 +144,7 @@ Restrained: blue-leaning neutrals plus ink, one red, and a focus blue. Neutrals 
 
 A single column, max 30rem, centred; from 40rem up it gains a 1px rule on both sides. Grid: 4px-based spacing; page padding 1.25rem; a 3.5rem margin column holds time/label on the left of every ruled row; row height 3.25rem. The red margin line sits at page-pad + margin-col and runs only beside ruled rows (day lines, add fields, review sheet), never behind titles or the hero.
 
-Home: top row Home | Insight (full-width, ruled below); month title and "Sample data" note; "Spent today" label and figure; one month BudgetBar with labels; a note line; day pages (today plus three earlier days, then an "All history" line); a pinned dock. Insight: same top row, a title with previous/next arrows, a Day / Week / Month switch, the hero figure, a comparison line, then Day by day bars (week and month) or the day's entries (day), Where it went, Biggest spends, Habits. The Add screen and slip review are full-height sheets (entrance: slide up 1.5rem and fade, 220ms) with the keypad or batch bar anchored at the bottom with safe-area padding. Under 44rem tall, the Add screen shrinks its amount and key heights and turns the tag row into one scrolling line.
+Home: top row Home | Insight (full-width, ruled below); month title; "Spent today" label and figure; one month BudgetBar with labels; a note line; day pages (today plus three earlier days, then an "All history" line); a pinned dock. Insight: same top row, a title with previous/next arrows, a Day / Week / Month switch, the hero figure, a comparison line, then Day by day bars (week and month) or the day's entries (day), Where it went, Biggest spends, Habits. The Add screen and slip review are full-height sheets (entrance: slide up 1.5rem and fade, 220ms) with the keypad or batch bar anchored at the bottom with safe-area padding. Under 44rem tall, the Add screen shrinks its amount and key heights and turns the tag row into one scrolling line.
 
 ## Elevation & Depth
 
@@ -186,13 +186,20 @@ Plain text tags, no fill; chosen tag has a 2px ink underline; "New" tag with plu
 Amount first as a Display figure; ruled fields (Note, When with "Change", Tag) with the margin line continuing; a 3-column keypad of ruled cells (1.25rem digits, 52px high) and a filled confirm button.
 
 ### Slip sheets (SlipReview)
-Each slip is a Sheet-tone page with 1px rule, 2px radius, and a paperclip (ClipMark) straddling its top edge: a thumbnail placeholder and mono scanned value left; time, mono reference, category select and an X right. Warning slips (unreadable, duplicate) use a red border, warning icon and deep-red title, listed by file name. Removed slips collapse to one muted line with an undo text button. A sticky batch bar holds the total and confirm.
+Each slip is a Sheet-tone page with 1px rule, 2px radius, and a paperclip (ClipMark) straddling its top edge. Two columns: the real slip picture on the left (clamp 5.5 to 7.5rem wide, 9:14, cropped to the top where the amount and date are, 1px rule border), and the fields on the right: the amount in mono (an AmountField), a datetime field, a note field (the receiver's name), the category select, a small muted hint line "Name and tag filled in from your earlier slip" when shop memory filled them, and the mono bank reference (hidden when it is only a picture fingerprint); an X sits at the top corner. Fields are borderless with a 1px rule underneath. Warning slips (reading, unreadable, duplicate) use a red border, warning icon and deep-red title, listed by file name; "Reading slip N…" has no icon. Removed slips collapse to one muted line with a "Put back" text button. A sticky batch bar holds the total and confirm.
 
-### History field rows
-Ruled rows with a label in the margin column (Find, Tag, Kind, Month) and a borderless input or native select, followed by a results line (count, total, Reset) and DayList groups.
+### Entry screen picture and buttons (EntryDetail)
+A slip entry shows its saved picture below the fields at full column width (1px rule border, Paper-2 behind it), as a link that opens the picture full size. Under it are two outlined red buttons, 56px tall: "Remove picture" then "Delete entry", 8px apart, with 32px of room under the last one so it never sits on the screen edge. Either one swaps in the same two-button confirmation: a warning line, then "Keep it" (outlined ink) and "Yes, remove" or "Yes, delete" (filled deep red).
+
+### History controls
+Top to bottom: the period title with arrows, the Day / Week / Month switch, a search field, one "Filters" row, the results line, then DayList groups, then a footer block.
+- **Search:** a full box (1px edge border, 6px radius, 46px tall) with a magnifier icon inside at the left; the border and icon turn ink on focus.
+- **Filters row:** a full-width text button with a funnel icon, the word "Filters", a muted "N set" count when any are set, and a chevron that flips when open. Closed by default. Open, it shows three ruled rows (Kind, Tag, Source), each a muted label (5rem column) and a borderless native select; a value that is set is ink and weight 500, an unset one is muted.
+- **Results line:** the count and total on the left, a Sort select with an up-down icon, and Reset when anything differs from the default (it wraps below at 320px).
+- **Footer block:** under one 1px rule and with 32px of room at the bottom: "Download backup" and "Spreadsheet" as two equal text links; "Clear old slip pictures", a row like the Filters row that opens a 3 / 6 / 12 months Segmented control, a status line ("N pictures · size. The entries stay.") and an outlined red "Remove these N pictures"; then an outlined red "Delete these N entries" for what the filters show. Both red buttons confirm with a warning and Keep them / Yes buttons, and are kept 24px apart so one is not tapped for the other.
 
 ### Icon / ClipMark
-Inline SVG, 1.75 stroke, round caps, currentColor; a fixed set (back, forward, down, plus, close, check, backspace, clip, warning). ClipMark is a purpose-drawn paperclip.
+Inline SVG, 1.75 stroke, round caps, currentColor; a fixed set (back, forward, down, plus, close, check, backspace, edit, clip, settings, search, filter, sort, warning). ClipMark is a purpose-drawn paperclip.
 
 ## Do's and Don'ts
 
@@ -201,7 +208,7 @@ Inline SVG, 1.75 stroke, round caps, currentColor; a fixed set (back, forward, d
 - **Do** keep titles and the hero on the left page edge and the margin line beside ruled rows only.
 - **Do** show averages and allowances in whole baht; keep amounts tabular.
 - **Do** make all targets at least 44px and check 320px for no horizontal overflow.
-- **Do** keep slips confined to batch review; the notebook is the app.
+- **Do** keep slips confined to batch review and the picture on a slip's own entry; the notebook is the app.
 - **Do** keep one filled button (primary job) and one outlined button (second job) per pinned bar.
 - **Do** honour reduced motion (fade only, 150ms).
 
@@ -216,4 +223,3 @@ Inline SVG, 1.75 stroke, round caps, currentColor; a fixed set (back, forward, d
 
 ### Known gaps (not canonized)
 - Day headers are documented elsewhere as "small-caps", but the CSS has no small-caps or uppercase; the build uses bold sentence-case. Treat the build as truth.
-- "Sample data" note and the slip thumbnail bars are placeholders for unwired data, not system patterns.
