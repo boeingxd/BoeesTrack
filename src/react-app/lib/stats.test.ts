@@ -11,6 +11,7 @@ import {
 	periodRange,
 	previousRange,
 	shiftAnchor,
+	sortEntries,
 	topSpends,
 } from "./stats";
 import type { Entry } from "./types";
@@ -202,5 +203,27 @@ describe("flows", () => {
 			entry({ baht: 70, kind: "saved", pot: "Trip", at: new Date(2026, 9, 1, 0, 0) }),
 		];
 		expect(flows(list, range)).toEqual({ received: 0, spent: 0, saved: 7_000 });
+	});
+});
+
+describe("sortEntries", () => {
+	const a = entry({ baht: 50, at: new Date(2026, 9, 1, 9, 0) });
+	const b = entry({ baht: 300, at: new Date(2026, 9, 2, 9, 0) });
+	const c = entry({ baht: 100, kind: "adjust", satang: -40_000, at: new Date(2026, 9, 3, 9, 0) });
+	const list = [a, b, c];
+
+	it("orders by time", () => {
+		expect(sortEntries(list, "newest")).toEqual([c, b, a]);
+		expect(sortEntries(list, "oldest")).toEqual([a, b, c]);
+	});
+
+	it("orders by size, counting a negative adjustment by its absolute value", () => {
+		expect(sortEntries(list, "biggest")).toEqual([c, b, a]);
+		expect(sortEntries(list, "smallest")).toEqual([a, b, c]);
+	});
+
+	it("leaves the input alone", () => {
+		sortEntries(list, "biggest");
+		expect(list).toEqual([a, b, c]);
 	});
 });

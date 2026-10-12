@@ -9,6 +9,33 @@ function lineLabel(entry: Entry): string {
 	return entry.category ?? "No category";
 }
 
+type LineProps = { entry: Entry; when: string; isNew?: boolean; onOpen: (entry: Entry) => void };
+
+// One ruled line; `when` is the time inside a day page, or the date in a flat sorted list.
+export function EntryLine({ entry, when, isNew = false, onOpen }: LineProps) {
+	return (
+		<li>
+			<button
+				type="button"
+				className={isNew ? "line line--link line--new" : "line line--link"}
+				aria-label={`${lineLabel(entry)}, ${formatBaht(entry.satang)}. Show details`}
+				onClick={() => onOpen(entry)}
+			>
+				<time className="line__time">{when}</time>
+				<span className="line__body">
+					<span className="line__what">{lineLabel(entry)}</span>
+					{entry.kind === "spent" && entry.pot && <span className="line__note">Paid from {entry.pot}</span>}
+					{entry.note && <span className="line__note">{entry.note}</span>}
+				</span>
+				<span className="line__amount">
+					{(entry.kind === "received" || (entry.kind === "adjust" && entry.satang > 0)) && "+"}
+					{formatBaht(entry.satang)}
+				</span>
+			</button>
+		</li>
+	);
+}
+
 type Props = {
 	groups: DayGroup[];
 	today: Date;
@@ -33,25 +60,7 @@ export function DayList({ groups, today, justAddedId = null, onOpenEntry }: Prop
 							</li>
 						) : (
 							group.entries.map((entry) => (
-								<li key={entry.id}>
-									<button
-										type="button"
-										className={entry.id === justAddedId ? "line line--link line--new" : "line line--link"}
-										aria-label={`${lineLabel(entry)}, ${formatBaht(entry.satang)}. Show details`}
-										onClick={() => onOpenEntry(entry)}
-									>
-										<time className="line__time">{timeLabel(entry.at)}</time>
-										<span className="line__body">
-											<span className="line__what">{lineLabel(entry)}</span>
-											{entry.kind === "spent" && entry.pot && <span className="line__note">Paid from {entry.pot}</span>}
-											{entry.note && <span className="line__note">{entry.note}</span>}
-										</span>
-										<span className="line__amount">
-											{(entry.kind === "received" || (entry.kind === "adjust" && entry.satang > 0)) && "+"}
-											{formatBaht(entry.satang)}
-										</span>
-									</button>
-								</li>
+								<EntryLine key={entry.id} entry={entry} when={timeLabel(entry.at)} isNew={entry.id === justAddedId} onOpen={onOpenEntry} />
 							))
 						)}
 					</ul>

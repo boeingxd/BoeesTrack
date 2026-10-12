@@ -1,10 +1,10 @@
 import { useMemo } from "react";
-import { DayList } from "../components/DayList";
+import { DayList, EntryLine } from "../components/DayList";
 import { Icon } from "../components/Icon";
-import { ViewSwitch, type View } from "../components/ViewSwitch";
-import { groupByDay, monthKey } from "../lib/dates";
+import { ScaleSwitch, ViewSwitch, type View } from "../components/ViewSwitch";
+import { dayKey, dayMonth, groupByDay, monthKey } from "../lib/dates";
 import { formatBaht } from "../lib/money";
-import { defaultFilters, filterEntries, NO_CATEGORY, periodRange, periodTitle, shiftAnchor, type Filters } from "../lib/stats";
+import { defaultFilters, filterEntries, NO_CATEGORY, periodRange, periodTitle, shiftAnchor, sortEntries, type Filters, type Sort } from "../lib/stats";
 import type { Entry, Kind } from "../lib/types";
 
 type Props = {
@@ -24,9 +24,22 @@ const KINDS: { value: Kind; label: string }[] = [
 	{ value: "adjust", label: "Adjust" },
 ];
 
+const SORTS: { value: Sort; label: string }[] = [
+	{ value: "newest", label: "Newest" },
+	{ value: "oldest", label: "Oldest" },
+	{ value: "biggest", label: "Biggest" },
+	{ value: "smallest", label: "Smallest" },
+];
+
 export function History({ entries, categories, today, filters, onFilters, onView, onOpenEntry }: Props) {
 	const results = useMemo(() => filterEntries(entries, filters), [entries, filters]);
-	const groups = useMemo(() => groupByDay(results, today).filter((group) => group.entries.length > 0), [results, today]);
+	const flat = filters.sort === "biggest" || filters.sort === "smallest";
+	const sorted = useMemo(() => (flat ? sortEntries(results, filters.sort) : []), [flat, results, filters.sort]);
+	// Day pages run newest first; "oldest" flips both the days and the lines inside each.
+	const groups = useMemo(() => {
+		const days = groupByDay(results, today).filter((group) => group.entries.length > 0);
+		return filters.sort === "oldest" ? days.reverse().map((group) => ({ ...group, entries: [...group.entries].reverse() })) : days;
+	}, [results, today, filters.sort]);
 	// The total follows the kind being looked at: spent by default, received or saved when filtered to those.
 	const totalKind: Kind = filters.kind === "all" ? "spent" : filters.kind;
 	const total = results.filter((entry) => entry.kind === totalKind).reduce((sum, entry) => sum + entry.satang, 0);
@@ -36,12 +49,19 @@ export function History({ entries, categories, today, filters, onFilters, onView
 	const searching = filters.query.trim() !== "";
 	const current = range.to.getTime() > today.getTime();
 
+	// A date picked in the calendar always lands on that single day.
+	const pickDate = (value: string) => {
+		if (!value) return;
+		const [y, m, d] = value.split("-").map(Number);
+		set({ scale: "day", anchor: new Date(y, m - 1, d) });
+	};
 	const set = (patch: Partial<Filters>) => onFilters({ ...filters, ...patch });
 	const step = (n: number) => set({ anchor: shiftAnchor(filters.scale, filters.anchor, n) });
 	const untouched =
 		filters.query === "" &&
 		filters.category === null &&
 		filters.kind === "all" &&
+		filters.sort === "newest" &&
 		filters.scale === "month" &&
 		monthKey(filters.anchor) === monthKey(today);
 
@@ -53,7 +73,23 @@ export function History({ entries, categories, today, filters, onFilters, onView
 
 			<section className="today" aria-label="Find entries">
 				<div className="ledger-head__top">
-					<h1 className="month">{searching ? "All time" : periodTitle(filters.scale, range, today)}</h1>
+					<div className="month-pick">
+						<h1 className="month">{searching ? "All time" : periodTitle(filters.scale, range, today)}</h1>
+						{!searching && (
+							<>
+								<Icon name="down" size={16} />
+								<input
+									type="date"
+									className="month-pick__input"
+									value={dayKey(filters.anchor)}
+									max={dayKey(today)}
+									aria-label="Jump to a date"
+									onChange={(event) => pickDate(event.target.value)}
+									onClick={(event) => event.currentTarget.showPicker?.()}
+								/>
+							</>
+						)}
+					</div>
 					{!searching && (
 						<div className="month-nav">
 							<button type="button" className="icon-btn" aria-label={`Previous ${filters.scale}`} onClick={() => step(-1)}>
@@ -65,6 +101,7 @@ export function History({ entries, categories, today, filters, onFilters, onView
 						</div>
 					)}
 				</div>
+				{!searching && <ScaleSwitch scale={filters.scale} onChange={(scale) => set({ scale })} />}
 				<input
 					type="search"
 					className="note search"
@@ -73,7 +110,23 @@ export function History({ entries, categories, today, filters, onFilters, onView
 					placeholder="Search notes, tags, amounts"
 					aria-label="Search notes, tags and amounts"
 				/>
-				<div className="chips" role="group" aria-label="Filters">
+				<div className="filters" role="group" aria-label="Filters">
+					<label className={filters.kind === "all" ? "select select--bare chip" : "select select--bare chip chip--on"}>
+						<select
+							className="select__input"
+							value={filters.kind}
+							aria-label="Filter by kind"
+							onChange={(event) => set({ kind: event.target.value as Filters["kind"] })}
+						>
+							<option value="all">All kinds</option>
+							{KINDS.map((kind) => (
+								<option key={kind.value} value={kind.value}>
+									{kind.label}
+								</option>
+							))}
+						</select>
+						<Icon name="down" size={16} />
+					</label>
 					<label className={filters.category === null ? "select select--bare chip" : "select select--bare chip chip--on"}>
 						<select
 							className="select__input"
@@ -90,22 +143,21 @@ export function History({ entries, categories, today, filters, onFilters, onView
 						</select>
 						<Icon name="down" size={16} />
 					</label>
-					{KINDS.map((kind) => (
-						<button
-							key={kind.value}
-							type="button"
-							className="chip"
-							aria-pressed={filters.kind === kind.value}
-							onClick={() => set({ kind: filters.kind === kind.value ? "all" : kind.value })}
-						>
-							{kind.label}
-						</button>
-					))}
 				</div>
 				<div className="results">
 					<p aria-live="polite">
 						{results.length} {results.length === 1 ? "entry" : "entries"} · {formatBaht(total)} {totalKind}
 					</p>
+					<label className="select select--bare results__sort">
+						<select className="select__input" value={filters.sort} aria-label="Sort entries" onChange={(event) => set({ sort: event.target.value as Sort })}>
+							{SORTS.map((sort) => (
+								<option key={sort.value} value={sort.value}>
+									{sort.label}
+								</option>
+							))}
+						</select>
+						<Icon name="down" size={16} />
+					</label>
 					{!untouched && (
 						<button type="button" className="text-btn" onClick={() => onFilters(defaultFilters(today))}>
 							Reset
@@ -117,6 +169,12 @@ export function History({ entries, categories, today, filters, onFilters, onView
 			<section className="sheet sheet--page" aria-label="Matching entries">
 				{groups.length === 0 ? (
 					<p className="results__empty">Nothing matches. Try fewer filters{searching ? "." : ", or search to look through all time."}</p>
+				) : flat ? (
+					<ul className="day__lines">
+						{sorted.map((entry) => (
+							<EntryLine key={entry.id} entry={entry} when={dayMonth(entry.at)} onOpen={onOpenEntry} />
+						))}
+					</ul>
 				) : (
 					<DayList groups={groups} today={today} onOpenEntry={onOpenEntry} />
 				)}

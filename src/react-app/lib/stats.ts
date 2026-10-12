@@ -5,6 +5,7 @@ import type { Entry, Kind } from "./types";
 export const NO_CATEGORY = "No category";
 
 export type Scale = "day" | "week" | "month";
+export type Sort = "newest" | "oldest" | "biggest" | "smallest";
 
 // The period (scale + anchor) is what History is showing; a typed query ignores it and searches all time.
 export type Filters = {
@@ -13,10 +14,11 @@ export type Filters = {
 	kind: "all" | Kind;
 	scale: Scale;
 	anchor: Date;
+	sort: Sort;
 };
 
 export function defaultFilters(today: Date): Filters {
-	return { query: "", category: null, kind: "all", scale: "month", anchor: today };
+	return { query: "", category: null, kind: "all", scale: "month", anchor: today, sort: "newest" };
 }
 
 // `to` is exclusive: the first instant of the next period.
@@ -176,4 +178,17 @@ export function filterEntries(entries: Entry[], filters: Filters): Entry[] {
 		}
 		return query === "" || haystack(entry).includes(query);
 	});
+}
+
+// Biggest and smallest rank by size, so a negative adjustment counts by how far it moves the balance.
+export function sortEntries(entries: Entry[], sort: Sort): Entry[] {
+	const byTime = (a: Entry, b: Entry) => b.at.getTime() - a.at.getTime();
+	const size = (e: Entry) => Math.abs(e.satang);
+	const order: Record<Sort, (a: Entry, b: Entry) => number> = {
+		newest: byTime,
+		oldest: (a, b) => -byTime(a, b),
+		biggest: (a, b) => size(b) - size(a) || byTime(a, b),
+		smallest: (a, b) => size(a) - size(b) || byTime(a, b),
+	};
+	return [...entries].sort(order[sort]);
 }
