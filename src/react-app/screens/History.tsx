@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { DayList, EntryLine } from "../components/DayList";
 import { Icon } from "../components/Icon";
 import { ScaleSwitch, ViewSwitch, type View } from "../components/ViewSwitch";
+import { entriesToCsv } from "../lib/csv";
 import { dayKey, dayMonth, groupByDay, monthKey } from "../lib/dates";
 import { formatBaht } from "../lib/money";
 import { defaultFilters, filterEntries, NO_CATEGORY, periodRange, periodTitle, shiftAnchor, sortEntries, type Filters, type Sort } from "../lib/stats";
@@ -30,6 +31,16 @@ const SORTS: { value: Sort; label: string }[] = [
 	{ value: "biggest", label: "Biggest" },
 	{ value: "smallest", label: "Smallest" },
 ];
+
+// A temporary link to an in-memory file is how a browser "saves" text it built itself.
+function downloadCsv(entries: Entry[], today: Date) {
+	const url = URL.createObjectURL(new Blob([entriesToCsv(entries)], { type: "text/csv;charset=utf-8" }));
+	const link = document.createElement("a");
+	link.href = url;
+	link.download = `boeestrack-entries-${dayKey(today)}.csv`;
+	link.click();
+	URL.revokeObjectURL(url);
+}
 
 export function History({ entries, categories, today, filters, onFilters, onView, onOpenEntry }: Props) {
 	const results = useMemo(() => filterEntries(entries, filters), [entries, filters]);
@@ -179,6 +190,15 @@ export function History({ entries, categories, today, filters, onFilters, onView
 					<DayList groups={groups} today={today} onOpenEntry={onOpenEntry} />
 				)}
 			</section>
+
+			<footer className="backup">
+				<a className="text-btn" href="/api/data" download={`boeestrack-backup-${dayKey(today)}.json`}>
+					Download backup
+				</a>
+				<button type="button" className="text-btn" onClick={() => downloadCsv(entries, today)}>
+					Spreadsheet (CSV)
+				</button>
+			</footer>
 		</main>
 	);
 }
