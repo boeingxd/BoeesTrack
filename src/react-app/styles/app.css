@@ -989,19 +989,21 @@ button:disabled {
 	text-align: start;
 }
 
-.filters__toggle svg:last-child {
-	margin-inline-start: auto;
-	transition: transform 0.15s;
-}
-
-.filters__toggle[aria-expanded="true"] svg:last-child {
-	transform: rotate(180deg);
-}
-
 .filters__count {
 	font-size: var(--text-sm);
 	font-weight: var(--weight-regular);
 	color: var(--color-ink-2);
+}
+
+.filters {
+	padding-inline: var(--page-pad);
+	border-top: 1px solid var(--color-rule);
+}
+
+.filters__actions {
+	display: grid;
+	gap: var(--space-2);
+	padding: var(--space-4) var(--page-pad);
 }
 
 .filters__row {
@@ -1327,8 +1329,22 @@ button:disabled {
 }
 
 .results__empty {
-	padding: var(--space-5) var(--page-pad);
+	display: grid;
+	justify-items: center;
+	gap: var(--space-2);
+	padding: var(--space-6) var(--page-pad);
 	color: var(--color-muted);
+	text-align: center;
+}
+
+.results__empty-title {
+	font-weight: var(--weight-strong);
+	color: var(--color-ink);
+}
+
+.results__empty-btn {
+	margin-top: var(--space-3);
+	min-width: 12rem;
 }
 
 .more-line {

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { ClearPictures } from "../components/ClearPictures";
 import { DayList, EntryLine } from "../components/DayList";
 import { Icon } from "../components/Icon";
+import { Sheet } from "../components/Sheet";
 import { ScaleSwitch } from "../components/ViewSwitch";
 import { entriesToCsv } from "../lib/csv";
 import { dayKey, dayMonth, groupByDay, monthKey } from "../lib/dates";
@@ -130,11 +131,10 @@ export function History({ entries, categories, today, filters, onFilters, onOpen
 					/>
 				</label>
 				<div className="toolbar">
-					<button type="button" className="filters__toggle" aria-expanded={filtersOpen} aria-controls="filter-panel" onClick={() => setFiltersOpen(!filtersOpen)}>
+					<button type="button" className="filters__toggle" aria-haspopup="dialog" onClick={() => setFiltersOpen(true)}>
 						<Icon name="filter" size={18} />
 						<span>Filters</span>
 						{filtersSet > 0 && <span className="filters__count">{filtersSet} set</span>}
-						<Icon name="down" size={16} />
 					</button>
 					<label className="select select--bare results__sort">
 						<span className="results__icon">
@@ -151,7 +151,8 @@ export function History({ entries, categories, today, filters, onFilters, onOpen
 					</label>
 				</div>
 				{filtersOpen && (
-					<div className="filters" id="filter-panel" role="group" aria-label="Filters">
+					<Sheet title="Filters" onClose={() => setFiltersOpen(false)}>
+					<div className="filters" role="group" aria-label="Filters">
 						<label className={filters.kind === "all" ? "filters__row" : "filters__row filters__row--on"}>
 							<span className="filters__label">Kind</span>
 							<span className="select select--bare">
@@ -192,6 +193,17 @@ export function History({ entries, categories, today, filters, onFilters, onOpen
 							</span>
 						</label>
 					</div>
+					<div className="filters__actions">
+						<button type="button" className="confirm" onClick={() => setFiltersOpen(false)}>
+							Show {results.length} {results.length === 1 ? "entry" : "entries"}
+						</button>
+						{filtersSet > 0 && (
+							<button type="button" className="cancel" onClick={() => set({ kind: "all", category: null, source: "all" })}>
+								Clear filters
+							</button>
+						)}
+					</div>
+					</Sheet>
 				)}
 				<div className="results">
 					<p aria-live="polite">
@@ -207,7 +219,14 @@ export function History({ entries, categories, today, filters, onFilters, onOpen
 
 			<section className="sheet sheet--page" aria-label="Matching entries">
 				{groups.length === 0 ? (
-					<p className="results__empty">Nothing matches. Try fewer filters{searching ? "." : ", or search to look through all time."}</p>
+					<div className="results__empty" role="status">
+						<Icon name="search" size={32} />
+						<p className="results__empty-title">Nothing matched</p>
+						<p>{searching ? "Check the spelling, or try a shorter word." : "Nothing here for these filters. Search looks through all time."}</p>
+						<button type="button" className="confirm results__empty-btn" onClick={() => onFilters(searching ? { ...filters, query: "" } : defaultFilters(today))}>
+							{searching ? "Clear search" : "Reset filters"}
+						</button>
+					</div>
 				) : flat ? (
 					<ul className="day__lines">
 						{sorted.map((entry) => (
