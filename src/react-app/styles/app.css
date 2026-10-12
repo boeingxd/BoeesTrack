@@ -869,6 +869,34 @@ button:disabled {
 	}
 }
 
+/* Bottom sheet: the dimmed screen stays behind, the panel rises from the bottom edge */
+
+.drawer {
+	position: fixed;
+	inset: 0;
+	z-index: 10;
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+	background: color-mix(in oklch, var(--color-ink) 45%, transparent);
+}
+
+.drawer__panel {
+	width: 100%;
+	max-width: 30rem;
+	max-height: 90dvh;
+	overflow-y: auto;
+	padding-bottom: env(safe-area-inset-bottom);
+	border-top: 1px solid var(--color-ink);
+	border-radius: var(--radius-s) var(--radius-s) 0 0;
+	background: var(--color-paper);
+	animation: sheet-in var(--dur-short) var(--ease-out) both;
+}
+
+.drawer__panel:focus {
+	outline: none;
+}
+
 /* Slips, offered from the Add screen's top bar */
 .topbar__slips {
 	display: inline-flex;
@@ -1406,6 +1434,7 @@ button:disabled {
 	.home--intro .today,
 	.home--intro .sheet,
 	.screen--sheet,
+	.drawer__panel,
 	.line--new {
 		animation-name: fade;
 		animation-duration: 150ms;

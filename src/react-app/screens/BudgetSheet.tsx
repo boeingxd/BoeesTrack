@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Icon } from "../components/Icon";
+import { Sheet } from "../components/Sheet";
 import { Segmented, type Option } from "../components/ViewSwitch";
 import { fromBalance } from "../lib/allowance";
 import { formatBaht, inputToSatang } from "../lib/money";
@@ -49,15 +49,7 @@ export function BudgetSheet({ plan, balance, onClose, onSave }: Props) {
 	const ready = monthlySatang > 0 && (mode !== "fixed" || fixedSatang > 0);
 
 	return (
-		<div className="screen screen--sheet">
-			<header className="topbar">
-				<button type="button" className="icon-btn" onClick={onClose} aria-label="Close without saving">
-					<Icon name="close" />
-				</button>
-				<h1 className="topbar__title">Budget</h1>
-				<span className="topbar__spacer" aria-hidden="true" />
-			</header>
-
+		<Sheet title="Budget" onClose={onClose}>
 			<div className="fields">
 				<div className="field">
 					<span className="field__label" aria-hidden="true">
@@ -152,6 +144,6 @@ export function BudgetSheet({ plan, balance, onClose, onSave }: Props) {
 					{ready ? `Save ${formatBaht(monthlySatang)} a month` : "Enter the amounts"}
 				</button>
 			</div>
-		</div>
+		</Sheet>
 	);
 }

@@ -319,7 +319,7 @@ function App() {
 					{notice} Tap to dismiss.
 				</button>
 			)}
-			{screen === "home" && (
+			{(screen === "home" || screen === "budget") && (
 				<Home
 					entries={entries}
 					plan={plan}
@@ -421,8 +421,8 @@ function App() {
 					onConfirm={confirmSlips}
 				/>
 			)}
-			{(screen === "home" || screen === "stats" || screen === "history" || screen === "savings") && (
-				<TabBar value={screen} onChange={goToView} onAdd={() => setScreen("add")} />
+			{(screen === "home" || screen === "budget" || screen === "stats" || screen === "history" || screen === "savings") && (
+				<TabBar value={screen === "budget" ? "home" : screen} onChange={goToView} onAdd={() => setScreen("add")} />
 			)}
 		</div>
 	);
