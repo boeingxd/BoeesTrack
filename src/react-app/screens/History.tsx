@@ -45,6 +45,8 @@ function downloadCsv(entries: Entry[], today: Date) {
 
 export function History({ entries, categories, today, filters, onFilters, onView, onOpenEntry, onDeleteShown }: Props) {
 	const results = useMemo(() => filterEntries(entries, filters), [entries, filters]);
+	const [filtersOpen, setFiltersOpen] = useState(false);
+	const filtersSet = [filters.kind !== "all", filters.category !== null, filters.source !== "all"].filter(Boolean).length;
 	// The question is tied to the filters it was asked under, so changing a filter closes it and the count always matches the screen.
 	const [askedFor, setAskedFor] = useState<Filters | null>(null);
 	const confirming = askedFor === filters;
@@ -119,66 +121,74 @@ export function History({ entries, categories, today, filters, onFilters, onView
 					)}
 				</div>
 				{!searching && <ScaleSwitch scale={filters.scale} onChange={(scale) => set({ scale })} />}
-				<input
-					type="search"
-					className="note search"
-					value={filters.query}
-					onChange={(event) => set({ query: event.target.value })}
-					placeholder="Search notes, tags, amounts"
-					aria-label="Search notes, tags and amounts"
-				/>
-				<div className="filters" role="group" aria-label="Filters">
-					<label className={filters.kind === "all" ? "select select--bare chip" : "select select--bare chip chip--on"}>
-						<select
-							className="select__input"
-							value={filters.kind}
-							aria-label="Filter by kind"
-							onChange={(event) => set({ kind: event.target.value as Filters["kind"] })}
-						>
-							<option value="all">All kinds</option>
-							{KINDS.map((kind) => (
-								<option key={kind.value} value={kind.value}>
-									{kind.label}
-								</option>
-							))}
-						</select>
-						<Icon name="down" size={16} />
-					</label>
-					<label className={filters.category === null ? "select select--bare chip" : "select select--bare chip chip--on"}>
-						<select
-							className="select__input"
-							value={filters.category ?? ""}
-							aria-label="Filter by tag"
-							onChange={(event) => set({ category: event.target.value || null })}
-						>
-							<option value="">Any tag</option>
-							{[...categories, NO_CATEGORY].map((name) => (
-								<option key={name} value={name}>
-									{name}
-								</option>
-							))}
-						</select>
-						<Icon name="down" size={16} />
-					</label>
-					<label className={filters.source === "all" ? "select select--bare chip filters__wide" : "select select--bare chip chip--on filters__wide"}>
-						<select
-							className="select__input"
-							value={filters.source}
-							aria-label="Filter by source"
-							onChange={(event) => set({ source: event.target.value as Filters["source"] })}
-						>
-							<option value="all">All sources</option>
-							<option value="slips">Slips</option>
-							<option value="manual">Typed in by hand</option>
-						</select>
-						<Icon name="down" size={16} />
-					</label>
-				</div>
+				<label className="search-box">
+					<Icon name="search" size={18} />
+					<input
+						type="search"
+						className="note search"
+						value={filters.query}
+						onChange={(event) => set({ query: event.target.value })}
+						placeholder="Search notes, tags, amounts"
+						aria-label="Search notes, tags and amounts"
+					/>
+				</label>
+				<button type="button" className="filters__toggle" aria-expanded={filtersOpen} aria-controls="filter-panel" onClick={() => setFiltersOpen(!filtersOpen)}>
+					<Icon name="filter" size={18} />
+					<span>Filters</span>
+					{filtersSet > 0 && <span className="filters__count">{filtersSet} set</span>}
+					<Icon name="down" size={16} />
+				</button>
+				{filtersOpen && (
+					<div className="filters" id="filter-panel" role="group" aria-label="Filters">
+						<label className={filters.kind === "all" ? "filters__row" : "filters__row filters__row--on"}>
+							<span className="filters__label">Kind</span>
+							<span className="select select--bare">
+								<select className="select__input" value={filters.kind} onChange={(event) => set({ kind: event.target.value as Filters["kind"] })}>
+									<option value="all">All kinds</option>
+									{KINDS.map((kind) => (
+										<option key={kind.value} value={kind.value}>
+											{kind.label}
+										</option>
+									))}
+								</select>
+								<Icon name="down" size={16} />
+							</span>
+						</label>
+						<label className={filters.category === null ? "filters__row" : "filters__row filters__row--on"}>
+							<span className="filters__label">Tag</span>
+							<span className="select select--bare">
+								<select className="select__input" value={filters.category ?? ""} onChange={(event) => set({ category: event.target.value || null })}>
+									<option value="">Any tag</option>
+									{[...categories, NO_CATEGORY].map((name) => (
+										<option key={name} value={name}>
+											{name}
+										</option>
+									))}
+								</select>
+								<Icon name="down" size={16} />
+							</span>
+						</label>
+						<label className={filters.source === "all" ? "filters__row" : "filters__row filters__row--on"}>
+							<span className="filters__label">Source</span>
+							<span className="select select--bare">
+								<select className="select__input" value={filters.source} onChange={(event) => set({ source: event.target.value as Filters["source"] })}>
+									<option value="all">All sources</option>
+									<option value="slips">Slips</option>
+									<option value="manual">Typed in by hand</option>
+								</select>
+								<Icon name="down" size={16} />
+							</span>
+						</label>
+					</div>
+				)}
 				<div className="results">
 					<p aria-live="polite">
 						{results.length} {results.length === 1 ? "entry" : "entries"} · {formatBaht(total)} {totalKind}
 					</p>
 					<label className="select select--bare results__sort">
+						<span className="results__icon">
+							<Icon name="sort" size={16} />
+						</span>
 						<select className="select__input" value={filters.sort} aria-label="Sort entries" onChange={(event) => set({ sort: event.target.value as Sort })}>
 							{SORTS.map((sort) => (
 								<option key={sort.value} value={sort.value}>

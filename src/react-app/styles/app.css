@@ -880,15 +880,80 @@ button:disabled {
 
 /* History: title and period, a search line, kind and tag filters side by side, then the count with its sort */
 
-.search {
-	border-bottom: 1px solid var(--color-edge);
+/* A full box with the magnifier inside, so it reads as a field to type in. */
+.search-box {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	margin-block: var(--space-2);
+	padding-inline: var(--space-3);
+	border: 1px solid var(--color-edge);
+	border-radius: var(--radius-s);
+	color: var(--color-muted);
 }
 
-.filters {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
+.search-box:focus-within {
+	border-color: var(--color-ink);
+	color: var(--color-ink);
+}
+
+.search-box svg {
+	flex: none;
+}
+
+.search {
+	flex: 1;
+	min-width: 0;
+	outline: 0;
+}
+
+/* Kind, Tag and Source stay out of sight until asked for; the toggle says how many are set. */
+.filters__toggle {
+	display: flex;
+	align-items: center;
 	gap: var(--space-2);
-	margin-top: var(--space-2);
+	width: 100%;
+	min-height: var(--tap);
+	border-bottom: 1px solid var(--color-rule);
+	font-weight: var(--weight-medium);
+	color: var(--color-ink);
+	text-align: start;
+}
+
+.filters__toggle svg:last-child {
+	margin-inline-start: auto;
+	transition: transform 0.15s;
+}
+
+.filters__toggle[aria-expanded="true"] svg:last-child {
+	transform: rotate(180deg);
+}
+
+.filters__count {
+	font-size: var(--text-sm);
+	font-weight: var(--weight-regular);
+	color: var(--color-ink-2);
+}
+
+.filters__row {
+	display: grid;
+	grid-template-columns: 5rem 1fr;
+	align-items: center;
+	border-bottom: 1px solid var(--color-rule);
+}
+
+.filters__label {
+	font-size: var(--text-sm);
+	color: var(--color-muted);
+}
+
+.filters__row .select__input {
+	color: var(--color-muted);
+}
+
+.filters__row--on .select__input {
+	font-weight: var(--weight-medium);
+	color: var(--color-ink);
 }
 
 .today .results {
@@ -915,6 +980,15 @@ button:disabled {
 	inset-inline-end: var(--space-2);
 }
 
+.results__sort .results__icon {
+	display: inline-flex;
+	margin-inline-start: var(--space-2);
+}
+
+.results__sort .results__icon svg {
+	position: static;
+}
+
 .month-pick {
 	position: relative;
 	display: flex;
@@ -931,35 +1005,6 @@ button:disabled {
 	height: 100%;
 	opacity: 0;
 	cursor: pointer;
-}
-
-.filters .select.chip {
-	width: 100%;
-	min-width: 0;
-	margin-top: 0;
-	border-bottom: 2px solid transparent;
-}
-
-.filters .filters__wide {
-	grid-column: 1 / -1;
-}
-
-.filters .select.chip--on {
-	border-bottom-color: var(--color-ink);
-}
-
-.filters .select.chip svg {
-	inset-inline-end: var(--space-2);
-}
-
-.filters .select.chip .select__input {
-	padding-inline: var(--space-2) var(--space-5);
-	font-weight: var(--weight-medium);
-	color: var(--color-muted);
-}
-
-.filters .select.chip--on .select__input {
-	color: var(--color-ink);
 }
 
 .detail__photo {
