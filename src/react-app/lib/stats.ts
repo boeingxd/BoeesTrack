@@ -192,3 +192,19 @@ export function sortEntries(entries: Entry[], sort: Sort): Entry[] {
 	};
 	return [...entries].sort(order[sort]);
 }
+
+export type MonthWeek = { key: string; days: DayTotal[]; satang: number; share: number; future: boolean };
+
+// A month's days cut into Monday-to-Sunday runs (the first and last can be short); a week that starts after today is "future".
+export function monthWeeks(days: DayTotal[], today: Date): MonthWeek[] {
+	const total = days.reduce((sum, day) => sum + day.satang, 0);
+	const runs = new Map<string, DayTotal[]>();
+	for (const day of days) {
+		const key = dayKey(startOfWeek(day.date));
+		runs.set(key, [...(runs.get(key) ?? []), day]);
+	}
+	return Array.from(runs, ([key, run]) => {
+		const satang = run.reduce((sum, day) => sum + day.satang, 0);
+		return { key, days: run, satang, share: total === 0 ? 0 : satang / total, future: run[0].date.getTime() > today.getTime() };
+	});
+}

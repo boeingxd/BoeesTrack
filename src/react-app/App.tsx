@@ -92,6 +92,11 @@ function App() {
 		setStatsScale("day");
 	}
 
+	function openWeek(date: Date) {
+		setStatsAnchor(date);
+		setStatsScale("week");
+	}
+
 	// "See all" and a category on Insight open History on the same day, week or month.
 	function openHistory(patch: Partial<Filters> = {}) {
 		setFilters({ ...defaultFilters(today), scale: statsScale, anchor: statsAnchor, ...patch });
@@ -206,6 +211,7 @@ function App() {
 					onScale={changeScale}
 					onView={goToView}
 					onOpenDay={openDay}
+					onOpenWeek={openWeek}
 					onOpenCategory={(category) => openHistory({ category })}
 					onOpenHistory={() => openHistory()}
 					onOpenEntry={openEntry}

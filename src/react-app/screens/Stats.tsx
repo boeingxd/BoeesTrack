@@ -5,13 +5,14 @@ import { Figure } from "../components/Figure";
 import { Icon } from "../components/Icon";
 import { Meter } from "../components/Meter";
 import { ScaleSwitch, ViewSwitch, type View } from "../components/ViewSwitch";
-import { addDays, dayKey, dayMonth, groupByDay } from "../lib/dates";
+import { dayKey, dayMonth, groupByDay } from "../lib/dates";
 import { formatBaht } from "../lib/money";
 import {
 	categoryBreakdown,
 	dailyTotals,
 	flows,
 	habits,
+	monthWeeks,
 	NO_CATEGORY,
 	periodRange,
 	periodTitle,
@@ -31,6 +32,7 @@ type Props = {
 	onScale: (scale: Scale) => void;
 	onView: (view: View) => void;
 	onOpenDay: (date: Date) => void;
+	onOpenWeek: (date: Date) => void;
 	onOpenCategory: (category: string) => void;
 	onOpenHistory: () => void;
 	onOpenEntry: (entry: Entry) => void;
@@ -39,15 +41,15 @@ type Props = {
 const share = (value: number) => (value > 0 && value < 0.01 ? "<1%" : `${Math.round(value * 100)}%`);
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
-export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onView, onOpenDay, onOpenCategory, onOpenHistory, onOpenEntry }: Props) {
+export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onView, onOpenDay, onOpenWeek, onOpenCategory, onOpenHistory, onOpenEntry }: Props) {
 	const range = useMemo(() => periodRange(scale, anchor), [scale, anchor]);
 	const { range: earlier, partial } = useMemo(() => previousRange(scale, anchor, today), [scale, anchor, today]);
 	const current = range.to.getTime() > today.getTime();
-	const lastDay = addDays(range.to, -1);
 
 	const breakdown = useMemo(() => categoryBreakdown(entries, range, earlier), [entries, range, earlier]);
 	const before = useMemo(() => categoryBreakdown(entries, earlier).total, [entries, earlier]);
 	const days = useMemo(() => dailyTotals(entries, range), [entries, range]);
+	const weeks = useMemo(() => (scale === "month" ? monthWeeks(days, today) : []), [scale, days, today]);
 	const biggest = useMemo(() => topSpends(entries, range), [entries, range]);
 	const habit = useMemo(() => habits(entries, range, today), [entries, range, today]);
 
@@ -147,15 +149,38 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onView
 							days={days}
 							todayKey={dayKey(today)}
 							onOpenDay={scale === "week" ? onOpenDay : undefined}
+							weeks={scale === "month" ? weeks : undefined}
+							onOpenWeek={scale === "month" ? onOpenWeek : undefined}
 							average={habit.avgPerDay}
 						/>
-						{scale === "month" && (
-							<p className="bars-foot">
-								<span>{dayMonth(range.from)}</span>
-								<span>{dayMonth(lastDay)}</span>
-							</p>
-						)}
 					</div>
+					{scale === "month" && (
+						<ul className="day__lines">
+							{weeks
+								.filter((week) => !week.future)
+								.map((week) => {
+									const first = week.days[0].date;
+									const last = week.days[week.days.length - 1].date;
+									const name = week.days.length === 1 ? dayMonth(first) : `${first.getDate()}–${dayMonth(last)}`;
+									return (
+										<li key={week.key}>
+											<button
+												type="button"
+												className="line line--link"
+												aria-label={`${name}, ${formatBaht(week.satang)}, ${share(week.share)}. Open this week`}
+												onClick={() => onOpenWeek(first)}
+											>
+												<span className="line__time">{share(week.share)}</span>
+												<span className="line__body">
+													<span className="line__what">{name}</span>
+												</span>
+												<span className="line__amount">{formatBaht(week.satang)}</span>
+											</button>
+										</li>
+									);
+								})}
+						</ul>
+					)}
 				</section>
 			)}
 

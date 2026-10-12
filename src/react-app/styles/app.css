@@ -967,8 +967,40 @@ button:disabled {
 
 .bars--month {
 	gap: 2px;
-	height: 6rem;
+	height: 7.5rem;
 	padding-inline: var(--space-4);
+}
+
+.bars__week {
+	display: flex;
+	flex-direction: column;
+	flex-basis: 0;
+	min-width: 0;
+}
+
+.bars__week + .bars__week {
+	border-inline-start: 1px solid var(--color-rule);
+}
+
+.bars__band {
+	display: flex;
+	flex: 1;
+	gap: 2px;
+	min-height: 0;
+	width: 100%;
+}
+
+.bars__week-label {
+	padding-inline-start: 2px;
+	font-size: var(--text-xs);
+	line-height: 1.5;
+	color: var(--color-muted);
+}
+
+@media (hover: hover) {
+	button.bars__band:hover .bar {
+		background: var(--color-muted);
+	}
 }
 
 .bars__col {
@@ -1035,14 +1067,6 @@ button:disabled {
 	.bars--week .bars__btn:hover .bar {
 		background: var(--color-ink-2);
 	}
-}
-
-.bars-foot {
-	display: flex;
-	justify-content: space-between;
-	padding: var(--space-1) var(--space-4) 0;
-	font-size: var(--text-xs);
-	color: var(--color-muted);
 }
 
 .month-nav {

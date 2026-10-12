@@ -6,6 +6,7 @@ import {
 	defaultFilters,
 	filterEntries,
 	flows,
+	monthWeeks,
 	habits,
 	NO_CATEGORY,
 	periodRange,
@@ -225,5 +226,24 @@ describe("sortEntries", () => {
 	it("leaves the input alone", () => {
 		sortEntries(list, "biggest");
 		expect(list).toEqual([a, b, c]);
+	});
+});
+
+describe("monthWeeks", () => {
+	// October 2026 starts on a Thursday, so the first week is short (Thu to Sun).
+	const days = dailyTotals(entries, periodRange("month", new Date(2026, 9, 8)));
+	const weeks = monthWeeks(days, new Date(2026, 9, 8));
+
+	it("cuts the month into Monday-to-Sunday runs, short at the edges", () => {
+		expect(weeks.map((w) => w.days.length)).toEqual([4, 7, 7, 7, 6]);
+	});
+
+	it("keeps every day and every satang", () => {
+		expect(weeks.flatMap((w) => w.days)).toHaveLength(days.length);
+		expect(weeks.reduce((sum, w) => sum + w.satang, 0)).toBe(days.reduce((sum, d) => sum + d.satang, 0));
+	});
+
+	it("marks weeks that start after today", () => {
+		expect(weeks.map((w) => w.future)).toEqual([false, false, true, true, true]);
 	});
 });
