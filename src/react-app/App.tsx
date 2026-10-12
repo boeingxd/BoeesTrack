@@ -127,6 +127,13 @@ function App() {
 		setScreen(detail?.from ?? "home");
 	}
 
+	// History's "delete these": gone from the screen at once, and put back if the save fails.
+	function deleteEntries(list: Entry[]) {
+		const ids = new Set(list.map((e) => e.id));
+		setEntries((current) => current.filter((e) => !ids.has(e.id)));
+		save(() => api.deleteEntries([...ids]), () => setEntries((current) => [...current, ...list]));
+	}
+
 	function storeEntries(added: Entry[]) {
 		setEntries((current) => [...current, ...added]);
 		const ids = new Set(added.map((e) => e.id));
@@ -315,6 +322,7 @@ function App() {
 					onFilters={setFilters}
 					onView={goToView}
 					onOpenEntry={openEntry}
+					onDeleteShown={deleteEntries}
 				/>
 			)}
 			{screen === "entry" && detail && (

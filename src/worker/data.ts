@@ -7,6 +7,7 @@ import {
 	parseCategory,
 	parseEntries,
 	parseEntry,
+	parseIds,
 	parsePlan,
 	parsePot,
 	planFromRow,
@@ -78,6 +79,22 @@ data.delete("/entries/:id", async (c) => {
 	if (!gone) return c.text("No such entry", 404);
 	if (gone.slip_ref && gone.has_image) await c.env.SLIPS.delete(gone.slip_ref);
 	return c.json({ ok: true });
+});
+
+// Many entries at once (History's "delete these"). One batch, so it all goes or none; then the pictures of the deleted rows go too.
+data.post("/entries/delete", async (c) => {
+	const parsed = parseIds(await json(c));
+	if (!parsed.ok) return c.text(parsed.error, 400);
+	const db = c.env.DB;
+	const chunks: string[][] = [];
+	for (let i = 0; i < parsed.value.length; i += 90) chunks.push(parsed.value.slice(i, i + 90));
+	const results = await db.batch(
+		chunks.map((ids) => db.prepare(`DELETE FROM entries WHERE id IN (${ids.map(() => "?").join(",")}) RETURNING slip_ref, has_image`).bind(...ids)),
+	);
+	const gone = results.flatMap((r) => r.results as { slip_ref: string | null; has_image: number }[]);
+	const refs = gone.flatMap((row) => (row.slip_ref && row.has_image ? [row.slip_ref] : []));
+	if (refs.length > 0) await c.env.SLIPS.delete(refs);
+	return c.json({ deleted: gone.length });
 });
 
 data.post("/pots", async (c) => {

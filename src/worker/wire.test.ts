@@ -1,7 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { MAX_BATCH, SLIP_REF, entryFromRow, parseCategory, parseEntries, parsePlan, parsePot, planFromRow, planToColumns } from "./wire";
+import { MAX_BATCH, MAX_DELETE, SLIP_REF, entryFromRow, parseCategory, parseEntries, parseIds, parsePlan, parsePot, planFromRow, planToColumns } from "./wire";
 
 const entry = { id: "e1", kind: "spent", satang: 8500, at: 1_760_000_000_000, category: "Food & drink", note: "Iced coffee" };
+
+describe("parseIds", () => {
+	it("accepts a list of ids and rejects empty, repeated, blank, oversized and malformed bodies", () => {
+		expect(parseIds({ ids: ["a", "b"] })).toEqual({ ok: true, value: ["a", "b"] });
+		expect(parseIds({ ids: [] }).ok).toBe(false);
+		expect(parseIds({ ids: ["a", "a"] }).ok).toBe(false);
+		expect(parseIds({ ids: ["a", " "] }).ok).toBe(false);
+		expect(parseIds({ ids: [1] }).ok).toBe(false);
+		expect(parseIds({ ids: Array.from({ length: MAX_DELETE + 1 }, (_, i) => `e${i}`) }).ok).toBe(false);
+		expect(parseIds(["a"]).ok).toBe(false);
+		expect(parseIds(null).ok).toBe(false);
+	});
+});
 
 describe("parseEntries", () => {
 	it("accepts a valid spent entry and keeps optional fields out when absent", () => {

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { DayList, EntryLine } from "../components/DayList";
 import { Icon } from "../components/Icon";
 import { ScaleSwitch, ViewSwitch, type View } from "../components/ViewSwitch";
@@ -16,6 +16,7 @@ type Props = {
 	onFilters: (filters: Filters) => void;
 	onView: (view: View) => void;
 	onOpenEntry: (entry: Entry) => void;
+	onDeleteShown: (entries: Entry[]) => void;
 };
 
 const KINDS: { value: Kind; label: string }[] = [
@@ -42,8 +43,12 @@ function downloadCsv(entries: Entry[], today: Date) {
 	URL.revokeObjectURL(url);
 }
 
-export function History({ entries, categories, today, filters, onFilters, onView, onOpenEntry }: Props) {
+export function History({ entries, categories, today, filters, onFilters, onView, onOpenEntry, onDeleteShown }: Props) {
 	const results = useMemo(() => filterEntries(entries, filters), [entries, filters]);
+	// The question is tied to the filters it was asked under, so changing a filter closes it and the count always matches the screen.
+	const [askedFor, setAskedFor] = useState<Filters | null>(null);
+	const confirming = askedFor === filters;
+	const setConfirming = (on: boolean) => setAskedFor(on ? filters : null);
 	const flat = filters.sort === "biggest" || filters.sort === "smallest";
 	const sorted = useMemo(() => (flat ? sortEntries(results, filters.sort) : []), [flat, results, filters.sort]);
 	// Day pages run newest first; "oldest" flips both the days and the lines inside each.
@@ -199,6 +204,36 @@ export function History({ entries, categories, today, filters, onFilters, onView
 					Spreadsheet (CSV)
 				</button>
 			</footer>
+
+			{results.length > 0 &&
+				(confirming ? (
+					<div className="detail__confirm">
+						<p className="today__note today__note--warn" role="alert">
+							<Icon name="warning" size={18} />
+							<span>
+								Delete {results.length} {results.length === 1 ? "entry" : "entries"} ({formatBaht(total)} {totalKind}) and their slip pictures? Download a backup first. This
+								can't be undone.
+							</span>
+						</p>
+						<button type="button" className="detail__btn detail__btn--keep" onClick={() => setConfirming(false)}>
+							Keep them
+						</button>
+						<button
+							type="button"
+							className="detail__btn detail__btn--delete"
+							onClick={() => {
+								setConfirming(false);
+								onDeleteShown(results);
+							}}
+						>
+							Yes, delete {results.length}
+						</button>
+					</div>
+				) : (
+					<button type="button" className="detail__btn detail__btn--outline detail__delete" onClick={() => setConfirming(true)}>
+						Delete these {results.length} {results.length === 1 ? "entry" : "entries"}
+					</button>
+				))}
 		</main>
 	);
 }

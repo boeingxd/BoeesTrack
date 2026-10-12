@@ -76,6 +76,17 @@ export function parseEntries(body: unknown): Parsed<WireEntry[]> {
 	return { ok: true, value: out };
 }
 
+// D1 allows 100 bound values per statement and R2 deletes up to 1000 keys per call; the route chunks the ids to fit.
+export const MAX_DELETE = 500;
+
+export function parseIds(body: unknown): Parsed<string[]> {
+	const ids = isObject(body) ? body.ids : null;
+	if (!Array.isArray(ids) || ids.length === 0 || ids.length > MAX_DELETE) return fail("expected 1 to 500 ids");
+	if (!ids.every((id) => isText(id, 100))) return fail("bad id");
+	if (new Set(ids).size !== ids.length) return fail("repeated id");
+	return { ok: true, value: ids };
+}
+
 export function parsePot(body: unknown): Parsed<WirePot> {
 	if (!isObject(body)) return fail("pot must be an object");
 	const { name, target, monthly } = body;
