@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MAX_BATCH, entryFromRow, parseCategory, parseEntries, parsePlan, parsePot, planFromRow, planToColumns } from "./wire";
+import { MAX_BATCH, SLIP_REF, entryFromRow, parseCategory, parseEntries, parsePlan, parsePot, planFromRow, planToColumns } from "./wire";
 
 const entry = { id: "e1", kind: "spent", satang: 8500, at: 1_760_000_000_000, category: "Food & drink", note: "Iced coffee" };
 
@@ -84,17 +84,34 @@ describe("parseCategory", () => {
 
 describe("row mapping", () => {
 	it("turns null columns into missing fields", () => {
-		const row = { id: "e1", kind: "spent" as const, satang: 100, at: 5, category: null, note: "", slip_ref: null, pot: null };
+		const row = { id: "e1", kind: "spent" as const, satang: 100, at: 5, category: null, note: "", slip_ref: null, pot: null, has_image: 0 };
 		expect(entryFromRow(row)).toEqual({ id: "e1", kind: "spent", satang: 100, at: 5, category: null, note: "" });
 	});
 	it("keeps slip_ref and pot as slipRef and pot", () => {
-		const row = { id: "e1", kind: "spent" as const, satang: 100, at: 5, category: "Bills", note: "", slip_ref: "r", pot: "Trip" };
+		const row = { id: "e1", kind: "spent" as const, satang: 100, at: 5, category: "Bills", note: "", slip_ref: "r", pot: "Trip", has_image: 0 };
 		expect(entryFromRow(row)).toMatchObject({ slipRef: "r", pot: "Trip" });
+	});
+	it("shows hasImage only when a picture is stored", () => {
+		const row = { id: "e1", kind: "spent" as const, satang: 100, at: 5, category: null, note: "", slip_ref: "r", pot: null, has_image: 1 };
+		expect(entryFromRow(row)).toMatchObject({ hasImage: true });
 	});
 	it("round-trips the plan through its columns", () => {
 		expect(planFromRow({ monthly: 1, daily_mode: "auto", daily_fixed: null })).toEqual({ monthly: 1, daily: "auto" });
 		expect(planFromRow({ monthly: 1, daily_mode: "fixed", daily_fixed: 3000 })).toEqual({ monthly: 1, daily: { fixed: 3000 } });
 		expect(planToColumns({ monthly: 1, daily: { fixed: 3000 } })).toEqual({ mode: "fixed", fixed: 3000 });
 		expect(planToColumns({ monthly: 1, daily: "off" })).toEqual({ mode: "off", fixed: null });
+	});
+});
+
+describe("slip pictures", () => {
+	it("ignores a hasImage sent by the browser", () => {
+		const r = parseEntries([{ ...entry, hasImage: true }]);
+		expect(r).toEqual({ ok: true, value: [entry] });
+	});
+	it("only allows plain letters and digits as a bucket key", () => {
+		expect(SLIP_REF.test("2030010309150012345678AD")).toBe(true);
+		expect(SLIP_REF.test("../secret")).toBe(false);
+		expect(SLIP_REF.test("a/b0123456789")).toBe(false);
+		expect(SLIP_REF.test("short")).toBe(false);
 	});
 });

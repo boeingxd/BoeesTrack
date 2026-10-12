@@ -22,6 +22,12 @@
 			"database_id": "94df5d81-49c5-4101-9702-bce66abe779f"
 		}
 	],
+	"r2_buckets": [
+		{
+			"binding": "SLIPS",
+			"bucket_name": "boeestrack-slips"
+		}
+	],
 	"assets": {
 		"directory": "./dist/client",
 		"not_found_handling": "single-page-application"

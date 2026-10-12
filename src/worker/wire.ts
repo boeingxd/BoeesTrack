@@ -14,6 +14,8 @@ export type WireEntry = {
 	note: string;
 	slipRef?: string;
 	pot?: string;
+	// Set by the Worker only: true when the slip's picture is stored. parseEntry ignores it if the browser sends it.
+	hasImage?: true;
 };
 export type WirePot = { name: string; target: number; monthly: number };
 export type WirePlan = { monthly: number; daily: "auto" | "off" | { fixed: number } };
@@ -22,6 +24,11 @@ export type Parsed<T> = { ok: true; value: T } | { ok: false; error: string };
 const fail = (error: string): { ok: false; error: string } => ({ ok: false, error });
 
 export const MAX_BATCH = 200;
+
+// The picture's bucket key is the slip's reference, so it must be plain letters and digits (no "/" or "..").
+export const SLIP_REF = /^[A-Za-z0-9]{10,60}$/;
+export const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+export const MAX_IMAGE_BYTES = 6 * 1024 * 1024;
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 const isInt = (v: unknown): v is number => typeof v === "number" && Number.isSafeInteger(v);
@@ -98,6 +105,7 @@ export type EntryRow = {
 	note: string;
 	slip_ref: string | null;
 	pot: string | null;
+	has_image: number;
 };
 
 export function entryFromRow(r: EntryRow): WireEntry {
@@ -110,6 +118,7 @@ export function entryFromRow(r: EntryRow): WireEntry {
 		note: r.note,
 		...(r.slip_ref ? { slipRef: r.slip_ref } : {}),
 		...(r.pot ? { pot: r.pot } : {}),
+		...(r.has_image ? { hasImage: true as const } : {}),
 	};
 }
 

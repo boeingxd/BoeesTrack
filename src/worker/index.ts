@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { accessKeys, verifyAccessToken } from "./access";
 import { data } from "./data";
+import { slips } from "./slips";
 
 // ACCESS_BYPASS exists only in .dev.vars for local development; it is never set in wrangler.json.
 type Bindings = Env & { ACCESS_BYPASS?: string };
@@ -29,5 +30,6 @@ app.use("/api/*", async (c, next) => {
 
 app.get("/api/health", (c) => c.json({ status: "ok" }));
 app.route("/api", data);
+app.route("/api", slips);
 
 export default app;

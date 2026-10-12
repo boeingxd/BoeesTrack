@@ -30,7 +30,7 @@ const json = (c: Context) => c.req.json().catch(() => null);
 data.get("/data", async (c) => {
 	const db = c.env.DB;
 	const [entries, pots, categories, plan] = await db.batch([
-		db.prepare("SELECT id, kind, satang, at, category, note, slip_ref, pot FROM entries ORDER BY at, id"),
+		db.prepare("SELECT id, kind, satang, at, category, note, slip_ref, pot, has_image FROM entries ORDER BY at, id"),
 		db.prepare("SELECT name, target, monthly FROM pots ORDER BY rowid"),
 		db.prepare("SELECT name FROM categories ORDER BY position"),
 		db.prepare("SELECT monthly, daily_mode, daily_fixed FROM plan WHERE id = 1"),
@@ -54,24 +54,29 @@ data.post("/entries", async (c) => {
 	});
 });
 
-// An edit rewrites the whole row; the id in the path must match the body so one entry cannot be saved over another.
+// An edit rewrites the row except slip_ref, which stays as created because the slip's picture is stored under it.
+// The id in the path must match the body so one entry cannot be saved over another.
 data.put("/entries/:id", async (c) => {
 	const parsed = parseEntry(await json(c));
 	if (!parsed.ok) return c.text(parsed.error, 400);
 	const e = parsed.value;
 	if (e.id !== c.req.param("id")) return c.text("id does not match", 400);
 	return guard(c, async () => {
-		const res = await c.env.DB.prepare("UPDATE entries SET kind = ?, satang = ?, at = ?, category = ?, note = ?, slip_ref = ?, pot = ? WHERE id = ?")
-			.bind(e.kind, e.satang, e.at, e.category, e.note, e.slipRef ?? null, e.pot ?? null, e.id)
+		const res = await c.env.DB.prepare("UPDATE entries SET kind = ?, satang = ?, at = ?, category = ?, note = ?, pot = ? WHERE id = ?")
+			.bind(e.kind, e.satang, e.at, e.category, e.note, e.pot ?? null, e.id)
 			.run();
 		if (res.meta.changes === 0) return c.text("No such entry", 404);
 		return c.json({ ok: true });
 	});
 });
 
+// Deleting an entry also deletes its slip picture, so no orphaned image stays in the bucket.
 data.delete("/entries/:id", async (c) => {
-	const res = await c.env.DB.prepare("DELETE FROM entries WHERE id = ?").bind(c.req.param("id")).run();
-	if (res.meta.changes === 0) return c.text("No such entry", 404);
+	const gone = await c.env.DB.prepare("DELETE FROM entries WHERE id = ? RETURNING slip_ref, has_image")
+		.bind(c.req.param("id"))
+		.first<{ slip_ref: string | null; has_image: number }>();
+	if (!gone) return c.text("No such entry", 404);
+	if (gone.slip_ref && gone.has_image) await c.env.SLIPS.delete(gone.slip_ref);
 	return c.json({ ok: true });
 });
 
