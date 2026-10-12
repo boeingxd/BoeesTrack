@@ -3,6 +3,7 @@ import { Figure } from "../components/Figure";
 import { Icon } from "../components/Icon";
 import { MeterTrack } from "../components/Meter";
 import { PotForm } from "../components/PotForm";
+import { Sheet } from "../components/Sheet";
 import { potTotals } from "../lib/balance";
 import { formatBaht } from "../lib/money";
 import type { Entry, Pot } from "../lib/types";
@@ -24,6 +25,12 @@ export function Savings({ entries, pots, today, onAddPot, onEditPot, onDeletePot
 	const [editing, setEditing] = useState<string | null>(null);
 	const [deleting, setDeleting] = useState(false);
 
+	const editingRow = totals.find((t) => t.pot.name === editing);
+	const stopEditing = () => {
+		setEditing(null);
+		setDeleting(false);
+	};
+
 	return (
 		<main className="home">
 			<section className="today" aria-labelledby="saved-label">
@@ -42,64 +49,13 @@ export function Savings({ entries, pots, today, onAddPot, onEditPot, onDeletePot
 
 			<h2 className="money-head">Pots</h2>
 			<ul className="pots">
-				{totals.length === 0 && <li className="pot pot--empty">No pots yet.</li>}
+				{totals.length === 0 && (
+					<li className="pot pot--empty">
+						<p className="pot__empty-title">No pots yet</p>
+						<p>A pot holds money you set aside for something, like a trip or a laptop. Make one, then use Add, then Saved, to put money in it.</p>
+					</li>
+				)}
 				{totals.map(({ pot, total, thisMonth }) => {
-					if (editing === pot.name) {
-						return (
-							<li className="pot pot--editing" key={pot.name}>
-								<PotForm
-									pots={pots}
-									reserved={goneNames}
-									initial={pot}
-									submitLabel="Save pot"
-									onSubmit={(next) => {
-										onEditPot(pot.name, next);
-										setEditing(null);
-										setDeleting(false);
-									}}
-									onCancel={() => {
-										setEditing(null);
-										setDeleting(false);
-									}}
-								>
-									{deleting ? (
-										<div className="detail__confirm">
-											<p className="today__note today__note--warn" role="alert">
-												<Icon name="warning" size={18} />
-												<span>
-													Delete {pot.name}?{" "}
-													{total > 0
-														? `${formatBaht(total)} goes back to your balance.`
-														: total < 0
-															? `It is ${formatBaht(-total)} overdrawn, so that comes off your balance.`
-															: ""}{" "}
-													Its entries stay in History. This can't be undone.
-												</span>
-											</p>
-											<button type="button" className="detail__btn detail__btn--keep" onClick={() => setDeleting(false)}>
-												Keep it
-											</button>
-											<button
-												type="button"
-												className="detail__btn detail__btn--delete"
-												onClick={() => {
-													onDeletePot(pot);
-													setEditing(null);
-													setDeleting(false);
-												}}
-											>
-												Yes, delete
-											</button>
-										</div>
-									) : (
-										<button type="button" className="cancel cancel--danger" onClick={() => setDeleting(true)}>
-											Delete pot
-										</button>
-									)}
-								</PotForm>
-							</li>
-						);
-					}
 					return (
 						<li className="pot" key={pot.name}>
 							<div className="pot__head">
@@ -126,24 +82,76 @@ export function Savings({ entries, pots, today, onAddPot, onEditPot, onDeletePot
 				})}
 			</ul>
 
-			{adding ? (
-				<PotForm
-					pots={pots}
-					reserved={goneNames}
-					submitLabel="Add pot"
-					onSubmit={(pot) => {
-						onAddPot(pot);
-						setAdding(false);
-					}}
-					onCancel={() => setAdding(false)}
-				/>
-			) : (
-				<div className="more-line">
-					<button type="button" className="more-line__btn" onClick={() => setAdding(true)}>
-						<span>New pot</span>
-						<Icon name="plus" size={18} />
-					</button>
-				</div>
+			<div className="more-line">
+				<button type="button" className="more-line__btn" onClick={() => setAdding(true)}>
+					<span>New pot</span>
+					<Icon name="plus" size={18} />
+				</button>
+			</div>
+
+			{adding && (
+				<Sheet title="New pot" onClose={() => setAdding(false)}>
+					<PotForm
+						pots={pots}
+						reserved={goneNames}
+						submitLabel="Add pot"
+						onSubmit={(pot) => {
+							onAddPot(pot);
+							setAdding(false);
+						}}
+						onCancel={() => setAdding(false)}
+					/>
+				</Sheet>
+			)}
+
+			{editingRow && (
+				<Sheet title="Edit pot" onClose={stopEditing}>
+					<PotForm
+						pots={pots}
+						reserved={goneNames}
+						initial={editingRow.pot}
+						submitLabel="Save pot"
+						onSubmit={(next) => {
+							onEditPot(editingRow.pot.name, next);
+							stopEditing();
+						}}
+						onCancel={stopEditing}
+					>
+						{deleting ? (
+							<div className="detail__confirm">
+								<p className="today__note today__note--warn" role="alert">
+									<Icon name="warning" size={18} />
+									<span>
+										Delete {editingRow.pot.name}?{" "}
+										{editingRow.total > 0
+											? `${formatBaht(editingRow.total)} goes back to your balance.`
+											: editingRow.total < 0
+												? `It is ${formatBaht(-editingRow.total)} overdrawn, so that comes off your balance.`
+												: ""}{" "}
+										Its entries stay in History. This can't be undone.
+									</span>
+								</p>
+								<button type="button" className="detail__btn detail__btn--keep" onClick={() => setDeleting(false)}>
+									Keep it
+								</button>
+								<button
+									type="button"
+									className="detail__btn detail__btn--delete"
+									onClick={() => {
+										onDeletePot(editingRow.pot);
+										stopEditing();
+									}}
+								>
+									Yes, delete
+								</button>
+							</div>
+						) : (
+							<button type="button" className="cancel cancel--danger" onClick={() => setDeleting(true)}>
+								Delete pot
+							</button>
+						)}
+					</PotForm>
+				</Sheet>
 			)}
 		</main>
 	);

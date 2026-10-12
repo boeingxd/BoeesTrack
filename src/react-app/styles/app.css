@@ -1328,6 +1328,18 @@ button:disabled {
 	color: var(--color-ink-2);
 }
 
+.first-run {
+	display: grid;
+	gap: var(--space-2);
+	padding: var(--space-6) var(--page-pad);
+	color: var(--color-muted);
+}
+
+.first-run__title {
+	font-weight: var(--weight-strong);
+	color: var(--color-ink);
+}
+
 .results__empty {
 	display: grid;
 	justify-items: center;
@@ -1506,6 +1518,11 @@ button:disabled {
 	color: var(--color-muted);
 }
 
+.pot__empty-title {
+	font-weight: var(--weight-strong);
+	color: var(--color-ink);
+}
+
 .pot__row {
 	display: flex;
 	flex-wrap: wrap;
@@ -1613,10 +1630,6 @@ button:disabled {
 .pot__edit {
 	flex: none;
 	margin-inline-end: calc(var(--space-2) * -1);
-}
-
-.pot--editing {
-	padding: 0;
 }
 
 /* Insight hero: what was spent and what was saved, side by side, stacked when too narrow */

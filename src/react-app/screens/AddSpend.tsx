@@ -16,6 +16,8 @@ type Props = {
 	onAddCategory: (name: string) => void;
 	// Reading slips starts from here; not offered while editing an entry.
 	onSlips?: () => void;
+	// True while there are no entries yet, so the screen says how it works.
+	firstRun?: boolean;
 	onClose: () => void;
 	onSave: (draft: { kind: Kind; satang: number; at: Date; category: string | null; note: string; pot?: string }) => void;
 };
@@ -28,7 +30,7 @@ const KINDS: { value: Kind; label: string }[] = [
 
 const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "back"];
 
-export function AddSpend({ editing, categories, pots, goneNames, onAddPot, onAddCategory, onSlips, onClose, onSave }: Props) {
+export function AddSpend({ editing, categories, pots, goneNames, onAddPot, onAddCategory, onSlips, firstRun, onClose, onSave }: Props) {
 	const [kind, setKind] = useState<Kind>(editing?.kind ?? "spent");
 	const [input, setInput] = useState(editing ? String(editing.satang / 100) : "");
 	const [note, setNote] = useState(editing?.note ?? "");
@@ -87,6 +89,8 @@ export function AddSpend({ editing, categories, pots, goneNames, onAddPot, onAdd
 					{groupInput(input)}
 				</p>
 			</div>
+
+			{firstRun && !editing && <p className="review-intro">Type the amount, pick a tag, then tap Add. Slips (top right) reads bank slip pictures instead.</p>}
 
 			<div className="fields">
 				<div className="field">

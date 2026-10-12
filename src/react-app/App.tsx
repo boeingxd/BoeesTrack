@@ -407,6 +407,7 @@ function App() {
 					onAddPot={addPot}
 					onAddCategory={addCategory}
 					onSlips={() => picker.current?.click()}
+					firstRun={entries.length === 0}
 					onClose={() => setScreen("home")}
 					onSave={(draft) => addEntries([{ id: `entry-${Date.now()}`, ...draft }])}
 				/>

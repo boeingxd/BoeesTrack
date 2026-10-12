@@ -156,7 +156,14 @@ export function Home({ entries, plan, today, intro, justAddedId, onOpenEntry, on
 			</section>
 
 			<section className="sheet" aria-label="Entries by day" style={{ "--i": 2 } as React.CSSProperties}>
-				<DayList groups={groups} today={today} justAddedId={justAddedId} onOpenEntry={onOpenEntry} />
+				{entries.length === 0 ? (
+					<div className="first-run" role="status">
+						<p className="first-run__title">Your notebook is empty</p>
+						<p>Tap Add to log your first spend: the amount first, then a tag. Slips, inside Add, reads bank slip pictures for you.</p>
+					</div>
+				) : (
+					<DayList groups={groups} today={today} justAddedId={justAddedId} onOpenEntry={onOpenEntry} />
+				)}
 			</section>
 		</main>
 	);
