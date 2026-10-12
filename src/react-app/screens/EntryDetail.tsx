@@ -74,15 +74,15 @@ export function EntryDetail({ entry, today, onClose, onEdit, onDelete }: Props) 
 						<Icon name="warning" size={18} />
 						<span>Delete this entry? This can't be undone.</span>
 					</p>
-					<button type="button" className="text-btn" onClick={() => setConfirming(false)}>
+					<button type="button" className="detail__btn detail__btn--keep" onClick={() => setConfirming(false)}>
 						Keep it
 					</button>
-					<button type="button" className="text-btn" onClick={onDelete}>
+					<button type="button" className="detail__btn detail__btn--delete" onClick={onDelete}>
 						Yes, delete
 					</button>
 				</div>
 			) : (
-				<button type="button" className="text-btn detail__delete" onClick={() => setConfirming(true)}>
+				<button type="button" className="detail__btn detail__btn--outline detail__delete" onClick={() => setConfirming(true)}>
 					Delete entry
 				</button>
 			)}
