@@ -21,11 +21,11 @@ const KIND_LABEL: Record<Entry["kind"], string> = {
 	adjust: "Adjustment",
 };
 
-// One entry in full. Adjustments (from a bank check-in) and entries made from a slip can be deleted but not edited, because their amount is not a typo to fix.
+// One entry in full. Adjustments (from a bank check-in) can be deleted but not edited, because their amount is not a typo to fix. Slip entries can be edited; the slip reference and picture stay with them.
 export function EntryDetail({ entry, today, onClose, onEdit, onDelete, onRemovePicture }: Props) {
 	const [confirming, setConfirming] = useState<"entry" | "picture" | null>(null);
 	const picture = entry.slipRef && entry.hasImage ? `/api/slips/${entry.slipRef}` : null;
-	const editable = entry.kind !== "adjust" && !entry.slipRef;
+	const editable = entry.kind !== "adjust";
 	const rows: [string, string | null][] = [
 		["Kind", KIND_LABEL[entry.kind]],
 		["When", `${dayTitle(entry.at, today)} · ${timeLabel(entry.at)}`],

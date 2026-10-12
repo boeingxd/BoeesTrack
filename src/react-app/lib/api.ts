@@ -46,3 +46,7 @@ export async function putSlip(ref: string, file: Blob): Promise<void> {
 }
 
 export const deleteSlip = (ref: string) => call("DELETE", `/slips/${ref}`).then(() => undefined);
+
+export const slipUsage = async (before: Date): Promise<{ count: number; bytes: number }> =>
+	(await call("GET", `/slips-usage?before=${before.getTime()}`)).json();
+export const clearSlips = (before: Date) => call("POST", "/slips-clear", { before: before.getTime() }).then(() => undefined);

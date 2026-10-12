@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { MAX_BATCH, MAX_DELETE, SLIP_REF, entryFromRow, parseCategory, parseEntries, parseIds, parsePlan, parsePot, planFromRow, planToColumns } from "./wire";
+import { MAX_BATCH, MAX_DELETE, SLIP_REF, entryFromRow, parseCategory, parseEntries, parseBefore, parseIds, parsePlan, parsePot, planFromRow, planToColumns } from "./wire";
 
 const entry = { id: "e1", kind: "spent", satang: 8500, at: 1_760_000_000_000, category: "Food & drink", note: "Iced coffee" };
+
+describe("parseBefore", () => {
+	it("takes a whole non-negative number or a numeric string, and nothing else", () => {
+		expect(parseBefore(1_760_000_000_000)).toBe(1_760_000_000_000);
+		expect(parseBefore("1760000000000")).toBe(1_760_000_000_000);
+		for (const bad of [undefined, null, "", " ", "abc", -1, 1.5, "1.5", NaN, {}]) expect(parseBefore(bad)).toBeNull();
+	});
+});
 
 describe("parseIds", () => {
 	it("accepts a list of ids and rejects empty, repeated, blank, oversized and malformed bodies", () => {

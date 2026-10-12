@@ -87,6 +87,12 @@ export function parseIds(body: unknown): Parsed<string[]> {
 	return { ok: true, value: ids };
 }
 
+// A cutoff time in milliseconds, from a query string or a JSON body; null when it is not a plain non-negative whole number.
+export function parseBefore(v: unknown): number | null {
+	const n = typeof v === "string" && v.trim() !== "" ? Number(v) : v;
+	return isInt(n) && n >= 0 ? n : null;
+}
+
 export function parsePot(body: unknown): Parsed<WirePot> {
 	if (!isObject(body)) return fail("pot must be an object");
 	const { name, target, monthly } = body;

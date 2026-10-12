@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { ClearPictures } from "../components/ClearPictures";
 import { DayList, EntryLine } from "../components/DayList";
 import { Icon } from "../components/Icon";
 import { ScaleSwitch, ViewSwitch, type View } from "../components/ViewSwitch";
@@ -17,6 +18,7 @@ type Props = {
 	onView: (view: View) => void;
 	onOpenEntry: (entry: Entry) => void;
 	onDeleteShown: (entries: Entry[]) => void;
+	onClearPictures: (before: Date) => void;
 };
 
 const KINDS: { value: Kind; label: string }[] = [
@@ -43,7 +45,7 @@ function downloadCsv(entries: Entry[], today: Date) {
 	URL.revokeObjectURL(url);
 }
 
-export function History({ entries, categories, today, filters, onFilters, onView, onOpenEntry, onDeleteShown }: Props) {
+export function History({ entries, categories, today, filters, onFilters, onView, onOpenEntry, onDeleteShown, onClearPictures }: Props) {
 	const results = useMemo(() => filterEntries(entries, filters), [entries, filters]);
 	const [filtersOpen, setFiltersOpen] = useState(false);
 	const filtersSet = [filters.kind !== "all", filters.category !== null, filters.source !== "all"].filter(Boolean).length;
@@ -229,6 +231,7 @@ export function History({ entries, categories, today, filters, onFilters, onView
 						Spreadsheet
 					</button>
 				</div>
+				<ClearPictures entries={entries} today={today} onClear={onClearPictures} />
 				{results.length > 0 &&
 					(confirming ? (
 						<div className="detail__confirm">

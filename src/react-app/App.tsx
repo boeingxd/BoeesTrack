@@ -138,6 +138,14 @@ function App() {
 		save(() => api.deleteSlip(entry.slipRef as string), () => mark(true));
 	}
 
+	// Pictures of entries dated before the cutoff go; the entries stay. A failed save puts the flags back.
+	function clearOldPictures(before: Date) {
+		const ids = new Set(entries.filter((e) => e.hasImage && e.at < before).map((e) => e.id));
+		const mark = (hasImage: boolean) => setEntries((current) => current.map((e) => (ids.has(e.id) ? { ...e, hasImage } : e)));
+		mark(false);
+		save(() => api.clearSlips(before), () => mark(true));
+	}
+
 	// History's "delete these": gone from the screen at once, and put back if the save fails.
 	function deleteEntries(list: Entry[]) {
 		const ids = new Set(list.map((e) => e.id));
@@ -334,6 +342,7 @@ function App() {
 					onView={goToView}
 					onOpenEntry={openEntry}
 					onDeleteShown={deleteEntries}
+					onClearPictures={clearOldPictures}
 				/>
 			)}
 			{screen === "entry" && detail && (
