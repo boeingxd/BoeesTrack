@@ -134,12 +134,27 @@ export function History({ entries, categories, today, filters, onFilters, onView
 						aria-label="Search notes, tags and amounts"
 					/>
 				</label>
-				<button type="button" className="filters__toggle" aria-expanded={filtersOpen} aria-controls="filter-panel" onClick={() => setFiltersOpen(!filtersOpen)}>
-					<Icon name="filter" size={18} />
-					<span>Filters</span>
-					{filtersSet > 0 && <span className="filters__count">{filtersSet} set</span>}
-					<Icon name="down" size={16} />
-				</button>
+				<div className="toolbar">
+					<button type="button" className="filters__toggle" aria-expanded={filtersOpen} aria-controls="filter-panel" onClick={() => setFiltersOpen(!filtersOpen)}>
+						<Icon name="filter" size={18} />
+						<span>Filters</span>
+						{filtersSet > 0 && <span className="filters__count">{filtersSet} set</span>}
+						<Icon name="down" size={16} />
+					</button>
+					<label className="select select--bare results__sort">
+						<span className="results__icon">
+							<Icon name="sort" size={16} />
+						</span>
+						<select className="select__input" value={filters.sort} aria-label="Sort entries" onChange={(event) => set({ sort: event.target.value as Sort })}>
+							{SORTS.map((sort) => (
+								<option key={sort.value} value={sort.value}>
+									{sort.label}
+								</option>
+							))}
+						</select>
+						<Icon name="down" size={16} />
+					</label>
+				</div>
 				{filtersOpen && (
 					<div className="filters" id="filter-panel" role="group" aria-label="Filters">
 						<label className={filters.kind === "all" ? "filters__row" : "filters__row filters__row--on"}>
@@ -187,19 +202,6 @@ export function History({ entries, categories, today, filters, onFilters, onView
 					<p aria-live="polite">
 						{results.length} {results.length === 1 ? "entry" : "entries"} · {formatBaht(total)} {totalKind}
 					</p>
-					<label className="select select--bare results__sort">
-						<span className="results__icon">
-							<Icon name="sort" size={16} />
-						</span>
-						<select className="select__input" value={filters.sort} aria-label="Sort entries" onChange={(event) => set({ sort: event.target.value as Sort })}>
-							{SORTS.map((sort) => (
-								<option key={sort.value} value={sort.value}>
-									{sort.label}
-								</option>
-							))}
-						</select>
-						<Icon name="down" size={16} />
-					</label>
 					{!untouched && (
 						<button type="button" className="text-btn" onClick={() => onFilters(defaultFilters(today))}>
 							Reset

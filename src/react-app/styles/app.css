@@ -922,14 +922,22 @@ button:disabled {
 	outline: 0;
 }
 
+/* Filters on the left, sort on the right, on one ruled line. */
+.toolbar {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	border-bottom: 1px solid var(--color-rule);
+}
+
 /* Kind, Tag and Source stay out of sight until asked for; the toggle says how many are set. */
 .filters__toggle {
 	display: flex;
 	align-items: center;
 	gap: var(--space-2);
-	width: 100%;
+	flex: 1;
+	min-width: 0;
 	min-height: var(--tap);
-	border-bottom: 1px solid var(--color-rule);
 	font-weight: var(--weight-medium);
 	color: var(--color-ink);
 	text-align: start;
@@ -977,9 +985,9 @@ button:disabled {
 }
 
 .results__sort {
+	flex: none;
 	width: auto;
 	margin-top: 0;
-	margin-inline-start: auto;
 	color: var(--color-ink);
 }
 
