@@ -15,6 +15,13 @@
 		"TEAM_DOMAIN": "https://boeestrack.cloudflareaccess.com",
 		"POLICY_AUD": "8bae31e77d3ad0ead4c9923d5e0e299ec40d2ac5d0852be8eecf9d21e507d208"
 	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "boeestrack",
+			"database_id": "00000000-0000-0000-0000-000000000000"
+		}
+	],
 	"assets": {
 		"directory": "./dist/client",
 		"not_found_handling": "single-page-application"
