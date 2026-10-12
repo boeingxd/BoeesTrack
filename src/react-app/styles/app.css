@@ -1201,6 +1201,11 @@ button:disabled {
 	.screen .tags::-webkit-scrollbar {
 		display: none;
 	}
+
+	/* In a scrolling row the tags keep their own width instead of squeezing down to the tap size. */
+	.screen .tag {
+		flex: none;
+	}
 }
 
 /* Motion: one entrance, one sheet, one settle. Reduced motion keeps only a quick fade. */
