@@ -1513,6 +1513,10 @@ button:disabled {
 	border-block: 1px solid var(--color-rule);
 }
 
+.more-line__btn[aria-expanded="true"] svg {
+	transform: rotate(180deg);
+}
+
 .more-line__btn strong {
 	font-weight: var(--weight-strong);
 }
@@ -1802,6 +1806,11 @@ button:disabled {
 	gap: var(--space-3);
 	margin-top: var(--space-4);
 	padding-inline: var(--space-3);
+}
+
+/* Inside a section (Insight "Show more") there is no padded hero around it, so it takes the page padding itself. */
+.stat .hero-pair {
+	padding: 0 var(--page-pad) var(--space-5);
 }
 
 .hero-pair > div {

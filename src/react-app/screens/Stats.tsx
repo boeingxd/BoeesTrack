@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { DayBars } from "../components/DayBars";
 import { DayList } from "../components/DayList";
 import { Figure } from "../components/Figure";
@@ -37,6 +37,9 @@ type Props = {
 	onOpenEntry: (entry: Entry) => void;
 };
 
+// Where it went shows this many tags until "Show more" is tapped.
+const TOP_TAGS = 4;
+
 const share = (value: number) => (value > 0 && value < 0.01 ? "<1%" : `${Math.round(value * 100)}%`);
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
@@ -71,6 +74,8 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onOpen
 	const nowName = scale === "day" ? (current ? "Today" : "That day") : `${current ? "This" : "That"} ${word}`;
 	const beforeName = `${scale === "day" ? "Day" : scale === "week" ? "Week" : "Month"} before`;
 	const heroLabel = (verb: string) => (current && scale === "day" ? `${verb} today` : `${verb} ${current ? "this" : "that"} ${word}`);
+	const [more, setMore] = useState(false);
+	const rows = more ? breakdown.rows : breakdown.rows.slice(0, TOP_TAGS);
 
 	return (
 		<main className="home">
@@ -106,20 +111,6 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onOpen
 						<Figure satang={breakdown.total} />
 					</p>
 				</div>
-				<div className="hero-pair">
-					<div>
-						<p className="today__label">{heroLabel("Saved")}</p>
-						<p className="today__figure" aria-live="polite">
-							<Figure satang={inOut.saved} />
-						</p>
-					</div>
-					<div className="hero-pair__end">
-						<p className="today__label">{heroLabel("Received")}</p>
-						<p className="today__figure" aria-live="polite">
-							<Figure satang={inOut.received} />
-						</p>
-					</div>
-				</div>
 				{!hasEarlier ? (
 					<p className="today__note">No earlier data to compare with yet.</p>
 				) : (
@@ -149,7 +140,7 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onOpen
 							average={habit.avgPerDay}
 						/>
 					</div>
-					{scale === "month" && (
+					{more && scale === "month" && (
 						<ul className="day__lines">
 							{weeks
 								.filter((week) => !week.future)
@@ -194,12 +185,12 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onOpen
 				</h2>
 				<h3 className="stat-sub">Where it went</h3>
 				<ul className="day__lines">
-					{breakdown.rows.length === 0 ? (
+					{rows.length === 0 ? (
 						<li className="line line--empty">
 							<span className="line__body">Nothing to show</span>
 						</li>
 					) : (
-						breakdown.rows.map((row) => {
+						rows.map((row) => {
 							return (
 								<li key={row.category}>
 									<button
@@ -226,7 +217,7 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onOpen
 					)}
 				</ul>
 
-				{scale !== "day" && biggest.length > 0 && (
+				{more && scale !== "day" && biggest.length > 0 && (
 					<>
 						<h3 className="stat-sub">Biggest</h3>
 						<ul className="day__lines">
@@ -253,7 +244,34 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onOpen
 						</ul>
 					</>
 				)}
+
+				{more && (
+					<>
+						<h3 className="stat-sub">Money in and out</h3>
+						<div className="hero-pair">
+							<div>
+								<p className="today__label">{heroLabel("Saved")}</p>
+								<p className="today__figure" aria-live="polite">
+									<Figure satang={inOut.saved} />
+								</p>
+							</div>
+							<div className="hero-pair__end">
+								<p className="today__label">{heroLabel("Received")}</p>
+								<p className="today__figure" aria-live="polite">
+									<Figure satang={inOut.received} />
+								</p>
+							</div>
+						</div>
+					</>
+				)}
 			</section>
+
+			<div className="more-line">
+				<button type="button" className="more-line__btn" aria-expanded={more} onClick={() => setMore(!more)}>
+					<span>{more ? "Show less" : "Show more"}</span>
+					<Icon name="down" size={18} />
+				</button>
+			</div>
 		</main>
 	);
 }

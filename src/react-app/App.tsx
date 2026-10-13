@@ -15,6 +15,7 @@ import { Home } from "./screens/Home";
 import { Savings } from "./screens/Savings";
 import { SlipReview } from "./screens/SlipReview";
 import { Stats } from "./screens/Stats";
+import { StatsOld } from "./screens/StatsOld";
 
 type Screen = "home" | "stats" | "history" | "add" | "slips" | "savings" | "budget" | "entry" | "edit";
 
@@ -36,6 +37,8 @@ function App() {
 	const [intro, setIntro] = useState(true);
 	const [statsScale, setStatsScale] = useState<Scale>("month");
 	const [statsAnchor, setStatsAnchor] = useState(today);
+	// Temporary, for comparing the two Insight screens: /?insight=old shows the previous one.
+	const [oldInsight] = useState(() => new URLSearchParams(location.search).get("insight") === "old");
 	const [filters, setFilters] = useState<Filters>(() => defaultFilters(today));
 	// An entry opens from any list and closes back to the screen it was opened from.
 	const [detail, setDetail] = useState<{ entry: Entry; from: Screen } | null>(null);
@@ -339,6 +342,7 @@ function App() {
 		);
 	}
 
+	const Insight = oldInsight ? StatsOld : Stats;
 	const tagUses: Record<string, number> = {};
 	for (const e of entries) if (e.category) tagUses[e.category] = (tagUses[e.category] ?? 0) + 1;
 
@@ -374,7 +378,7 @@ function App() {
 				/>
 			)}
 			{screen === "stats" && (
-				<Stats
+				<Insight
 					entries={entries}
 					today={today}
 					scale={statsScale}
