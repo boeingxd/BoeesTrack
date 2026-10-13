@@ -104,7 +104,7 @@ Density is calm and phone-first (a 30rem column, centred on wider screens, with 
 Restrained: blue-leaning neutrals plus ink, one red, and a focus blue. Neutrals all lean to hue 245 to 262.
 
 ### Primary
-- **Blue-Black Ink** (oklch(27% 0.06 262)): text, the 1px day-header rule, today's bar, the filled Add button, selected-tab underline, the outline on Slips and on the "free today" part of the budget bar.
+- **Blue-Black Ink** (oklch(27% 0.06 262)): text, the 1px day-header rule, today's bar, the filled Add button, the selected-tab rule, the outline on the "free today" part of the budget bar.
 - **Soft Ink** (oklch(40% 0.05 260)): secondary text, month title, day sums.
 
 ### Secondary
@@ -144,28 +144,28 @@ Restrained: blue-leaning neutrals plus ink, one red, and a focus blue. Neutrals 
 
 A single column, max 30rem, centred; from 40rem up it gains a 1px rule on both sides. Grid: 4px-based spacing; page padding 1.25rem; a 3.5rem margin column holds time/label on the left of every ruled row; row height 3.25rem. The red margin line sits at page-pad + margin-col and runs only beside ruled rows (day lines, add fields, review sheet), never behind titles or the hero.
 
-Home: top row Home | Insight (full-width, ruled below); month title; "Spent today" label and figure; one month BudgetBar with labels; a note line; day pages (today plus three earlier days, then an "All history" line); a pinned dock. Insight: same top row, a title with previous/next arrows, a Day / Week / Month switch, the hero figure, a comparison line, then Day by day bars (week and month) or the day's entries (day), Where it went, Biggest spends, Habits. The Add screen and slip review are full-height sheets (entrance: slide up 1.5rem and fade, 220ms) with the keypad or batch bar anchored at the bottom with safe-area padding. Under 44rem tall, the Add screen shrinks its amount and key heights and turns the tag row into one scrolling line.
+Home: month title; "Spent today" label and figure; the Budget meters with an edit gear; a note line; the Balance with a "Check" button; day pages (today plus three earlier days), or, with no entries yet, a short "Your notebook is empty" help block. The four main screens (Home, Insight, History, Savings) share the bottom bar. Insight: a title with previous/next arrows, a Day / Week / Month switch, the hero figure, a comparison line, then Day by day bars (week and month) or the day's entries (day), Where it went, Biggest spends, Habits. The Add screen, entry screen and slip review are full-height screens that hide the bottom bar (entrance: slide up 1.5rem and fade, 220ms) with the keypad or batch bar anchored at the bottom with safe-area padding. Under 44rem tall, the Add screen shrinks its amount and key heights and turns the tag row into one scrolling line.
 
 ## Elevation & Depth
 
-Flat. There are no drop shadows. Depth is the page against the desk tone, hairline rules, and the lighter Sheet tone for slips. The only box-shadow is an inset 1px ink ring used as an outline (Slips button, free-allowance segment of the budget bar).
+Flat. There are no drop shadows. Depth is the page against the desk tone, hairline rules, and the lighter Sheet tone for slips. The only box-shadow is an inset 1px ink ring used as an outline (the free-allowance segment of the budget bar). Bottom sheets are separated by a 1px ink rule on their top edge and a dimmed screen behind them, not by a shadow.
 
 **The Flat Rule.** Surfaces separate by rule or tone, never by shadow.
 
 ## Shapes
 
-Mostly square. 6px radius on buttons and icon buttons; 2px on bars, the slip page and the budget bar. Tabs are underlined (2px ink), not pilled. Rows are separated by 1px rule, not boxed.
+Mostly square. 6px radius on buttons and icon buttons; 2px on bars, the slip page and the budget bar. Tabs are marked by a 2px ink rule (above the tab in the bottom bar, under it in the Day / Week / Month switch), not pilled. A bottom sheet has 6px radius on its top corners only. Rows are separated by 1px rule, not boxed.
 
 ## Components
 
 ### Buttons
-- **Add (dock__add, confirm):** filled ink, paper text, 6px radius, 56px tall, weight 600, 1px press-down. Disabled: Paper-3 with muted text.
-- **Slips (dock__slips):** outlined (inset 1px ink), weight 500, with a clip icon; hover/press fills Paper-2/Paper-3.
+- **Add (tabbar__add, confirm):** filled ink, paper text, 6px radius, 56px tall, weight 600, 1px press-down. Disabled: Paper-3 with muted text.
+- **Slips (topbar__slips):** a text button with a clip icon at the right of the Add screen's top bar (hidden while editing an entry); at 320px only the clip shows. It starts the slip picker.
 - **Icon button:** 44x44, 6px radius, hover Paper-2.
 - **Text button:** underlined, 44px min height.
 
-### Navigation (ViewSwitch / ScaleSwitch)
-Segmented radiogroups made of text tabs: Home | Insight fills the top row in equal columns, underlined in ink when active, muted otherwise. Day / Week / Month is a smaller (0.875rem) left-aligned row of the same tabs. Arrows (icon buttons) page the period; Next is disabled on the current period.
+### Navigation (TabBar / ScaleSwitch)
+The bottom bar (TabBar) is pinned to the bottom of Home, Insight, History and Savings, above the safe area, with a 1px rule on top: four text tabs (0.875rem, 56px tall, equal columns, a 2px ink rule above the active one, muted otherwise) and, beside them, Add as its own filled button (plus icon and "Add"; at 320px only the plus, still 44px wide). It is hidden on the Add, entry and slip screens. There are no tab icons: the icon set stays fixed. Day / Week / Month is a smaller (0.875rem) left-aligned row of the same tabs. Arrows (icon buttons) page the period; Next is disabled on the current period.
 
 ### Figure
 Baht sign small and muted, digits large; used for the Home and Insight hero.
@@ -182,6 +182,9 @@ Ink-only vertical bars sharing one height scale. Week: 10rem, seven bars with va
 ### CategoryTags
 Plain text tags, no fill; chosen tag has a 2px ink underline; "New" tag with plus opens an inline underlined input.
 
+### Bottom sheet (Sheet)
+For a choice that belongs to the screen under it: Budget, Check balance, History Filters, New pot and Edit pot. It rises from the bottom (220ms) over a dimmed screen, at most 30rem wide and 90% of the screen high, with a top bar (X, centred title) and the same ruled fields as the full screens. It closes with the X, a tap on the dimmed area or Escape. There are no gestures yet (no swipe to dismiss).
+
 ### Add screen and keypad
 Amount first as a Display figure; ruled fields (Note, When with "Change", Tag) with the margin line continuing; a 3-column keypad of ruled cells (1.25rem digits, 52px high) and a filled confirm button.
 
@@ -192,10 +195,11 @@ Each slip is a Sheet-tone page with 1px rule, 2px radius, and a paperclip (ClipM
 A slip entry shows its saved picture below the fields at full column width (1px rule border, Paper-2 behind it), as a link that opens the picture full size. Under it are two outlined red buttons, 56px tall: "Remove picture" then "Delete entry", 8px apart, with 32px of room under the last one so it never sits on the screen edge. Either one swaps in the same two-button confirmation: a warning line, then "Keep it" (outlined ink) and "Yes, remove" or "Yes, delete" (filled deep red).
 
 ### History controls
-Top to bottom: the period title with arrows, the Day / Week / Month switch, a search field, one "Filters" row, the results line, then DayList groups, then a footer block.
+Top to bottom: the period title with arrows, the Day / Week / Month switch, a search field, one "Filters" row with the sort beside it, the results line, then DayList groups, then a footer block.
 - **Search:** a full box (1px edge border, 6px radius, 46px tall) with a magnifier icon inside at the left; the border and icon turn ink on focus.
-- **Filters row:** a full-width text button with a funnel icon, the word "Filters", a muted "N set" count when any are set, and a chevron that flips when open. Closed by default. Open, it shows three ruled rows (Kind, Tag, Source), each a muted label (5rem column) and a borderless native select; a value that is set is ink and weight 500, an unset one is muted.
+- **Filters row:** a full-width text button with a funnel icon, the word "Filters", a muted "N set" count when any are set, and the Sort select on the right. Tapping it opens the Filters bottom sheet with three ruled rows (Kind, Tag, Source), each a muted label (5rem column) and a borderless native select (a value that is set is ink and weight 500, an unset one is muted), a filled "Show N entries" button and, when any are set, a "Clear filters" text button. Filters apply as they are changed.
 - **Results line:** the count and total on the left, a Sort select with an up-down icon, and Reset when anything differs from the default (it wraps below at 320px).
+- **No results:** a muted search icon, "Nothing matched", a one-line hint (a spelling hint when searching), and one filled button: "Clear search" when a search is typed, otherwise "Reset filters".
 - **Footer block:** under one 1px rule and with 32px of room at the bottom: "Download backup" and "Spreadsheet" as two equal text links; "Clear old slip pictures", a row like the Filters row that opens a 3 / 6 / 12 months Segmented control, a status line ("N pictures · size. The entries stay.") and an outlined red "Remove these N pictures"; then an outlined red "Delete these N entries" for what the filters show. Both red buttons confirm with a warning and Keep them / Yes buttons, and are kept 24px apart so one is not tapped for the other.
 
 ### Icon / ClipMark
@@ -209,7 +213,9 @@ Inline SVG, 1.75 stroke, round caps, currentColor; a fixed set (back, forward, d
 - **Do** show averages and allowances in whole baht; keep amounts tabular.
 - **Do** make all targets at least 44px and check 320px for no horizontal overflow.
 - **Do** keep slips confined to batch review and the picture on a slip's own entry; the notebook is the app.
-- **Do** keep one filled button (primary job) and one outlined button (second job) per pinned bar.
+- **Do** keep one filled button (primary job) per pinned bar; Add is the only one on the bottom bar.
+- **Do** use a bottom sheet, not an inline expansion, for a small choice that belongs to the current screen.
+- **Do** give each first-run and no-results state one sentence of help and at most one action.
 - **Do** honour reduced motion (fade only, 150ms).
 
 ### Don't:

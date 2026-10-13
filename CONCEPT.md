@@ -51,7 +51,7 @@ Kitsch from skeuomorphic detail; two metaphors blurring into each other. Check e
 
 - **Keep:** the day groups (small-caps day header, daily subtotal, hairline rule, entries as ruled lines) and the amount-first add flow.
 - **Drop:** the colourful category tiles (categories become plain text tags).
-- **Still open:** charts, how budgets are shown (Dime uses a gauge and cards), and the bottom bar.
+- **Still open:** charts and how budgets are shown (Dime uses a gauge and cards). The bottom bar was settled in the 2026-10-13 revamp, below.
 
 ## Since the first pass (2026-10-12)
 
@@ -64,6 +64,16 @@ The slips are real now, and the owner's decisions shaped how:
 - **Clearing.** Pictures can be removed one at a time, in bulk by age (3, 6 or 12 months, with the count and size shown first), or with the entry. History gets a Source filter (all, slips, typed in by hand).
 - **Calm filters.** History keeps its period, search and result line in view and tucks Kind, Tag and Source behind one "Filters" row, after the first version with three dropdowns felt overwhelming.
 
+## UI revamp (2026-10-13)
+
+The layout was audited against a mobile UI brief (about 19 rules from a notes-app video) and revised. The owner took the recommendations on each open question:
+
+- **Bottom bar.** Home, Insight, History and Savings are four text tabs along the bottom, with Add as a separate filled button beside them (flat, square-cornered, no pill and no shadow, so the notebook stays flat). It replaces the top tab row and the Home dock, and hides on the Add, entry and slip screens.
+- **Slips moved into Add.** The "separate one-tap path" is now a Slips button in the Add screen's top bar, so it is two taps from anywhere.
+- **Bottom sheets for small choices.** Budget, Check balance, History filters and the pot forms rise over the current screen instead of replacing it or expanding inline.
+- **Empty states.** Home, Savings and Add explain themselves when there is nothing yet; History's no-results state offers one way out.
+- **Gestures skipped for now** (swipe back, swipe down to dismiss, long press). **Not applied:** floating pill bar, round "+", cards, carousels; the brief's density advice does not fit History and Insight, which stay as dense ruled lists.
+
 ## Confirmed design brief (first pass)
 
 - **Mode:** Operate. Phone-first; short visits of seconds.
@@ -72,6 +82,6 @@ The slips are real now, and the owner's decisions shaped how:
 - **Add:** the next empty line at the top of today adds a spend; a smaller action beside it adds slips. Amount first, Dime-style on-screen keypad inside the page, time defaults to now and is editable, one category, optional note.
 - **Slip review:** slips appear here, as pages clipped to the notebook, with the slip image, the scanned value, an X to remove, and per-file warnings for unreadable or duplicate slips. (Since then the entry screen also shows a saved slip's picture; see above.)
 - **Month at a glance (no chart):** numbers for spent, budget and today's allowance, plus one thin ruled progress line; over-budget warning state.
-- **Excluded:** charts, cards, colourful tiles, textures like leather or stitching, a bottom bar (for now).
+- **Excluded:** charts, cards, colourful tiles, textures like leather or stitching. (A bottom bar was excluded here at first and added in the 2026-10-13 revamp.)
 - **States:** empty day, typical (3-8 entries), heavy (15+), a month of day pages, over budget; add (empty, typing, time edited, category chosen or not); review batch of 1-10 slips including one unreadable, one duplicate, one removed. Amounts roughly 25-461 baht.
 - **Language and money:** English, baht.
