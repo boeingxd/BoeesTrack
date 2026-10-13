@@ -47,6 +47,10 @@ export type Slip = {
 	remembered?: boolean;
 	// The name is being read a second time, more closely.
 	refining?: boolean;
+	// How many of the three closer looks at the name are done (0 to 3), for the progress line.
+	looks?: number;
+	// Counts the reader's changes to the note, so the screen can mark each one.
+	noteTick?: number;
 	category: string | null;
 	removed: boolean;
 };

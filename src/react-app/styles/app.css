@@ -648,6 +648,72 @@ button:disabled {
 	word-break: break-all;
 }
 
+.slip__note {
+	position: relative;
+}
+
+/* An ink rule that flashes under the note each time the reader changes it, then fades. */
+.slip__flash {
+	position: absolute;
+	inset-inline: 0;
+	bottom: 0;
+	height: 2px;
+	background: var(--color-ink);
+	animation: flash var(--dur-long) var(--ease-out) both;
+	pointer-events: none;
+}
+
+@keyframes flash {
+	to {
+		opacity: 0;
+	}
+}
+
+.slip__check {
+	font-size: var(--text-xs);
+	color: var(--color-muted);
+}
+
+/* While it checks: a thin rule with an ink stretch moving along it, and the step count under it. */
+.slip__sweep {
+	display: block;
+	position: relative;
+	height: 2px;
+	margin-bottom: var(--space-1);
+	overflow: hidden;
+	background: var(--color-rule);
+}
+
+.slip__sweep::after {
+	content: "";
+	position: absolute;
+	inset-block: 0;
+	width: 35%;
+	background: var(--color-ink);
+	animation: sweep 1.1s var(--ease-out) infinite;
+}
+
+@keyframes sweep {
+	from {
+		transform: translateX(-100%);
+	}
+
+	to {
+		transform: translateX(300%);
+	}
+}
+
+.slip__check--done {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	min-height: var(--tap);
+}
+
+.slip__check--done .icon-btn {
+	margin-inline-end: calc(var(--space-2) * -1);
+}
+
 .slip__hint {
 	font-size: var(--text-xs);
 	line-height: 1.35;
@@ -1489,6 +1555,15 @@ button:disabled {
 	.confirm:active:not(:disabled),
 	.tabbar__add:active {
 		transform: none;
+	}
+
+	.slip__sweep::after {
+		animation: none;
+		width: 100%;
+	}
+
+	.slip__flash {
+		animation-duration: 150ms;
 	}
 
 	@keyframes fade {

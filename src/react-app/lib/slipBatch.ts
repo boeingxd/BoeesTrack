@@ -67,8 +67,17 @@ export async function readBatch(batch: Slip[], entries: Entry[], update: Update,
 		update(done.id, () => done);
 	}
 
-	const todo = read.filter((s) => s.status === "ok" && s.nameBox && s.file && !s.remembered);
-	todo.forEach((s) => update(s.id, (cur) => ({ ...cur, refining: true })));
+	await refineNames(
+		read.filter((s) => s.status === "ok" && s.nameBox && s.file && !s.remembered),
+		update,
+		stopped,
+	);
+}
+
+// The closer look at each name, one model at a time (switching model is the slow part). Each look can improve the note,
+// unless it differs from what the reader last wrote, which means you changed it.
+export async function refineNames(todo: Slip[], update: Update, stopped: () => boolean): Promise<void> {
+	todo.forEach((s) => update(s.id, (cur) => ({ ...cur, refining: true, looks: 0 })));
 	const crops = new Map<string, HTMLCanvasElement>();
 	const names = new Map<string, Partial<Names>>();
 	for (const [model, key] of MODELS) {
@@ -80,10 +89,11 @@ export async function readBatch(batch: Slip[], entries: Entry[], update: Update,
 				const got = { ...names.get(slip.id), [key]: await readName(crop, model) };
 				names.set(slip.id, got);
 				const best = pickName({ both: got.both ?? "", thai: got.thai ?? "", eng: got.eng ?? "" }).slice(0, 80);
-				if (best) update(slip.id, (cur) => (cur.note === cur.autoNote ? { ...cur, note: best, autoNote: best } : cur));
+				if (best) update(slip.id, (cur) => (cur.note === cur.autoNote && best !== cur.note ? { ...cur, note: best, autoNote: best, noteTick: (cur.noteTick ?? 0) + 1 } : cur));
 			} catch {
 				// The first guess stays; a failed closer look is not worth stopping the batch.
 			}
+			update(slip.id, (cur) => ({ ...cur, looks: (cur.looks ?? 0) + 1 }));
 		}
 	}
 	todo.forEach((s) => update(s.id, (cur) => ({ ...cur, refining: false })));

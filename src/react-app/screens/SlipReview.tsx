@@ -9,6 +9,7 @@ type Props = {
 	slips: Slip[];
 	categories: string[];
 	onChange: (slips: Slip[]) => void;
+	onReread: (slip: Slip) => void;
 	onClose: () => void;
 	onAddByHand: () => void;
 	onConfirm: (slips: Slip[]) => void;
@@ -37,7 +38,7 @@ function AmountField({ value, label, onChange }: { value: number | undefined; la
 	);
 }
 
-export function SlipReview({ slips, categories, onChange, onClose, onAddByHand, onConfirm }: Props) {
+export function SlipReview({ slips, categories, onChange, onReread, onClose, onAddByHand, onConfirm }: Props) {
 	const update = (id: string, patch: Partial<Slip>) =>
 		onChange(slips.map((slip) => (slip.id === id ? { ...slip, ...patch } : slip)));
 
@@ -159,14 +160,32 @@ export function SlipReview({ slips, categories, onChange, onClose, onAddByHand, 
 											update(slip.id, { at: Number.isNaN(next.getTime()) ? undefined : next });
 										}}
 									/>
-									<input
-										className="note slip__field"
-										value={slip.note}
-										maxLength={80}
-										placeholder="Add a note"
-										aria-label={`Note for slip ${number}`}
-										onChange={(event) => update(slip.id, { note: event.target.value })}
-									/>
+									<div className="slip__note">
+										<input
+											className="note slip__field"
+											value={slip.note}
+											maxLength={80}
+											placeholder="Add a note"
+											aria-label={`Note for slip ${number}`}
+											onChange={(event) => update(slip.id, { note: event.target.value })}
+										/>
+										{slip.noteTick ? <span className="slip__flash" key={slip.noteTick} aria-hidden="true" /> : null}
+									</div>
+									{slip.refining ? (
+										<p className="slip__check" role="status">
+											<span className="slip__sweep" aria-hidden="true" />
+											Checking the name… {Math.min((slip.looks ?? 0) + 1, 3)} of 3
+										</p>
+									) : (
+										slip.nameBox && (
+											<p className="slip__check slip__check--done">
+												<span>{slip.looks === 3 ? "Name checked" : ""}</span>
+												<button type="button" className="icon-btn" aria-label={`Read the name again for slip ${number}`} onClick={() => onReread(slip)}>
+													<Icon name="refresh" size={18} />
+												</button>
+											</p>
+										)
+									)}
 									<label className="select">
 										<select
 											className="select__input"

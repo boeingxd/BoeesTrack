@@ -3,7 +3,7 @@ import { TabBar, type View } from "./components/ViewSwitch";
 import { balance, checkIn, returnFromPot } from "./lib/balance";
 import * as api from "./lib/api";
 import { saveOrUndo } from "./lib/optimistic";
-import { flagDuplicates, newSlip, readBatch } from "./lib/slipBatch";
+import { flagDuplicates, newSlip, readBatch, refineNames } from "./lib/slipBatch";
 import { defaultFilters, periodRange, type Filters, type Scale } from "./lib/stats";
 import type { BudgetPlan, Entry, Pot, Slip } from "./lib/types";
 import { AddSpend } from "./screens/AddSpend";
@@ -167,6 +167,10 @@ function App() {
 
 	const savedRefs = () => new Set(entries.flatMap((e) => (e.slipRef ? [e.slipRef] : [])));
 
+	function changeSlip(slipId: string, change: (slip: Slip) => Slip) {
+		setSlips((current) => flagDuplicates(current.map((s) => (s.id === slipId ? change(s) : s)), savedRefs()));
+	}
+
 	// Picking pictures opens the review at once; each slip fills in as it is read, then its name is looked at again more closely.
 	async function startBatch(files: File[]) {
 		const id = ++batchId.current;
@@ -174,12 +178,15 @@ function App() {
 		const batch = files.map((file, i) => newSlip(file, `slip-${stamp}-${i}`));
 		setSlips(flagDuplicates(batch, savedRefs()));
 		setScreen("slips");
-		await readBatch(
-			batch,
-			entries,
-			(slipId, change) => setSlips((current) => flagDuplicates(current.map((s) => (s.id === slipId ? change(s) : s)), savedRefs())),
-			() => batchId.current !== id,
-		);
+		await readBatch(batch, entries, changeSlip, () => batchId.current !== id);
+	}
+
+	// "Read again" on one slip: the name is looked at closely once more, and the note it shows now is treated as the reader's, so the new reading replaces it.
+	function rereadName(slip: Slip) {
+		if (slip.refining) return;
+		const id = batchId.current;
+		changeSlip(slip.id, (cur) => ({ ...cur, autoNote: cur.note }));
+		void refineNames([slip], changeSlip, () => batchId.current !== id);
 	}
 
 	// Closing a batch frees the picture previews it was holding.
@@ -417,6 +424,7 @@ function App() {
 					slips={slips}
 					categories={categories}
 					onChange={(next) => setSlips(flagDuplicates(next, savedRefs()))}
+					onReread={rereadName}
 					onClose={endBatch}
 					onAddByHand={() => setScreen("add")}
 					onConfirm={confirmSlips}
