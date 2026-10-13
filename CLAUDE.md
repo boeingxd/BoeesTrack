@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-BoeesTrack is a personal daily/monthly money tracker for one user (the owner, a student in Thailand, amounts in baht), live at https://track.boee.ing. The owner is new to building apps and is learning: explain unfamiliar concepts. Read `PRODUCT.md` (what and why) and `CONCEPT.md` (design concept and the owner's decisions) before any UI work.
+BoeesTrack is a personal daily/monthly money tracker for one user (the owner, a student in Thailand, amounts in baht), live at https://track.boee.ing. The owner is new to building apps and is learning: explain unfamiliar concepts. Read `PRODUCT.md` (what and why) and `CONCEPT.md` (design concept and the owner's decisions) before any UI work. `PRODUCT.md` also lists optional goals (Phase 1 to 4) from a comparison with another tracker; only work on them when the owner asks.
 
 ## Commands
 

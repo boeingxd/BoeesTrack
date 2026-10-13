@@ -40,6 +40,30 @@ Thailand, baht. Money moves mostly through bank transfer slips (screenshots, eac
 - Stack already in place: React, TypeScript and Vite, a Hono API on a Cloudflare Worker, Cloudflare D1 holds the data and a private R2 bucket holds the slip pictures (both live).
 - Undecided: one or several categories per entry; support for banks other than Bangkok Bank and for paper receipts; whether transfers or e-wallet top-ups to the owner's own name count as spending (they are probably not spending, and are read like any other slip for now); a restore for the backup; whether any charts exist; how budgets are displayed.
 
+## Optional goals (from the 2026-10-14 comparison and audit)
+
+Nothing here is decided or promised. It came from comparing BoeesTrack with Yayikast/expenses-tracker (a Google Sheets, Apps Script and GitHub Pages app) and auditing both. Pick a phase when it is wanted; each phase should ship on its own. Their app is a reference for ideas only: do not copy its stack, its session handling or its one-file frontend. BoeesTrack is ahead on login (Cloudflare Access), typing and tests, money stored as integer satang, and on-device slip reading with the pictures kept private.
+
+**Phase 1: Safety (small, no screen changes)**
+- Update Hono (`npm audit` flags versions up to 4.13.6; the flagged parts are middleware this app does not use, so the risk is probably low). Then `npm test` and `npm run build`.
+- Add route tests for `src/worker/data.ts` and `slips.ts`. Today only `wire.ts` and `access.ts` have tests, and these routes hold the code that deletes data. Cases: a repeated id gives 409, deleting an entry deletes its picture, a batch of 500 ids, an unknown pot or tag.
+- `PUT /slips/:ref` trusts the Content-Type header: check the file's first bytes are JPEG, PNG or WebP.
+- `lib/csv.ts` does not neutralise cells that start with `=`, `+`, `-` or `@` (a note read from a slip could). Prefix them so a spreadsheet shows them as text.
+- Check that the app treats a 409 on a repeated entry id as "already saved" when a save is retried.
+- Unconfirmed, only worth checking: that the Access cookie is `SameSite=Lax`, since the API parses JSON whatever the Content-Type says.
+
+**Phase 2: Slip details**
+- A printed reference can be a shorter form of the longer QR reference (the other app matches by prefix, at least 16 characters). Check against the private OCR benchmark whether BoeesTrack misses duplicates this way before changing anything.
+- Duplicates with no readable reference are already caught by a picture fingerprint, so a date, time and amount check is not needed.
+
+**Phase 3: Money features** (only if the owner uses them; each needs a migration and the migrations must be applied before the Worker that reads them is deployed)
+- Monthly items: recurring bills and income (allowance, rent, a phone plan) that wait as pending each month until marked paid or received, and link to a slip so the month is not counted twice. The biggest gap against the other app.
+- Split bills: one purchase across several tags, with the parts required to add up exactly to the total in satang. Related to the undecided "one or several categories per entry".
+- Lend and borrow: a netted balance per friend, kept out of spending. Skip unless the owner lends to friends.
+
+**Phase 4: Scale, later**
+- `/api/data` returns every entry on every load. Fine for a year or two of one person's entries; load only recent entries when it gets slow.
+
 ## Brand Commitments
 
 The name BoeesTrack, served at track.boee.ing. The owner chose a notebook-with-slips concept, recorded in CONCEPT.md.
