@@ -25,7 +25,7 @@ Thailand, baht. Money moves mostly through bank transfer slips (screenshots, eac
 ## Capabilities and Constraints
 
 - Entries are labelled spent, received ("add money") or saved; only spent counts toward budgets.
-- Categories are by occasion (for example hangouts versus food and drink), with a free-text note; categories can be added with a plus.
+- Categories are by occasion (for example hangouts versus food and drink), with a free-text note; categories can be added with a plus, and renamed or deleted from the Edit tag on the Add screen (a rename carries the old entries along; a deleted tag's entries move to "Other", which is always the last tag and cannot be changed).
 - Monthly budget (typed as an amount, or set as a percentage of the balance at the moment of saving, kept as a plain amount) with a daily allowance that is derived from the month by default, can be set manually, or can be off; a warning shows when over; overspending lowers later days' derived allowance.
 - Goals: a fixed monthly savings amount, plus extra contributions at any time. Saving is separate from spending.
 - A savings pot can be edited or deleted from Savings; deleting asks first, returns what was left in it to the balance as one adjustment, and keeps its entries in History. A deleted pot's name cannot be reused.

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { TabBar, type View } from "./components/ViewSwitch";
 import { balance, checkIn, returnFromPot } from "./lib/balance";
 import * as api from "./lib/api";
+import { OTHER, otherLast } from "./lib/categories";
 import { saveOrUndo } from "./lib/optimistic";
 import { flagDuplicates, newSlip, readBatch, refineNames } from "./lib/slipBatch";
 import { defaultFilters, periodRange, type Filters, type Scale } from "./lib/stats";
@@ -53,7 +54,7 @@ function App() {
 				if (cancelled) return;
 				setEntries(all.entries);
 				setPots(all.pots);
-				setCategories(all.categories);
+				setCategories(otherLast(all.categories));
 				setPlan(all.plan);
 				setLoad("ready");
 			},
@@ -73,8 +74,39 @@ function App() {
 
 	function addCategory(name: string) {
 		if (categories.includes(name)) return;
-		setCategories((current) => [...current, name]);
+		setCategories((current) => otherLast([...current, name]));
 		save(() => api.addCategory(name), () => setCategories((current) => current.filter((c) => c !== name)));
+	}
+
+	// A renamed tag takes its entries with it, wherever the old name is showing; a failed save puts the old name back.
+	function renameCategory(from: string, to: string) {
+		const apply = (a: string, b: string) => {
+			setCategories((current) => otherLast(current.map((c) => (c === a ? b : c))));
+			setEntries((current) => current.map((e) => (e.category === a ? { ...e, category: b } : e)));
+			setDetail((current) => (current && current.entry.category === a ? { ...current, entry: { ...current.entry, category: b } } : current));
+			setSlips((current) => current.map((s) => (s.category === a ? { ...s, category: b } : s)));
+			setFilters((current) => (current.category === a ? { ...current, category: b } : current));
+		};
+		apply(from, to);
+		save(() => api.renameCategory(from, to), () => apply(to, from));
+	}
+
+	// The tag goes and its entries move to Other; a failed save puts the tag and those entries back.
+	function deleteCategory(name: string) {
+		const index = categories.indexOf(name);
+		const moved = new Set(entries.filter((e) => e.category === name).map((e) => e.id));
+		setCategories((current) => current.filter((c) => c !== name));
+		setEntries((current) => current.map((e) => (moved.has(e.id) ? { ...e, category: OTHER } : e)));
+		setDetail((current) => (current && moved.has(current.entry.id) ? { ...current, entry: { ...current.entry, category: OTHER } } : current));
+		setSlips((current) => current.map((s) => (s.category === name ? { ...s, category: OTHER } : s)));
+		setFilters((current) => (current.category === name ? { ...current, category: null } : current));
+		save(
+			() => api.deleteCategory(name),
+			() => {
+				setCategories((current) => otherLast([...current.slice(0, index), name, ...current.slice(index)]));
+				setEntries((current) => current.map((e) => (moved.has(e.id) ? { ...e, category: name } : e)));
+			},
+		);
 	}
 
 	// Opening Insight from Home shows today's period at the scale you last used.
@@ -307,6 +339,9 @@ function App() {
 		);
 	}
 
+	const tagUses: Record<string, number> = {};
+	for (const e of entries) if (e.category) tagUses[e.category] = (tagUses[e.category] ?? 0) + 1;
+
 	return (
 		<div className="app">
 			<input
@@ -383,6 +418,9 @@ function App() {
 					goneNames={goneNames}
 					onAddPot={addPot}
 					onAddCategory={addCategory}
+					tagUses={tagUses}
+					onRenameCategory={renameCategory}
+					onDeleteCategory={deleteCategory}
 					onClose={() => setScreen("entry")}
 					onSave={(draft) => editEntry({ ...detail.entry, ...draft })}
 				/>
@@ -413,6 +451,9 @@ function App() {
 					goneNames={goneNames}
 					onAddPot={addPot}
 					onAddCategory={addCategory}
+					tagUses={tagUses}
+					onRenameCategory={renameCategory}
+					onDeleteCategory={deleteCategory}
 					onSlips={() => picker.current?.click()}
 					firstRun={entries.length === 0}
 					onClose={() => setScreen("home")}

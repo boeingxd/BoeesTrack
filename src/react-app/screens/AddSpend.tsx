@@ -1,5 +1,7 @@
 import { useRef, useState } from "react";
 import { CategoryTags } from "../components/CategoryTags";
+import { TagEditor } from "../components/TagEditor";
+import { OTHER } from "../lib/categories";
 import { PotForm } from "../components/PotForm";
 import { Icon } from "../components/Icon";
 import { toInputValue, whenLabel } from "../lib/dates";
@@ -14,6 +16,9 @@ type Props = {
 	goneNames: string[];
 	onAddPot: (pot: Pot) => void;
 	onAddCategory: (name: string) => void;
+	tagUses: Record<string, number>;
+	onRenameCategory: (from: string, to: string) => void;
+	onDeleteCategory: (name: string) => void;
 	// Reading slips starts from here; not offered while editing an entry.
 	onSlips?: () => void;
 	// True while there are no entries yet, so the screen says how it works.
@@ -30,7 +35,7 @@ const KINDS: { value: Kind; label: string }[] = [
 
 const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "back"];
 
-export function AddSpend({ editing, categories, pots, goneNames, onAddPot, onAddCategory, onSlips, firstRun, onClose, onSave }: Props) {
+export function AddSpend({ editing, categories, pots, goneNames, onAddPot, onAddCategory, tagUses, onRenameCategory, onDeleteCategory, onSlips, firstRun, onClose, onSave }: Props) {
 	const [kind, setKind] = useState<Kind>(editing?.kind ?? "spent");
 	const [input, setInput] = useState(editing ? String(editing.satang / 100) : "");
 	const [note, setNote] = useState(editing?.note ?? "");
@@ -39,6 +44,7 @@ export function AddSpend({ editing, categories, pots, goneNames, onAddPot, onAdd
 	// Saved money must go into a pot; a spend can optionally be paid from one (null means from the balance).
 	const [pot, setPot] = useState<string | null>(editing?.pot ?? null);
 	const [makingPot, setMakingPot] = useState(false);
+	const [editingTags, setEditingTags] = useState(false);
 	const whenInput = useRef<HTMLInputElement>(null);
 
 	const satang = inputToSatang(input);
@@ -166,6 +172,7 @@ export function AddSpend({ editing, categories, pots, goneNames, onAddPot, onAdd
 								value={category}
 								onChange={setCategory}
 								onAddCategory={onAddCategory}
+								onManage={() => setEditingTags(true)}
 							/>
 						</div>
 					</div>
@@ -210,6 +217,21 @@ export function AddSpend({ editing, categories, pots, goneNames, onAddPot, onAdd
 					{satang === 0 ? "Enter an amount" : ready ? `${verb} ${formatBaht(satang)}` : "Pick a pot"}
 				</button>
 			</div>
+			{editingTags && (
+				<TagEditor
+					categories={categories}
+					uses={tagUses}
+					onRename={(from, to) => {
+						onRenameCategory(from, to);
+						setCategory((current) => (current === from ? to : current));
+					}}
+					onDelete={(name) => {
+						onDeleteCategory(name);
+						setCategory((current) => (current === name ? OTHER : current));
+					}}
+					onClose={() => setEditingTags(false)}
+				/>
+			)}
 		</div>
 	);
 }

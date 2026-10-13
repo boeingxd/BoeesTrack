@@ -11,6 +11,7 @@ const PATHS = {
 	filter: "M22 3H2l8 9.46V19l4 2v-8.54L22 3Z",
 	sort: "m21 16-4 4-4-4M17 20V4M3 8l4-4 4 4M7 4v16",
 	plus: "M5 12h14M12 5v14",
+	trash: "M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6",
 	home: "m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2ZM9 22V12h6v10",
 	insight: "M12 20V10M18 20V4M6 20v-4",
 	history: "M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0ZM12 6v6l4 2",

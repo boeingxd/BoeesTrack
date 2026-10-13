@@ -40,6 +40,9 @@ export const deletePot = (name: string, adjust: Entry | null) =>
 	call("POST", `/pots/${encodeURIComponent(name)}/delete`, { adjust: adjust ? toWire(adjust) : null }).then(() => undefined);
 export const savePlan = (plan: BudgetPlan) => call("PUT", "/plan", plan).then(() => undefined);
 export const addCategory = (name: string) => call("POST", "/categories", { name }).then(() => undefined);
+export const renameCategory = (oldName: string, name: string) =>
+	call("PUT", `/categories/${encodeURIComponent(oldName)}`, { name }).then(() => undefined);
+export const deleteCategory = (name: string) => call("POST", `/categories/${encodeURIComponent(name)}/delete`).then(() => undefined);
 
 // The picture goes up as raw bytes, after its entry is saved: the Worker only stores pictures for entries that exist.
 export async function putSlip(ref: string, file: Blob): Promise<void> {

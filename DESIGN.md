@@ -180,7 +180,10 @@ Per day: a title row (bold date left, day total right, 1px ink rule under) then 
 Ink-only vertical bars sharing one height scale. Week: 10rem, seven bars with value and weekday labels, each a button to open that day. Month: 6rem, thin and non-interactive, with first and last date underneath.
 
 ### CategoryTags
-Plain text tags, no fill; chosen tag has a 2px ink underline; "New" tag with plus opens an inline underlined input.
+Plain text tags, no fill; chosen tag has a 2px ink underline; "Other" is always the last tag, then "New" (plus opens an inline underlined input) and "Edit" (opens the Edit tags sheet).
+
+### Edit tags (TagEditor)
+A bottom sheet reached from the "Edit" tag on the Add screen. One ruled row per tag: the name, a muted entry count, a rename (pencil) button and a delete (trash) button, 44px each. Rename swaps the row for an underlined input with a check and an X; a name another tag already has shows a deep-red hint and cannot be saved. Delete swaps the row for the usual warning with "Keep it" and "Yes, delete", saying how many entries move to Other. "Other" shows "Always kept" and has no buttons: it cannot be renamed or deleted, because deleted tags' entries land in it.
 
 ### Bottom sheet (Sheet)
 For a choice that belongs to the screen under it: Budget, Check balance, History Filters, New pot and Edit pot. It rises from the bottom (220ms) over a dimmed screen, at most 30rem wide and 90% of the screen high, with a top bar (X, centred title) and the same ruled fields as the full screens. It closes with the X, a tap on the dimmed area or Escape. There are no gestures yet (no swipe to dismiss).
@@ -203,7 +206,7 @@ Top to bottom: the period title with arrows, the Day / Week / Month switch, a se
 - **Footer block:** under one 1px rule and with 32px of room at the bottom: "Download backup" and "Spreadsheet" as two equal text links; "Clear old slip pictures", a row like the Filters row that opens a 3 / 6 / 12 months Segmented control, a status line ("N pictures · size. The entries stay.") and an outlined red "Remove these N pictures"; then an outlined red "Delete these N entries" for what the filters show. Both red buttons confirm with a warning and Keep them / Yes buttons, and are kept 24px apart so one is not tapped for the other.
 
 ### Icon / ClipMark
-Inline SVG, 1.75 stroke, round caps, currentColor; a fixed set (back, forward, down, plus, close, check, backspace, edit, clip, settings, search, filter, sort, refresh, home, insight, history, savings, warning). ClipMark is a purpose-drawn paperclip.
+Inline SVG, 1.75 stroke, round caps, currentColor; a fixed set (back, forward, down, plus, close, check, backspace, edit, clip, settings, search, filter, sort, refresh, trash, home, insight, history, savings, warning). ClipMark is a purpose-drawn paperclip.
 
 ## Do's and Don'ts
 

@@ -9,10 +9,12 @@ type Props = {
 	onAddCategory?: (name: string) => void;
 	// When given, the "New" tag calls this instead of asking for a name inline (used for pots, which need more than a name).
 	onNew?: () => void;
+	// When given, an "Edit" tag after "New" opens the rename and delete sheet.
+	onManage?: () => void;
 };
 
 // Categories are plain text tags in one ink colour; the chosen one is underlined.
-export function CategoryTags({ label, categories, value, onChange, onAddCategory, onNew }: Props) {
+export function CategoryTags({ label, categories, value, onChange, onAddCategory, onNew, onManage }: Props) {
 	const [adding, setAdding] = useState(false);
 	const [draft, setDraft] = useState("");
 
@@ -72,6 +74,12 @@ export function CategoryTags({ label, categories, value, onChange, onAddCategory
 						New
 					</button>
 				)))}
+			{onManage && !adding && (
+				<button type="button" className="tag tag--add" onClick={onManage}>
+					<Icon name="edit" size={16} />
+					Edit
+				</button>
+			)}
 		</div>
 	);
 }

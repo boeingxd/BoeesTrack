@@ -158,6 +158,39 @@ data.put("/plan", async (c) => {
 	return c.json({ ok: true });
 });
 
+// "Other" is where a deleted tag's entries land, so it can be neither renamed nor deleted.
+const KEEP = "Other";
+
+// The tag and its entries change in one batch, so a rename never leaves entries with a tag that is gone.
+data.put("/categories/:name", async (c) => {
+	const parsed = parseCategory(await json(c));
+	if (!parsed.ok) return c.text(parsed.error, 400);
+	const old = c.req.param("name");
+	if (old === KEEP) return c.text("Other cannot be renamed", 400);
+	return guard(c, async () => {
+		const db = c.env.DB;
+		const [category] = await db.batch([
+			db.prepare("UPDATE categories SET name = ? WHERE name = ?").bind(parsed.value, old),
+			db.prepare("UPDATE entries SET category = ? WHERE category = ?").bind(parsed.value, old),
+		]);
+		if (category.meta.changes === 0) return c.text("No such category", 404);
+		return c.json({ ok: true });
+	});
+});
+
+// Entries that used the tag move to Other in the same batch as the removal.
+data.post("/categories/:name/delete", async (c) => {
+	const name = c.req.param("name");
+	if (name === KEEP) return c.text("Other cannot be deleted", 400);
+	const db = c.env.DB;
+	const results = await db.batch([
+		db.prepare("UPDATE entries SET category = ? WHERE category = ?").bind(KEEP, name),
+		db.prepare("DELETE FROM categories WHERE name = ?").bind(name),
+	]);
+	if (results[1].meta.changes === 0) return c.text("No such category", 404);
+	return c.json({ ok: true });
+});
+
 data.post("/categories", async (c) => {
 	const parsed = parseCategory(await json(c));
 	if (!parsed.ok) return c.text(parsed.error, 400);
