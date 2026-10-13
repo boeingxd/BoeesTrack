@@ -4,6 +4,7 @@ import {
 	categoryBreakdown,
 	dailyTotals,
 	defaultFilters,
+	donutSlices,
 	filterEntries,
 	flows,
 	monthWeeks,
@@ -69,6 +70,27 @@ describe("categoryBreakdown", () => {
 
 	it("returns nothing for a month with no spending", () => {
 		expect(categoryBreakdown(entries, periodRange("month", new Date(2026, 0, 8)))).toEqual({ total: 0, count: 0, rows: [] });
+	});
+});
+
+describe("donutSlices", () => {
+	const row = (category: string, satang: number) => ({ category, satang, count: 1, share: satang / 100, before: 0 });
+
+	it("keeps few tags as they are, one colour each", () => {
+		const slices = donutSlices([row("Food", 60), row("Bus", 40)]);
+		expect(slices.map((s) => [s.category, s.tone])).toEqual([["Food", 1], ["Bus", 2]]);
+	});
+
+	it("folds tags past the fifth, and the Other tag, into one grey slice", () => {
+		const rows = [row("A", 30), row("B", 20), row("C", 15), row("D", 10), row("E", 8), row("F", 7), row("Other", 6), row("G", 4)];
+		const slices = donutSlices(rows);
+		expect(slices.map((s) => s.category)).toEqual(["A", "B", "C", "D", "E", "Other"]);
+		expect(slices[5]).toMatchObject({ satang: 17, tone: "other" });
+		expect(slices.reduce((sum, s) => sum + s.share, 0)).toBeCloseTo(1);
+	});
+
+	it("is empty with no spending", () => {
+		expect(donutSlices([])).toEqual([]);
 	});
 });
 

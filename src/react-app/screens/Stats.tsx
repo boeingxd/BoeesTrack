@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { DayBars } from "../components/DayBars";
+import { Donut } from "../components/Donut";
 import { DayList } from "../components/DayList";
 import { Figure } from "../components/Figure";
 import { Icon } from "../components/Icon";
@@ -10,6 +11,7 @@ import { formatBaht } from "../lib/money";
 import {
 	categoryBreakdown,
 	dailyTotals,
+	donutSlices,
 	flows,
 	habits,
 	monthWeeks,
@@ -75,6 +77,8 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onOpen
 	const beforeName = `${scale === "day" ? "Day" : scale === "week" ? "Week" : "Month"} before`;
 	const heroLabel = (verb: string) => (current && scale === "day" ? `${verb} today` : `${verb} ${current ? "this" : "that"} ${word}`);
 	const [more, setMore] = useState(false);
+	const slices = useMemo(() => donutSlices(breakdown.rows), [breakdown.rows]);
+	const tones = new Map(slices.map((slice) => [slice.category, slice.tone]));
 	const rows = more ? breakdown.rows : breakdown.rows.slice(0, TOP_TAGS);
 
 	return (
@@ -140,39 +144,12 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onOpen
 							average={habit.avgPerDay}
 						/>
 					</div>
-					{more && scale === "month" && (
-						<ul className="day__lines">
-							{weeks
-								.filter((week) => !week.future)
-								.map((week) => {
-									const first = week.days[0].date;
-									const last = week.days[week.days.length - 1].date;
-									const name = week.days.length === 1 ? dayMonth(first) : `${first.getDate()}–${dayMonth(last)}`;
-									return (
-										<li key={week.key}>
-											<button
-												type="button"
-												className="line line--link"
-												aria-label={`${name}, ${formatBaht(week.satang)}, ${share(week.share)}. Open this week`}
-												onClick={() => onOpenWeek(first)}
-											>
-												<span className="line__time">{share(week.share)}</span>
-												<span className="line__body">
-													<span className="line__what">{name}</span>
-												</span>
-												<span className="line__amount">{formatBaht(week.satang)}</span>
-											</button>
-										</li>
-									);
-								})}
-						</ul>
-					)}
 				</section>
 			)}
 
 			{scale === "day" && (
 				<section className="sheet sheet--page" aria-label="Entries that day">
-					<DayList groups={dayGroups} today={today} onOpenEntry={onOpenEntry} />
+					<DayList groups={dayGroups} today={today} bare onOpenEntry={onOpenEntry} />
 				</section>
 			)}
 
@@ -184,6 +161,7 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onOpen
 					</button>
 				</h2>
 				<h3 className="stat-sub">Where it went</h3>
+				{slices.length > 0 && <Donut slices={slices} />}
 				<ul className="day__lines">
 					{rows.length === 0 ? (
 						<li className="line line--empty">
@@ -205,7 +183,7 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onOpen
 											<span className="line__note">
 												{plural(row.count, "purchase")}
 											</span>
-											<span className="share" aria-hidden="true">
+											<span className="share" data-tone={tones.get(row.category) ?? "other"} aria-hidden="true">
 												<span style={{ width: `${Math.max(2, Math.round(row.share * 100))}%` }} />
 											</span>
 										</span>
@@ -233,7 +211,7 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onOpen
 										<span className="line__body">
 											<span className="line__what">{entry.category ?? NO_CATEGORY}</span>
 											{entry.note && <span className="line__note">{entry.note}</span>}
-											<span className="share" aria-hidden="true">
+											<span className="share" data-tone={tones.get(entry.category ?? NO_CATEGORY) ?? "other"} aria-hidden="true">
 												<span style={{ width: `${Math.max(2, Math.round((entry.satang / biggest[0].satang) * 100))}%` }} />
 											</span>
 										</span>
@@ -262,6 +240,36 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onOpen
 								</p>
 							</div>
 						</div>
+					</>
+				)}
+				{more && scale === "month" && weeks.some((week) => !week.future && week.satang > 0) && (
+					<>
+						<h3 className="stat-sub">Weeks</h3>
+						<ul className="day__lines">
+							{weeks
+								.filter((week) => !week.future && week.satang > 0)
+								.map((week) => {
+									const first = week.days[0].date;
+									const last = week.days[week.days.length - 1].date;
+									const name = week.days.length === 1 ? dayMonth(first) : `${first.getDate()}–${dayMonth(last)}`;
+									return (
+										<li key={week.key}>
+											<button
+												type="button"
+												className="line line--link"
+												aria-label={`${name}, ${formatBaht(week.satang)}, ${share(week.share)}. Open this week`}
+												onClick={() => onOpenWeek(first)}
+											>
+												<span className="line__time">{share(week.share)}</span>
+												<span className="line__body">
+													<span className="line__what">{name}</span>
+												</span>
+												<span className="line__amount">{formatBaht(week.satang)}</span>
+											</button>
+										</li>
+									);
+								})}
+						</ul>
 					</>
 				)}
 			</section>

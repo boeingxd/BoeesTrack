@@ -31,5 +31,5 @@ BoeesTrack is a personal daily/monthly money tracker for one user (the owner, a 
 ## Design rules
 
 - Concept: a ruled notebook with slips clipped in. Use the tokens in `src/react-app/styles/tokens.css`; no inline colours or font names. Geist and Geist Mono are self-hosted via fontsource.
-- One red only, for the margin line and warnings. No cards, colourful tiles, or charts beyond ink-only bars.
+- One red only, for the margin line and warnings. No cards or colourful tiles. Charts are ink-only bars, plus one donut in Insight's "Where it went" (owner's choice, 2026-10-13): the five `--color-series-*` colours (validated for colour-blind separation) plus grey for Other, never red.
 - The owner mostly uses a phone: everything must work at 320px wide with no horizontal overflow and tap targets of at least 44px.

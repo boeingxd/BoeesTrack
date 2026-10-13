@@ -12,6 +12,13 @@
 	--color-ink-2: oklch(40% 0.05 260);
 	--color-muted: oklch(52% 0.035 256);
 
+	/* Chart slices for Where it went (validated for colour-blind separation). Never red: red is only for warnings. */
+	--color-series-1: #2a78d6;
+	--color-series-2: #eb6834;
+	--color-series-3: #1baf7a;
+	--color-series-4: #eda100;
+	--color-series-5: #e87ba4;
+
 	/* One accent: the notebook's red. It colours warnings and the over-budget rule. */
 	--color-accent: oklch(56% 0.18 25);
 	--color-accent-text: oklch(46% 0.17 25);

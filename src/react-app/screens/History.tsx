@@ -239,6 +239,7 @@ export function History({ entries, categories, today, filters, onFilters, onOpen
 			</section>
 
 			<footer className="backup">
+				<h2 className="stat-sub backup__head">Backup</h2>
 				<div className="backup__links">
 					<a className="text-btn" href="/api/data" download={`boeestrack-backup-${dayKey(today)}.json`}>
 						Download backup
@@ -247,6 +248,7 @@ export function History({ entries, categories, today, filters, onFilters, onOpen
 						Spreadsheet
 					</button>
 				</div>
+				<h2 className="stat-sub backup__head">Clean up</h2>
 				<ClearPictures entries={entries} today={today} onClear={onClearPictures} />
 				{results.length > 0 &&
 					(confirming ? (

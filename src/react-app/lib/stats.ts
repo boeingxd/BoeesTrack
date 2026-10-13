@@ -1,3 +1,4 @@
+import { OTHER } from "./categories";
 import { addDays, addMonths, dayKey, dayMonth, dayTitle, monthTitle, startOfDay, startOfMonth, startOfWeek } from "./dates";
 import { formatBaht } from "./money";
 import type { Entry, Kind } from "./types";
@@ -121,6 +122,19 @@ export function categoryBreakdown(entries: Entry[], range: Range, earlier?: Rang
 		.sort((a, b) => b.satang - a.satang || a.category.localeCompare(b.category));
 
 	return { total, count: rows.reduce((n, row) => n + row.count, 0), rows };
+}
+
+// The ring in "Where it went": the biggest SLICE_COLOURS tags keep a colour, everything else (and the "Other" tag) folds into one grey slice.
+export const SLICE_COLOURS = 5;
+export type Slice = { category: string; satang: number; share: number; tone: number | "other" };
+
+export function donutSlices(rows: CategoryRow[]): Slice[] {
+	const named = rows.filter((row) => row.category !== OTHER);
+	const slices: Slice[] = named.slice(0, SLICE_COLOURS).map((row, i) => ({ category: row.category, satang: row.satang, share: row.share, tone: i + 1 }));
+	const rest = [...named.slice(SLICE_COLOURS), ...rows.filter((row) => row.category === OTHER)];
+	const satang = rest.reduce((sum, row) => sum + row.satang, 0);
+	if (satang > 0) slices.push({ category: OTHER, satang, share: rest.reduce((sum, row) => sum + row.share, 0), tone: "other" });
+	return slices;
 }
 
 export type DayTotal = { date: Date; key: string; satang: number };

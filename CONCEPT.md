@@ -72,6 +72,7 @@ The layout was audited against a mobile UI brief (about 19 rules from a notes-ap
 - **Slips moved into Add.** The "separate one-tap path" is now a Slips button in the Add screen's top bar, so it is two taps from anywhere.
 - **Bottom sheets for small choices.** Budget, Check balance, History filters and the pot forms rise over the current screen instead of replacing it or expanding inline.
 - **Empty states.** Home, Savings and Add explain themselves when there is nothing yet; History's no-results state offers one way out.
+- **Donut in Where it went (2026-10-13).** The owner chose real colours for one donut chart: five checked series colours (`--color-series-1..5`) for the biggest tags and grey for the rest; the list rows below carry the same colours on their bars. This overrides the earlier "no pie charts / no charts" lines; red stays reserved for warnings.
 - **Insight trimmed (2026-10-13).** The owner compared the old long screen with a trimmed one on the phone and kept the trimmed one: figure, bars and the top 4 tags up front, the rest behind "Show more".
 - **Gestures skipped for now** (swipe back, swipe down to dismiss, long press). **Not applied:** floating pill bar, round "+", cards, carousels; the brief's density advice does not fit History and Insight, which stay as dense ruled lists.
 
