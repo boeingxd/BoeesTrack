@@ -22,6 +22,7 @@ import {
 	shiftAnchor,
 	topSpends,
 	type Scale,
+	type Slice,
 } from "../lib/stats";
 import type { Entry } from "../lib/types";
 
@@ -79,6 +80,10 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onOpen
 	const [more, setMore] = useState(false);
 	const slices = useMemo(() => donutSlices(breakdown.rows), [breakdown.rows]);
 	const tones = new Map(slices.map((slice) => [slice.category, slice.tone]));
+	// A picked slice belongs to the period it was picked in, so stepping to another period clears it.
+	const periodKey = `${scale}:${range.from.getTime()}`;
+	const [picked, setPicked] = useState<{ key: string; tone: Slice["tone"] } | null>(null);
+	const pickedSlice = picked?.key === periodKey ? (slices.find((slice) => slice.tone === picked.tone) ?? null) : null;
 	const rows = more ? breakdown.rows : breakdown.rows.slice(0, TOP_TAGS);
 
 	return (
@@ -219,7 +224,28 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onOpen
 					</button>
 				</h2>
 				<h3 className="stat-sub">Where it went</h3>
-				{slices.length > 0 && <Donut slices={slices} />}
+				{slices.length > 0 && (
+					<Donut slices={slices} picked={pickedSlice} onPick={(slice) => setPicked(slice && { key: periodKey, tone: slice.tone })}>
+						{pickedSlice && (
+							<button
+								type="button"
+								className="donut__readout"
+								aria-label={
+									pickedSlice.tone === "other"
+										? `Other tags, ${formatBaht(pickedSlice.satang)}, ${share(pickedSlice.share)}. Show all tags`
+										: `${pickedSlice.category}, ${formatBaht(pickedSlice.satang)}, ${share(pickedSlice.share)}. Show these entries`
+								}
+								onClick={() => (pickedSlice.tone === "other" ? setMore(true) : onOpenCategory(pickedSlice.category))}
+							>
+								<span className="donut__name">{pickedSlice.tone === "other" ? "Other tags" : pickedSlice.category}</span>
+								<span className="donut__amount">{formatBaht(pickedSlice.satang)}</span>
+								<span className="donut__go">
+									{share(pickedSlice.share)} · {pickedSlice.tone === "other" ? "Show" : "Open"} ›
+								</span>
+							</button>
+						)}
+					</Donut>
+				)}
 				<ul className="day__lines">
 					{rows.length === 0 ? (
 						<li className="line line--empty">
@@ -231,7 +257,7 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onOpen
 								<li key={row.category}>
 									<button
 										type="button"
-										className="line line--link"
+										className={(tones.get(row.category) ?? "other") === pickedSlice?.tone ? "line line--link line--picked" : "line line--link"}
 										aria-label={`${row.category}, ${formatBaht(row.satang)}, ${share(row.share)}, ${plural(row.count, "purchase")}. Show these entries`}
 										onClick={() => onOpenCategory(row.category)}
 									>

@@ -1484,24 +1484,96 @@ button:disabled {
 .share[data-tone="5"] > span { background: var(--color-series-5); }
 
 .donut {
-	display: block;
-	width: min(10rem, 60%);
-	height: auto;
+	position: relative;
+	width: min(12rem, 70%);
 	margin: var(--space-4) auto;
-	transform: rotate(-90deg);
+	-webkit-tap-highlight-color: transparent;
 }
 
-.donut circle {
+.donut__ring {
+	display: block;
+	width: 100%;
+	height: auto;
+	transform: rotate(-90deg);
+	/* A picked slice thickens past the edge of the 40-unit box. */
+	overflow: visible;
+}
+
+.donut__slice {
+	cursor: pointer;
+	outline: none;
+}
+
+.donut__hit {
+	fill: none;
+	stroke: transparent;
+	stroke-width: 11;
+	pointer-events: stroke;
+}
+
+.donut__fill {
 	fill: none;
 	stroke: var(--color-edge);
-	stroke-width: 6;
+	stroke-width: 7;
+	transition:
+		stroke-width var(--dur-micro) var(--ease-out),
+		opacity var(--dur-micro) var(--ease-out);
 }
 
-.donut circle[data-tone="1"] { stroke: var(--color-series-1); }
-.donut circle[data-tone="2"] { stroke: var(--color-series-2); }
-.donut circle[data-tone="3"] { stroke: var(--color-series-3); }
-.donut circle[data-tone="4"] { stroke: var(--color-series-4); }
-.donut circle[data-tone="5"] { stroke: var(--color-series-5); }
+.donut__fill[data-tone="1"] { stroke: var(--color-series-1); }
+.donut__fill[data-tone="2"] { stroke: var(--color-series-2); }
+.donut__fill[data-tone="3"] { stroke: var(--color-series-3); }
+.donut__fill[data-tone="4"] { stroke: var(--color-series-4); }
+.donut__fill[data-tone="5"] { stroke: var(--color-series-5); }
+
+.donut__ring--picking .donut__fill {
+	opacity: 0.4;
+}
+
+.donut__ring--picking .is-picked .donut__fill,
+.donut__slice:focus-visible .donut__fill {
+	opacity: 1;
+	stroke-width: 9;
+}
+
+/* The centre readout of the picked slice: one round button that opens it. */
+.donut__readout {
+	position: absolute;
+	inset: 20%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 1px;
+	padding: var(--space-1);
+	border-radius: 50%;
+	text-align: center;
+	line-height: 1.2;
+}
+
+.donut__name {
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: var(--text-sm);
+	color: var(--color-ink-2);
+}
+
+.donut__amount {
+	font-size: var(--text-base);
+	font-weight: var(--weight-strong);
+	color: var(--color-ink);
+}
+
+.donut__go {
+	font-size: var(--text-xs);
+	color: var(--color-muted);
+}
+
+.line--picked {
+	background: var(--color-paper-2);
+}
 
 .select--bare {
 	margin-top: 0;

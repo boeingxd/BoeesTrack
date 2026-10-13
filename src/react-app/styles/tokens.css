@@ -12,12 +12,12 @@
 	--color-ink-2: oklch(40% 0.05 260);
 	--color-muted: oklch(52% 0.035 256);
 
-	/* Chart slices for Where it went (validated for colour-blind separation). Never red: red is only for warnings. */
-	--color-series-1: #2a78d6;
-	--color-series-2: #eb6834;
-	--color-series-3: #1baf7a;
-	--color-series-4: #eda100;
-	--color-series-5: #e87ba4;
+	/* Chart slices for Where it went: an ink run from red (spent most) through pink, purple and periwinkle to ink blue (spent least). Checked for colour-blind separation; Other is grey. */
+	--color-series-1: #bb061e;
+	--color-series-2: #d14e95;
+	--color-series-3: #813faa;
+	--color-series-4: #7d82d9;
+	--color-series-5: #0c54a0;
 
 	/* One accent: the notebook's red. It colours warnings and the over-budget rule. */
 	--color-accent: oklch(56% 0.18 25);
