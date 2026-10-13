@@ -1850,11 +1850,6 @@ button:disabled {
 	padding-inline: var(--space-3);
 }
 
-/* Inside a section (Insight "Show more") there is no padded hero around it, so it takes the page padding itself. */
-.stat .hero-pair {
-	padding: 0 var(--page-pad) var(--space-5);
-}
-
 .hero-pair > div {
 	min-width: 0;
 }

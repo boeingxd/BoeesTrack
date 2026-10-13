@@ -132,6 +132,20 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onOpen
 						<Figure satang={breakdown.total} />
 					</p>
 				</div>
+				<div className="hero-pair">
+					<div>
+						<p className="today__label">{heroLabel("Saved")}</p>
+						<p className="today__figure" aria-live="polite">
+							<Figure satang={inOut.saved} />
+						</p>
+					</div>
+					<div className="hero-pair__end">
+						<p className="today__label">{heroLabel("Received")}</p>
+						<p className="today__figure" aria-live="polite">
+							<Figure satang={inOut.received} />
+						</p>
+					</div>
+				</div>
 				{!hasEarlier ? (
 					<p className="today__note">No earlier data to compare with yet.</p>
 				) : (
@@ -267,25 +281,7 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onOpen
 					</>
 				)}
 
-				{more && (
-					<>
-						<h3 className="stat-sub">Money in and out</h3>
-						<div className="hero-pair">
-							<div>
-								<p className="today__label">{heroLabel("Saved")}</p>
-								<p className="today__figure" aria-live="polite">
-									<Figure satang={inOut.saved} />
-								</p>
-							</div>
-							<div className="hero-pair__end">
-								<p className="today__label">{heroLabel("Received")}</p>
-								<p className="today__figure" aria-live="polite">
-									<Figure satang={inOut.received} />
-								</p>
-							</div>
-						</div>
-					</>
-				)}			</section>
+			</section>
 
 			<div className="more-line">
 				<button type="button" className="more-line__btn" aria-expanded={more} onClick={() => setMore(!more)}>
