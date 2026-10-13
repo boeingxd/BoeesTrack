@@ -85,7 +85,24 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onOpen
 		<main className="home">
 			<section className="today" aria-labelledby="stats-label">
 				<div className="ledger-head__top">
-					<h1 className="month">{periodTitle(scale, range, today)}</h1>
+					<div className="month-pick">
+						<h1 className="month">{periodTitle(scale, range, today)}</h1>
+						<Icon name="down" size={16} />
+						<input
+							type="date"
+							className="month-pick__input"
+							value={dayKey(anchor)}
+							max={dayKey(today)}
+							aria-label="Jump to a date"
+							onChange={(event) => {
+								// A date picked in the calendar always lands on that single day, as in History.
+								if (!event.target.value) return;
+								const [y, m, d] = event.target.value.split("-").map(Number);
+								onOpenDay(new Date(y, m - 1, d));
+							}}
+							onClick={(event) => event.currentTarget.showPicker?.()}
+						/>
+					</div>
 					<div className="month-nav">
 						<button
 							type="button"
@@ -144,6 +161,33 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onOpen
 							average={habit.avgPerDay}
 						/>
 					</div>
+					{more && scale === "month" && weeks.some((week) => !week.future && week.satang > 0) && (
+						<ul className="day__lines">
+							{weeks
+								.filter((week) => !week.future && week.satang > 0)
+								.map((week) => {
+									const first = week.days[0].date;
+									const last = week.days[week.days.length - 1].date;
+									const name = week.days.length === 1 ? dayMonth(first) : `${first.getDate()}–${dayMonth(last)}`;
+									return (
+										<li key={week.key}>
+											<button
+												type="button"
+												className="line line--link"
+												aria-label={`${name}, ${formatBaht(week.satang)}, ${share(week.share)}. Open this week`}
+												onClick={() => onOpenWeek(first)}
+											>
+												<span className="line__time">{share(week.share)}</span>
+												<span className="line__body">
+													<span className="line__what">{name}</span>
+												</span>
+												<span className="line__amount">{formatBaht(week.satang)}</span>
+											</button>
+										</li>
+									);
+								})}
+						</ul>
+					)}
 				</section>
 			)}
 
@@ -241,38 +285,7 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onOpen
 							</div>
 						</div>
 					</>
-				)}
-				{more && scale === "month" && weeks.some((week) => !week.future && week.satang > 0) && (
-					<>
-						<h3 className="stat-sub">Weeks</h3>
-						<ul className="day__lines">
-							{weeks
-								.filter((week) => !week.future && week.satang > 0)
-								.map((week) => {
-									const first = week.days[0].date;
-									const last = week.days[week.days.length - 1].date;
-									const name = week.days.length === 1 ? dayMonth(first) : `${first.getDate()}–${dayMonth(last)}`;
-									return (
-										<li key={week.key}>
-											<button
-												type="button"
-												className="line line--link"
-												aria-label={`${name}, ${formatBaht(week.satang)}, ${share(week.share)}. Open this week`}
-												onClick={() => onOpenWeek(first)}
-											>
-												<span className="line__time">{share(week.share)}</span>
-												<span className="line__body">
-													<span className="line__what">{name}</span>
-												</span>
-												<span className="line__amount">{formatBaht(week.satang)}</span>
-											</button>
-										</li>
-									);
-								})}
-						</ul>
-					</>
-				)}
-			</section>
+				)}			</section>
 
 			<div className="more-line">
 				<button type="button" className="more-line__btn" aria-expanded={more} onClick={() => setMore(!more)}>
