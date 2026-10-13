@@ -1,9 +1,9 @@
 import type { Scale } from "../lib/stats";
-import { Icon } from "./Icon";
+import { Icon, type IconName } from "./Icon";
 
 export type View = "home" | "stats" | "history" | "savings";
 
-export type Option<T extends string> = { value: T; label: string };
+export type Option<T extends string> = { value: T; label: string; icon?: IconName };
 
 export function Segmented<T extends string>({
 	label,
@@ -29,7 +29,8 @@ export function Segmented<T extends string>({
 					className="kind"
 					onClick={() => value !== item.value && onChange(item.value)}
 				>
-					{item.label}
+					{item.icon && <Icon name={item.icon} size={22} />}
+					{item.icon ? <span>{item.label}</span> : item.label}
 				</button>
 			))}
 		</div>
@@ -37,10 +38,10 @@ export function Segmented<T extends string>({
 }
 
 const VIEWS: Option<View>[] = [
-	{ value: "home", label: "Home" },
-	{ value: "stats", label: "Insight" },
-	{ value: "history", label: "History" },
-	{ value: "savings", label: "Savings" },
+	{ value: "home", label: "Home", icon: "home" },
+	{ value: "stats", label: "Insight", icon: "insight" },
+	{ value: "history", label: "History", icon: "history" },
+	{ value: "savings", label: "Savings", icon: "savings" },
 ];
 
 const SCALES: Option<Scale>[] = [

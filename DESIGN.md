@@ -165,7 +165,7 @@ Mostly square. 6px radius on buttons and icon buttons; 2px on bars, the slip pag
 - **Text button:** underlined, 44px min height.
 
 ### Navigation (TabBar / ScaleSwitch)
-The bottom bar (TabBar) is pinned to the bottom of Home, Insight, History and Savings, above the safe area, with a 1px rule on top: four text tabs (0.875rem, 56px tall, equal columns, a 2px ink rule above the active one, muted otherwise) and, beside them, Add as its own filled button (plus icon and "Add"; at 320px only the plus, still 44px wide). It is hidden on the Add, entry and slip screens. There are no tab icons: the icon set stays fixed. Day / Week / Month is a smaller (0.875rem) left-aligned row of the same tabs. Arrows (icon buttons) page the period; Next is disabled on the current period.
+The bottom bar (TabBar) is pinned to the bottom of Home, Insight, History and Savings, above the safe area, with a 1px rule on top: four tabs, each a 22px icon over a 0.875rem label (56px tall, equal columns, a 2px ink rule above the active one, muted otherwise) and, beside them, Add as its own filled button (plus icon and "Add"; at 320px only the plus, still 44px wide). It is hidden on the Add, entry and slip screens. The tab icons are home, insight (three bars), history (clock) and savings (piggy bank). Day / Week / Month is a smaller (0.875rem) left-aligned row of the same tabs. Arrows (icon buttons) page the period; Next is disabled on the current period.
 
 ### Figure
 Baht sign small and muted, digits large; used for the Home and Insight hero.
@@ -203,7 +203,7 @@ Top to bottom: the period title with arrows, the Day / Week / Month switch, a se
 - **Footer block:** under one 1px rule and with 32px of room at the bottom: "Download backup" and "Spreadsheet" as two equal text links; "Clear old slip pictures", a row like the Filters row that opens a 3 / 6 / 12 months Segmented control, a status line ("N pictures · size. The entries stay.") and an outlined red "Remove these N pictures"; then an outlined red "Delete these N entries" for what the filters show. Both red buttons confirm with a warning and Keep them / Yes buttons, and are kept 24px apart so one is not tapped for the other.
 
 ### Icon / ClipMark
-Inline SVG, 1.75 stroke, round caps, currentColor; a fixed set (back, forward, down, plus, close, check, backspace, edit, clip, settings, search, filter, sort, refresh, warning). ClipMark is a purpose-drawn paperclip.
+Inline SVG, 1.75 stroke, round caps, currentColor; a fixed set (back, forward, down, plus, close, check, backspace, edit, clip, settings, search, filter, sort, refresh, home, insight, history, savings, warning). ClipMark is a purpose-drawn paperclip.
 
 ## Do's and Don'ts
 
