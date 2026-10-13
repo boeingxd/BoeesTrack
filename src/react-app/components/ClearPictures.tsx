@@ -57,7 +57,7 @@ export function ClearPictures({ entries, today, onClear }: { entries: Entry[]; t
 								? "Couldn't count the pictures."
 								: found.count === 0
 									? `No pictures older than ${months} months.`
-									: `${found.count} ${found.count === 1 ? "picture" : "pictures"} · ${formatSize(found.bytes)}. The entries stay.`}
+									: `${found.count} ${found.count === 1 ? "picture" : "pictures"} · ${formatSize(found.bytes)}. The transactions stay.`}
 					</p>
 					{stored && stored.count > 0 &&
 						(confirming ? (

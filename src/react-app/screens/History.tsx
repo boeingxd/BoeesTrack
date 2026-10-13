@@ -40,7 +40,7 @@ function downloadCsv(entries: Entry[], today: Date) {
 	const url = URL.createObjectURL(new Blob([entriesToCsv(entries)], { type: "text/csv;charset=utf-8" }));
 	const link = document.createElement("a");
 	link.href = url;
-	link.download = `boeestrack-entries-${dayKey(today)}.csv`;
+	link.download = `boeestrack-transactions-${dayKey(today)}.csv`;
 	link.click();
 	URL.revokeObjectURL(url);
 }
@@ -88,7 +88,7 @@ export function History({ entries, categories, today, filters, onFilters, onOpen
 
 	return (
 		<main className="home">
-			<section className="today" aria-label="Find entries">
+			<section className="today" aria-label="Find transactions">
 				<div className="ledger-head__top">
 					<div className="month-pick">
 						<h1 className="month">{searching ? "All time" : periodTitle(filters.scale, range, today)}</h1>
@@ -140,7 +140,7 @@ export function History({ entries, categories, today, filters, onFilters, onOpen
 						<span className="results__icon">
 							<Icon name="sort" size={16} />
 						</span>
-						<select className="select__input" value={filters.sort} aria-label="Sort entries" onChange={(event) => set({ sort: event.target.value as Sort })}>
+						<select className="select__input" value={filters.sort} aria-label="Sort transactions" onChange={(event) => set({ sort: event.target.value as Sort })}>
 							{SORTS.map((sort) => (
 								<option key={sort.value} value={sort.value}>
 									{sort.label}
@@ -195,7 +195,7 @@ export function History({ entries, categories, today, filters, onFilters, onOpen
 					</div>
 					<div className="filters__actions">
 						<button type="button" className="confirm" onClick={() => setFiltersOpen(false)}>
-							Show {results.length} {results.length === 1 ? "entry" : "entries"}
+							Show {results.length} {results.length === 1 ? "transaction" : "transactions"}
 						</button>
 						{filtersSet > 0 && (
 							<button type="button" className="cancel" onClick={() => set({ kind: "all", category: null, source: "all" })}>
@@ -207,7 +207,7 @@ export function History({ entries, categories, today, filters, onFilters, onOpen
 				)}
 				<div className="results">
 					<p aria-live="polite">
-						{results.length} {results.length === 1 ? "entry" : "entries"} · {formatBaht(total)} {totalKind}
+						{results.length} {results.length === 1 ? "transaction" : "transactions"} · {formatBaht(total)} {totalKind}
 					</p>
 					{!untouched && (
 						<button type="button" className="text-btn" onClick={() => onFilters(defaultFilters(today))}>
@@ -217,7 +217,7 @@ export function History({ entries, categories, today, filters, onFilters, onOpen
 				</div>
 			</section>
 
-			<section className="sheet sheet--page" aria-label="Matching entries">
+			<section className="sheet sheet--page" aria-label="Matching transactions">
 				{groups.length === 0 ? (
 					<div className="results__empty" role="status">
 						<Icon name="search" size={32} />
@@ -256,7 +256,7 @@ export function History({ entries, categories, today, filters, onFilters, onOpen
 							<p className="today__note today__note--warn" role="alert">
 								<Icon name="warning" size={18} />
 								<span>
-									Delete {results.length} {results.length === 1 ? "entry" : "entries"} ({formatBaht(total)} {totalKind}) and their slip pictures? Download a backup first. This
+									Delete {results.length} {results.length === 1 ? "transaction" : "transactions"} ({formatBaht(total)} {totalKind}) and their slip pictures? Download a backup first. This
 									can't be undone.
 								</span>
 							</p>
@@ -276,7 +276,7 @@ export function History({ entries, categories, today, filters, onFilters, onOpen
 						</div>
 					) : (
 						<button type="button" className="detail__btn detail__btn--outline detail__delete" onClick={() => setConfirming(true)}>
-							Delete these {results.length} {results.length === 1 ? "entry" : "entries"}
+							Delete these {results.length} {results.length === 1 ? "transaction" : "transactions"}
 						</button>
 					))}
 			</footer>

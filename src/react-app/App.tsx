@@ -259,7 +259,7 @@ function App() {
 					}
 				}
 				setEntries((current) => current.map((e) => (e.slipRef && stored.has(e.slipRef) ? { ...e, hasImage: true } : e)));
-				if (stored.size < ready.length) setNotice(`Saved the entries, but ${ready.length - stored.size} of the pictures did not upload.`);
+				if (stored.size < ready.length) setNotice(`Saved the transactions, but ${ready.length - stored.size} of the pictures did not upload.`);
 			},
 			() => setEntries((current) => current.filter((e) => !ids.has(e.id))),
 		);

@@ -132,7 +132,7 @@ export function SlipReview({ slips, categories, onChange, onReread, onClose, onA
 										</p>
 										<p className="slip__file">{slip.fileName}</p>
 										<p>
-											{slip.duplicateOf ? `Same reference as slip ${slip.duplicateOf}` : "Already in your entries (same reference)"}, so it
+											{slip.duplicateOf ? `Same reference as slip ${slip.duplicateOf}` : "Already in your transactions (same reference)"}, so it
 											was skipped. The other slips are not affected.
 										</p>
 									</div>
@@ -236,7 +236,7 @@ export function SlipReview({ slips, categories, onChange, onReread, onClose, onA
 					)}
 				</p>
 				<button type="button" className="confirm" disabled={ready.length === 0} onClick={() => onConfirm(ready)}>
-					{ready.length > 0 ? `Add ${ready.length} ${ready.length === 1 ? "entry" : "entries"}` : "Nothing to add"}
+					{ready.length > 0 ? `Add ${ready.length} ${ready.length === 1 ? "transaction" : "transactions"}` : "Nothing to add"}
 				</button>
 			</footer>
 		</div>

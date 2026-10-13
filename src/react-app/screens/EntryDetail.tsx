@@ -41,7 +41,7 @@ export function EntryDetail({ entry, today, onClose, onEdit, onDelete, onRemoveP
 				<button type="button" className="icon-btn" onClick={onClose} aria-label="Close">
 					<Icon name="close" />
 				</button>
-				<h1 className="topbar__title">Entry</h1>
+				<h1 className="topbar__title">Transaction</h1>
 				{editable ? (
 					<button type="button" className="text-btn" onClick={onEdit}>
 						Edit
@@ -72,7 +72,7 @@ export function EntryDetail({ entry, today, onClose, onEdit, onDelete, onRemoveP
 
 			{picture && (
 				<a className="detail__photo" href={picture} target="_blank" rel="noreferrer" aria-label="Open the slip picture full size">
-					<img src={picture} alt="The slip you saved with this entry" />
+					<img src={picture} alt="The slip you saved with this transaction" />
 				</a>
 			)}
 
@@ -80,7 +80,7 @@ export function EntryDetail({ entry, today, onClose, onEdit, onDelete, onRemoveP
 				<div className="detail__confirm">
 					<p className="today__note today__note--warn" role="alert">
 						<Icon name="warning" size={18} />
-						<span>{confirming === "entry" ? "Delete this entry? This can't be undone." : "Remove the picture? The entry stays. This can't be undone."}</span>
+						<span>{confirming === "entry" ? "Delete this transaction? This can't be undone." : "Remove the picture? The transaction stays. This can't be undone."}</span>
 					</p>
 					<button type="button" className="detail__btn detail__btn--keep" onClick={() => setConfirming(null)}>
 						Keep it
@@ -105,7 +105,7 @@ export function EntryDetail({ entry, today, onClose, onEdit, onDelete, onRemoveP
 						</button>
 					)}
 					<button type="button" className="detail__btn detail__btn--outline detail__delete" onClick={() => setConfirming("entry")}>
-						Delete entry
+						Delete transaction
 					</button>
 				</>
 			)}

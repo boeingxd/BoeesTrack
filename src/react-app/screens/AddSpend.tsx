@@ -61,7 +61,7 @@ export function AddSpend({ editing, categories, pots, goneNames, onAddPot, onAdd
 				{editing ? (
 					<h1 className="topbar__title">Edit {KINDS.find((k) => k.value === kind)?.label.toLowerCase()}</h1>
 				) : (
-					<div className="kinds" role="radiogroup" aria-label="What kind of entry">
+					<div className="kinds" role="radiogroup" aria-label="What kind of transaction">
 						{KINDS.map((k) => (
 							<button
 								key={k.value}

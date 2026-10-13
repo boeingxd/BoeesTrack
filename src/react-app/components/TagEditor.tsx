@@ -34,7 +34,7 @@ export function TagEditor({ categories, uses, onRename, onDelete, onClose }: Pro
 			<ul className="tag-edit">
 				{categories.map((tag) => {
 					const count = uses[tag] ?? 0;
-					const entries = `${count} ${count === 1 ? "entry" : "entries"}`;
+					const entries = `${count} ${count === 1 ? "transaction" : "transactions"}`;
 					if (renaming === tag) {
 						return (
 							<li className="tag-edit__row" key={tag}>
@@ -71,7 +71,7 @@ export function TagEditor({ categories, uses, onRename, onDelete, onClose }: Pro
 									<p className="today__note today__note--warn" role="alert">
 										<Icon name="warning" size={18} />
 										<span>
-											Delete {tag}? {count > 0 ? `${entries} will move to ${OTHER}.` : "No entries use it."} This can't be undone.
+											Delete {tag}? {count > 0 ? `${entries} will move to ${OTHER}.` : "No transactions use it."} This can't be undone.
 										</span>
 									</p>
 									<button type="button" className="detail__btn detail__btn--keep" onClick={() => setDeleting(null)}>

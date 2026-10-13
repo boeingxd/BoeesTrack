@@ -155,7 +155,7 @@ export function Home({ entries, plan, today, intro, justAddedId, onOpenEntry, on
 				)}
 			</section>
 
-			<section className="sheet" aria-label="Entries by day" style={{ "--i": 2 } as React.CSSProperties}>
+			<section className="sheet" aria-label="Transactions by day" style={{ "--i": 2 } as React.CSSProperties}>
 				{entries.length === 0 ? (
 					<div className="first-run" role="status">
 						<p className="first-run__title">Your notebook is empty</p>

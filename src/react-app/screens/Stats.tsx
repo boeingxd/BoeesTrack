@@ -40,9 +40,6 @@ type Props = {
 	onOpenEntry: (entry: Entry) => void;
 };
 
-// Where it went shows this many tags until "Show more" is tapped.
-const TOP_TAGS = 4;
-
 const share = (value: number) => (value > 0 && value < 0.01 ? "<1%" : `${Math.round(value * 100)}%`);
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
@@ -77,14 +74,13 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onOpen
 	const nowName = scale === "day" ? (current ? "Today" : "That day") : `${current ? "This" : "That"} ${word}`;
 	const beforeName = `${scale === "day" ? "Day" : scale === "week" ? "Week" : "Month"} before`;
 	const heroLabel = (verb: string) => (current && scale === "day" ? `${verb} today` : `${verb} ${current ? "this" : "that"} ${word}`);
-	const [more, setMore] = useState(false);
 	const slices = useMemo(() => donutSlices(breakdown.rows), [breakdown.rows]);
 	const tones = new Map(slices.map((slice) => [slice.category, slice.tone]));
 	// A picked slice belongs to the period it was picked in, so stepping to another period clears it.
 	const periodKey = `${scale}:${range.from.getTime()}`;
 	const [picked, setPicked] = useState<{ key: string; tone: Slice["tone"] } | null>(null);
 	const pickedSlice = picked?.key === periodKey ? (slices.find((slice) => slice.tone === picked.tone) ?? null) : null;
-	const rows = more ? breakdown.rows : breakdown.rows.slice(0, TOP_TAGS);
+	const rows = breakdown.rows;
 
 	return (
 		<main className="home">
@@ -180,7 +176,7 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onOpen
 							average={habit.avgPerDay}
 						/>
 					</div>
-					{more && scale === "month" && weeks.some((week) => !week.future && week.satang > 0) && (
+					{scale === "month" && weeks.some((week) => !week.future && week.satang > 0) && (
 						<ul className="day__lines">
 							{weeks
 								.filter((week) => !week.future && week.satang > 0)
@@ -211,7 +207,7 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onOpen
 			)}
 
 			{scale === "day" && (
-				<section className="sheet sheet--page" aria-label="Entries that day">
+				<section className="sheet sheet--page" aria-label="Transactions that day">
 					<DayList groups={dayGroups} today={today} bare onOpenEntry={onOpenEntry} />
 				</section>
 			)}
@@ -220,30 +216,31 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onOpen
 				<h2 className="day__head">
 					<span>Spending</span>
 					<button type="button" className="text-btn" onClick={onOpenHistory}>
-						See all entries
+						See all transactions
 					</button>
 				</h2>
 				<h3 className="stat-sub">Where it went</h3>
 				{slices.length > 0 && (
 					<Donut slices={slices} picked={pickedSlice} onPick={(slice) => setPicked(slice && { key: periodKey, tone: slice.tone })}>
-						{pickedSlice && (
-							<button
-								type="button"
-								className="donut__readout"
-								aria-label={
-									pickedSlice.tone === "other"
-										? `Other tags, ${formatBaht(pickedSlice.satang)}, ${share(pickedSlice.share)}. Show all tags`
-										: `${pickedSlice.category}, ${formatBaht(pickedSlice.satang)}, ${share(pickedSlice.share)}. Show these entries`
-								}
-								onClick={() => (pickedSlice.tone === "other" ? setMore(true) : onOpenCategory(pickedSlice.category))}
-							>
-								<span className="donut__name">{pickedSlice.tone === "other" ? "Other tags" : pickedSlice.category}</span>
-								<span className="donut__amount">{formatBaht(pickedSlice.satang)}</span>
-								<span className="donut__go">
-									{share(pickedSlice.share)} · {pickedSlice.tone === "other" ? "Show" : "Open"} ›
-								</span>
-							</button>
-						)}
+						{pickedSlice &&
+							(pickedSlice.tone === "other" ? (
+								<div className="donut__readout">
+									<span className="donut__name">Other tags</span>
+									<span className="donut__amount">{formatBaht(pickedSlice.satang)}</span>
+									<span className="donut__go">{share(pickedSlice.share)}</span>
+								</div>
+							) : (
+								<button
+									type="button"
+									className="donut__readout"
+									aria-label={`${pickedSlice.category}, ${formatBaht(pickedSlice.satang)}, ${share(pickedSlice.share)}. Show these transactions`}
+									onClick={() => onOpenCategory(pickedSlice.category)}
+								>
+									<span className="donut__name">{pickedSlice.category}</span>
+									<span className="donut__amount">{formatBaht(pickedSlice.satang)}</span>
+									<span className="donut__go">{share(pickedSlice.share)} · Open ›</span>
+								</button>
+							))}
 					</Donut>
 				)}
 				<ul className="day__lines">
@@ -258,7 +255,7 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onOpen
 									<button
 										type="button"
 										className={(tones.get(row.category) ?? "other") === pickedSlice?.tone ? "line line--link line--picked" : "line line--link"}
-										aria-label={`${row.category}, ${formatBaht(row.satang)}, ${share(row.share)}, ${plural(row.count, "purchase")}. Show these entries`}
+										aria-label={`${row.category}, ${formatBaht(row.satang)}, ${share(row.share)}, ${plural(row.count, "purchase")}. Show these transactions`}
 										onClick={() => onOpenCategory(row.category)}
 									>
 										<span className="line__time">{share(row.share)}</span>
@@ -279,9 +276,9 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onOpen
 					)}
 				</ul>
 
-				{more && scale !== "day" && biggest.length > 0 && (
+				{scale !== "day" && biggest.length > 0 && (
 					<>
-						<h3 className="stat-sub">Biggest</h3>
+						<h3 className="stat-sub">Biggest spendings</h3>
 						<ul className="day__lines">
 							{biggest.map((entry) => (
 								<li key={entry.id}>
@@ -306,15 +303,7 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onOpen
 						</ul>
 					</>
 				)}
-
 			</section>
-
-			<div className="more-line">
-				<button type="button" className="more-line__btn" aria-expanded={more} onClick={() => setMore(!more)}>
-					<span>{more ? "Show less" : "Show more"}</span>
-					<Icon name="down" size={18} />
-				</button>
-			</div>
 		</main>
 	);
 }
