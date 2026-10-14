@@ -14,7 +14,9 @@ export type SlipFields = {
 const THAI_MONTHS = ["มค", "กพ", "มีค", "เมย", "พค", "มิย", "กค", "สค", "กย", "ตค", "พย", "ธค"];
 
 // Lines that end the receiver block: bank or PromptPay label, account number, biller, service and shop codes, fee.
-const RECEIVER_END = /^(biller|service code|รหัส|ค่า|หมายเลข|เลขที่)|ธนาคาร|พร้อมเพย์|[\dx]{3,}-/i;
+// An account or ID number starts its own line with digit groups ("028-7-xxx883", "1-2345-xxxxx-67-8"); digits and a dash
+// inside a shop name ("SHOP_6770-SIAM", "7-ELEVEN") are part of the name.
+const RECEIVER_END = /^(biller|service code|รหัส|ค่า|หมายเลข|เลขที่)|ธนาคาร|พร้อมเพย์|^\d[\dx]*-[\dx]/i;
 
 function satangFrom(text: string): number | null {
 	const m = text.match(/(\d{1,3}(?:,\d{3})+|\d+)\.(\d{2})(?!\d)/);

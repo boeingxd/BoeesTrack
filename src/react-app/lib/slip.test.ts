@@ -78,6 +78,11 @@ describe("parseSlip", () => {
 	it("ends the receiver at a Service Code line", () => {
 		expect(receiverFromCrop("TEST BILLER\nService Code:ABC123\n")).toBe("TEST BILLER");
 		expect(receiverFromCrop("TEST PAYMENT\nSERVICE\nBiller ID:010000000000001")).toBe("TEST PAYMENT SERVICE");
+		// Digits and a dash inside a shop name are not an account number; one at the start of a line is.
+		expect(receiverFromCrop("TEST MART_1234-SIAM\nSQUARE\n\nBiller |ID:010000000000001")).toBe("TEST MART_1234-SIAM SQUARE");
+		expect(receiverFromCrop("TEST PERSON\n123-4-xxx567\nธนาคารทดสอบ")).toBe("TEST PERSON");
+		expect(receiverFromCrop("TEST PERSON\n1-2345-xxxxx-67-8\nพร้อมเพย์")).toBe("TEST PERSON");
+		expect(receiverFromCrop("7-ELEVEN TEST\nBiller ID:010000000000001")).toBe("7-ELEVEN TEST");
 	});
 
 	it("reads a name from a crop that has no label, dropping the logo junk", () => {

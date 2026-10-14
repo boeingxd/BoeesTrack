@@ -39,5 +39,7 @@ describe("pickName", () => {
 
 	it("falls back to whichever reading exists", () => {
 		expect(pickName({ both: "", thai: "", eng: "SHOP" })).toBe("SHOP");
+		// The combined reading came back empty and the Thai-only one is a Latin name misread as Thai.
+		expect(pickName({ both: "", thai: "12ร5อผ1234-ฯหล", eng: "TEST MART_1234-SIAM" })).toBe("TEST MART_1234-SIAM");
 	});
 });

@@ -40,9 +40,10 @@ const garbled = (s: string) => /\p{Script=Thai}/u.test(s) && /\d/.test(s);
 // Three readings of the same name area, one per model. One model for two scripts makes Thai decode as Latin and back,
 // so: trust the Thai-only reading when it is clean Thai and the combined one mixes in stray Latin; and when the combined
 // reading is Thai mixed with digits (a Latin name misread as Thai), use the English-only one if it looks like a Latin name.
+// The same goes for the Thai-only reading when the combined one came back empty.
 export function pickName({ both, thai, eng }: Names): string {
 	const mixed = thaiShare(both) > 0.05 && thaiShare(both) < 0.95;
 	if (thai !== "" && thaiShare(thai) >= 0.9 && !/\d/.test(thai) && mixed) return thai;
-	if (garbled(both) && /[A-Z]{3}/.test(eng)) return eng;
+	if (garbled(both || thai) && /[A-Z]{3}/.test(eng)) return eng;
 	return both || thai || eng;
 }
