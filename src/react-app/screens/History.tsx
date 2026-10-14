@@ -7,6 +7,7 @@ import { ScaleSwitch } from "../components/ViewSwitch";
 import { entriesToCsv } from "../lib/csv";
 import { dayKey, dayMonth, groupByDay, monthKey } from "../lib/dates";
 import { formatBaht } from "../lib/money";
+import { income, isForgivenItem, ownPart, withForgiven } from "../lib/shares";
 import { defaultFilters, filterEntries, NO_CATEGORY, periodRange, periodTitle, shiftAnchor, sortEntries, type Filters, type Sort } from "../lib/stats";
 import type { Entry, Kind } from "../lib/types";
 
@@ -46,7 +47,13 @@ function downloadCsv(entries: Entry[], today: Date) {
 }
 
 export function History({ entries, categories, today, filters, onFilters, onOpenEntry, onDeleteShown, onClearPictures }: Props) {
-	const results = useMemo(() => filterEntries(entries, filters), [entries, filters]);
+	const results = useMemo(() => filterEntries(withForgiven(entries), filters), [entries, filters]);
+	// Forgiven lines show on their day but are not transactions of their own, so they are not counted or deleted here.
+	const real = useMemo(() => results.filter((entry) => !isForgivenItem(entry)), [results]);
+	const paybacks = useMemo(() => {
+		const money = new Set(income(entries));
+		return new Set(entries.filter((entry) => entry.kind === "received" && !money.has(entry)).map((entry) => entry.id));
+	}, [entries]);
 	const [filtersOpen, setFiltersOpen] = useState(false);
 	const filtersSet = [filters.kind !== "all", filters.category !== null, filters.source !== "all"].filter(Boolean).length;
 	// The question is tied to the filters it was asked under, so changing a filter closes it and the count always matches the screen.
@@ -62,7 +69,10 @@ export function History({ entries, categories, today, filters, onFilters, onOpen
 	}, [results, today, filters.sort]);
 	// The total follows the kind being looked at: spent by default, received or saved when filtered to those.
 	const totalKind: Kind = filters.kind === "all" ? "spent" : filters.kind;
-	const total = results.filter((entry) => entry.kind === totalKind).reduce((sum, entry) => sum + entry.satang, 0);
+	// Spending counts your own share of a bill; money received leaves out friends paying you back.
+	const total = results
+		.filter((entry) => entry.kind === totalKind && !paybacks.has(entry.id))
+		.reduce((sum, entry) => sum + (entry.kind === "spent" ? ownPart(entry) : entry.satang), 0);
 
 	const range = useMemo(() => periodRange(filters.scale, filters.anchor), [filters.scale, filters.anchor]);
 	// Typing searches all time, so the period and its arrows step aside until the search is cleared.
@@ -195,7 +205,7 @@ export function History({ entries, categories, today, filters, onFilters, onOpen
 					</div>
 					<div className="filters__actions">
 						<button type="button" className="confirm" onClick={() => setFiltersOpen(false)}>
-							Show {results.length} {results.length === 1 ? "transaction" : "transactions"}
+							Show {real.length} {real.length === 1 ? "transaction" : "transactions"}
 						</button>
 						{filtersSet > 0 && (
 							<button type="button" className="cancel" onClick={() => set({ kind: "all", category: null, source: "all" })}>
@@ -207,7 +217,7 @@ export function History({ entries, categories, today, filters, onFilters, onOpen
 				)}
 				<div className="results">
 					<p aria-live="polite">
-						{results.length} {results.length === 1 ? "transaction" : "transactions"} · {formatBaht(total)} {totalKind}
+						{real.length} {real.length === 1 ? "transaction" : "transactions"} · {formatBaht(total)} {totalKind}
 					</p>
 					{!untouched && (
 						<button type="button" className="text-btn" onClick={() => onFilters(defaultFilters(today))}>
@@ -250,13 +260,13 @@ export function History({ entries, categories, today, filters, onFilters, onOpen
 				</div>
 				<h2 className="stat-sub backup__head">Clean up</h2>
 				<ClearPictures entries={entries} today={today} onClear={onClearPictures} />
-				{results.length > 0 &&
+				{real.length > 0 &&
 					(confirming ? (
 						<div className="detail__confirm">
 							<p className="today__note today__note--warn" role="alert">
 								<Icon name="warning" size={18} />
 								<span>
-									Delete {results.length} {results.length === 1 ? "transaction" : "transactions"} ({formatBaht(total)} {totalKind}) and their slip pictures? Download a backup first. This
+									Delete {real.length} {real.length === 1 ? "transaction" : "transactions"} ({formatBaht(total)} {totalKind}) and their slip pictures? Download a backup first. This
 									can't be undone.
 								</span>
 							</p>
@@ -268,15 +278,15 @@ export function History({ entries, categories, today, filters, onFilters, onOpen
 								className="detail__btn detail__btn--delete"
 								onClick={() => {
 									setConfirming(false);
-									onDeleteShown(results);
+									onDeleteShown(real);
 								}}
 							>
-								Yes, delete {results.length}
+								Yes, delete {real.length}
 							</button>
 						</div>
 					) : (
 						<button type="button" className="detail__btn detail__btn--outline detail__delete" onClick={() => setConfirming(true)}>
-							Delete these {results.length} {results.length === 1 ? "transaction" : "transactions"}
+							Delete these {real.length} {real.length === 1 ? "transaction" : "transactions"}
 						</button>
 					))}
 			</footer>

@@ -7,6 +7,7 @@ import { Icon } from "../components/Icon";
 import { Meter } from "../components/Meter";
 import { ScaleSwitch } from "../components/ViewSwitch";
 import { dayKey, dayMonth, groupByDay } from "../lib/dates";
+import { withForgiven } from "../lib/shares";
 import { formatBaht } from "../lib/money";
 import {
 	categoryBreakdown,
@@ -59,7 +60,7 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onOpen
 		() =>
 			scale === "day"
 				? groupByDay(
-						entries.filter((entry) => entry.at.getTime() >= range.from.getTime() && entry.at.getTime() < range.to.getTime()),
+						withForgiven(entries).filter((entry) => entry.at.getTime() >= range.from.getTime() && entry.at.getTime() < range.to.getTime()),
 						range.from,
 					)
 				: [],

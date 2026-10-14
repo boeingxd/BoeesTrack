@@ -4,9 +4,10 @@ import { balance, checkIn, returnFromPot } from "./lib/balance";
 import * as api from "./lib/api";
 import { OTHER, otherLast } from "./lib/categories";
 import { saveOrUndo } from "./lib/optimistic";
+import { billId, forgive, friendNames, payback, shareState } from "./lib/shares";
 import { flagDuplicates, newSlip, readBatch, refineNames } from "./lib/slipBatch";
 import { defaultFilters, periodRange, type Filters, type Scale } from "./lib/stats";
-import type { BudgetPlan, Entry, Pot, Slip } from "./lib/types";
+import type { BudgetPlan, Entry, Pot, Share, Slip } from "./lib/types";
 import { AddSpend } from "./screens/AddSpend";
 import { BudgetSheet } from "./screens/BudgetSheet";
 import { EntryDetail } from "./screens/EntryDetail";
@@ -138,20 +139,45 @@ function App() {
 		setScreen("history");
 	}
 
+	// Insight lists your own part of a bill (and forgiven parts on their own day); a tap opens the real bill.
+	// Moving from one entry to another (a bill and its payback) keeps the screen you started from, so Close goes back there.
 	function openEntry(entry: Entry) {
-		setDetail({ entry, from: screen });
+		const real = entries.find((e) => e.id === billId(entry.id)) ?? entry;
+		setDetail({ entry: real, from: screen === "entry" && detail ? detail.from : screen });
 		setScreen("entry");
 	}
 
 	// The change shows at once and is saved behind it; a failed save puts the old entry back.
-	function editEntry(updated: Entry) {
+	function updateEntry(updated: Entry) {
 		const before = entries.find((e) => e.id === updated.id);
 		if (!before) return;
 		setEntries((current) => current.map((e) => (e.id === updated.id ? updated : e)));
-		setDetail((current) => (current ? { ...current, entry: updated } : current));
+		setDetail((current) => (current && current.entry.id === updated.id ? { ...current, entry: updated } : current));
 		save(() => api.editEntry(updated), () => setEntries((current) => current.map((e) => (e.id === updated.id ? before : e))));
+	}
+
+	function editEntry(updated: Entry) {
+		updateEntry(updated);
 		setScreen("entry");
 	}
+
+	// A friend paying back adds its own line; deleting that line later means they owe it again.
+	function recordPayback(share: Share, at: Date) {
+		storeEntries([payback(share, at)]);
+	}
+
+	function forgiveShare(bill: Entry, shareId: string) {
+		updateEntry(forgive(entries.find((e) => e.id === bill.id) ?? bill, shareId, new Date()));
+	}
+
+	// While editing a bill, parts already paid back or forgiven are shown but cannot change, so a payback always matches its part.
+	const settledShares = new Map(
+		(detail?.entry.shares ?? []).flatMap((p): [string, string][] => {
+			const state = shareState(p, entries);
+			return state.kind === "open" ? [] : [[p.id, state.kind === "paid" ? "paid back" : "forgiven"]];
+		}),
+	);
+	const friends = friendNames(entries);
 
 	function deleteEntry(entry: Entry) {
 		setEntries((current) => current.filter((e) => e.id !== entry.id));
@@ -371,6 +397,8 @@ function App() {
 					onCheckIn={addCheckIn}
 					onBudget={() => setScreen("budget")}
 					onOpenEntry={openEntry}
+					onPayback={recordPayback}
+					onForgive={forgiveShare}
 				/>
 			)}
 			{screen === "stats" && (
@@ -403,7 +431,11 @@ function App() {
 			{screen === "entry" && detail && (
 				<EntryDetail
 					entry={detail.entry}
+					entries={entries}
 					today={today}
+					onPayback={recordPayback}
+					onForgive={(shareId) => forgiveShare(detail.entry, shareId)}
+					onOpenEntry={openEntry}
 					onClose={() => setScreen(detail.from)}
 					onEdit={() => setScreen("edit")}
 					onDelete={() => deleteEntry(detail.entry)}
@@ -421,6 +453,8 @@ function App() {
 					tagUses={tagUses}
 					onRenameCategory={renameCategory}
 					onDeleteCategory={deleteCategory}
+					friends={friends}
+					settledShares={settledShares}
 					onClose={() => setScreen("entry")}
 					onSave={(draft) => editEntry({ ...detail.entry, ...draft })}
 				/>
@@ -456,6 +490,8 @@ function App() {
 					onDeleteCategory={deleteCategory}
 					onSlips={() => picker.current?.click()}
 					firstRun={entries.length === 0}
+					friends={friends}
+					settledShares={new Map()}
 					onClose={() => setScreen("home")}
 					onSave={(draft) => addEntries([{ id: `entry-${Date.now()}`, ...draft }])}
 				/>

@@ -2051,3 +2051,229 @@ button:disabled {
 	font-size: var(--text-sm);
 	text-align: start;
 }
+
+/* Friends owe me: friends' parts sit under a spend as more ruled lines, then your own share */
+
+.split__row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 4.25rem var(--tap);
+	align-items: center;
+	gap: var(--space-2);
+}
+
+.split__part {
+	display: flex;
+	align-items: center;
+	gap: var(--space-1);
+	min-width: 0;
+}
+
+.split__cur {
+	color: var(--color-muted);
+}
+
+.split__amount {
+	min-width: 0;
+	text-align: end;
+	font-variant-numeric: tabular-nums;
+}
+
+.split__remove {
+	margin-inline-end: calc(var(--space-2) * -1);
+	color: var(--color-muted);
+}
+
+/* A part already paid back or forgiven is written in, not editable; its amount lines up with the others. */
+.split__row--settled {
+	grid-template-columns: minmax(0, 1fr) auto;
+	gap: 0 var(--space-2);
+	padding-block: var(--space-2);
+	padding-inline-end: var(--tap);
+}
+
+.split__row--settled .split__part {
+	justify-content: flex-end;
+	font-variant-numeric: tabular-nums;
+}
+
+.split__state {
+	font-size: var(--text-sm);
+	color: var(--color-muted);
+}
+
+.split__actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	margin-inline: calc(var(--space-2) * -1);
+}
+
+.split__own {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 0 var(--space-2);
+	padding-block: var(--space-2);
+}
+
+.split__own strong {
+	font-weight: var(--weight-strong);
+}
+
+.split__own--over {
+	align-items: center;
+	flex-wrap: nowrap;
+	color: var(--color-accent-text);
+}
+
+.split__own--over svg {
+	flex: none;
+}
+
+.split__of {
+	font-size: var(--text-sm);
+	color: var(--color-muted);
+}
+
+/* One friend's part as a ruled line; a settled part is crossed off like a paid line in a notebook. */
+.owed {
+	border-bottom: 1px solid var(--color-rule);
+}
+
+.owed__head {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: center;
+	gap: var(--space-3);
+	width: 100%;
+	min-height: var(--line);
+	padding: var(--space-2) var(--page-pad);
+	text-align: start;
+}
+
+@media (hover: hover) {
+	.owed__head--link:hover {
+		background: var(--color-paper-2);
+	}
+}
+
+.owed__head--link:active {
+	background: var(--color-paper-3);
+}
+
+.owed__body {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.owed__who {
+	font-weight: var(--weight-medium);
+	overflow-wrap: anywhere;
+}
+
+.owed__state {
+	font-size: var(--text-sm);
+	color: var(--color-ink-2);
+}
+
+.owed__state--done {
+	color: var(--color-muted);
+}
+
+.owed__amount {
+	font-weight: var(--weight-medium);
+	white-space: nowrap;
+	font-variant-numeric: tabular-nums;
+}
+
+.owed__amount--done {
+	color: var(--color-muted);
+	text-decoration: line-through;
+	text-decoration-thickness: 1px;
+}
+
+.owed__actions {
+	display: flex;
+	align-items: center;
+	gap: var(--space-4);
+	padding: 0 var(--page-pad) var(--space-3);
+}
+
+.owed__paid {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-1);
+	min-height: var(--tap);
+	padding-inline: var(--space-3) var(--space-4);
+	border-radius: var(--radius-s);
+	box-shadow: inset 0 0 0 1px var(--color-ink);
+	color: var(--color-ink);
+	font-weight: var(--weight-medium);
+}
+
+@media (hover: hover) {
+	.owed__paid:hover {
+		background: var(--color-paper-2);
+	}
+}
+
+.owed__paid:active {
+	background: var(--color-paper-3);
+}
+
+.owed__confirm {
+	margin: 0 var(--page-pad) var(--space-3);
+}
+
+.payback__lead {
+	padding: var(--space-1) var(--page-pad) var(--space-4);
+	color: var(--color-ink-2);
+}
+
+.payback__lead strong {
+	font-weight: var(--weight-strong);
+	color: var(--color-ink);
+}
+
+.money-head--split {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--space-3);
+}
+
+.money-head__sum {
+	white-space: nowrap;
+}
+
+/* Inside the owed sheet each friend starts a small section, so the heading sits closer than between page sections. */
+.owed-sheet__friend {
+	margin-top: var(--space-3);
+}
+
+/* Home: one quiet line under the balance, only while someone owes you */
+.owed-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-2);
+	width: 100%;
+	min-height: var(--tap);
+	margin-top: var(--space-2);
+	color: var(--color-ink-2);
+	text-align: start;
+}
+
+.owed-row strong {
+	font-weight: var(--weight-strong);
+	color: var(--color-ink);
+}
+
+.detail__link {
+	padding-inline: 0;
+}
+
+.owed-sheet__group:last-child {
+	padding-bottom: var(--space-5);
+}

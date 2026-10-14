@@ -15,9 +15,13 @@ export type WireEntry = {
 	slipRef?: string;
 	pot?: string;
 	payeeKey?: string;
+	shares?: WireShare[];
+	share?: string;
 	// Set by the Worker only: true when the slip's picture is stored. parseEntry ignores it if the browser sends it.
 	hasImage?: true;
 };
+// A friend's part of a bill you paid in full; forgivenAt is UTC milliseconds.
+export type WireShare = { id: string; friend: string; satang: number; forgivenAt?: number };
 export type WirePot = { name: string; target: number; monthly: number };
 export type WirePlan = { monthly: number; daily: "auto" | "off" | { fixed: number } };
 
@@ -25,6 +29,7 @@ export type Parsed<T> = { ok: true; value: T } | { ok: false; error: string };
 const fail = (error: string): { ok: false; error: string } => ({ ok: false, error });
 
 export const MAX_BATCH = 200;
+export const MAX_SHARES = 20;
 
 // The picture's bucket key is the slip's reference, so it must be plain letters and digits (no "/" or "..").
 export const SLIP_REF = /^[A-Za-z0-9]{10,60}$/;
@@ -37,7 +42,7 @@ const isText = (v: unknown, max: number): v is string => typeof v === "string" &
 
 export function parseEntry(raw: unknown): Parsed<WireEntry> {
 	if (!isObject(raw)) return fail("entry must be an object");
-	const { id, kind, satang, at, category, note, slipRef, pot, payeeKey } = raw;
+	const { id, kind, satang, at, category, note, slipRef, pot, payeeKey, shares, share } = raw;
 	if (!isText(id, 100)) return fail("bad id");
 	if (!KINDS.includes(kind as WireKind)) return fail("bad kind");
 	if (!isInt(satang) || satang === 0 || (kind !== "adjust" && satang < 0)) return fail("bad satang");
@@ -48,6 +53,9 @@ export function parseEntry(raw: unknown): Parsed<WireEntry> {
 	if (pot !== undefined && !isText(pot, 50)) return fail("bad pot");
 	if (payeeKey !== undefined && !isText(payeeKey, 100)) return fail("bad payeeKey");
 	if (kind === "saved" && pot === undefined) return fail("a saved entry needs a pot");
+	if (share !== undefined && (kind !== "received" || !isText(share, 100))) return fail("bad share");
+	const parts = shares === undefined ? null : parseShares(shares, kind as WireKind, satang);
+	if (parts && !parts.ok) return parts;
 	return {
 		ok: true,
 		value: {
@@ -60,8 +68,29 @@ export function parseEntry(raw: unknown): Parsed<WireEntry> {
 			...(slipRef !== undefined ? { slipRef } : {}),
 			...(pot !== undefined ? { pot } : {}),
 			...(payeeKey !== undefined ? { payeeKey } : {}),
+			...(parts?.ok ? { shares: parts.value } : {}),
+			...(share !== undefined ? { share } : {}),
 		},
 	};
+}
+
+// Friends' parts may not add up to more than the bill; your own part can be nothing (you paid for them).
+function parseShares(raw: unknown, kind: WireKind, total: number): Parsed<WireShare[]> {
+	if (kind !== "spent") return fail("only a spend can be split");
+	if (!Array.isArray(raw) || raw.length === 0 || raw.length > MAX_SHARES) return fail("expected 1 to 20 shares");
+	const out: WireShare[] = [];
+	for (const part of raw) {
+		if (!isObject(part)) return fail("share must be an object");
+		const { id, friend, satang, forgivenAt } = part;
+		if (!isText(id, 100)) return fail("bad share id");
+		if (!isText(friend, 50)) return fail("bad friend");
+		if (!isInt(satang) || satang <= 0) return fail("bad share satang");
+		if (forgivenAt !== undefined && (!isInt(forgivenAt) || forgivenAt < 0)) return fail("bad forgivenAt");
+		out.push({ id, friend: friend.trim(), satang, ...(forgivenAt !== undefined ? { forgivenAt } : {}) });
+	}
+	if (new Set(out.map((p) => p.id)).size !== out.length) return fail("repeated share id");
+	if (out.reduce((sum, p) => sum + p.satang, 0) > total) return fail("shares add up to more than the bill");
+	return { ok: true, value: out };
 }
 
 export function parseEntries(body: unknown): Parsed<WireEntry[]> {
@@ -127,6 +156,8 @@ export type EntryRow = {
 	pot: string | null;
 	payee_key: string | null;
 	has_image: number;
+	shares: string | null;
+	share: string | null;
 };
 
 export function entryFromRow(r: EntryRow): WireEntry {
@@ -141,6 +172,9 @@ export function entryFromRow(r: EntryRow): WireEntry {
 		...(r.pot ? { pot: r.pot } : {}),
 		...(r.payee_key ? { payeeKey: r.payee_key } : {}),
 		...(r.has_image ? { hasImage: true as const } : {}),
+		// Written only after parseShares accepted it, so it is trusted here.
+		...(r.shares ? { shares: JSON.parse(r.shares) as WireShare[] } : {}),
+		...(r.share ? { share: r.share } : {}),
 	};
 }
 

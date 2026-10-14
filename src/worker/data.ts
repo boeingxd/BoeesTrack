@@ -2,6 +2,7 @@ import { type Context, Hono } from "hono";
 import {
 	type EntryRow,
 	type PlanRow,
+	type WireEntry,
 	type WirePot,
 	entryFromRow,
 	parseCategory,
@@ -31,7 +32,7 @@ const json = (c: Context) => c.req.json().catch(() => null);
 data.get("/data", async (c) => {
 	const db = c.env.DB;
 	const [entries, pots, categories, plan] = await db.batch([
-		db.prepare("SELECT id, kind, satang, at, category, note, slip_ref, pot, payee_key, has_image FROM entries ORDER BY at, id"),
+		db.prepare("SELECT id, kind, satang, at, category, note, slip_ref, pot, payee_key, has_image, shares, share FROM entries ORDER BY at, id"),
 		db.prepare("SELECT name, target, monthly FROM pots ORDER BY rowid"),
 		db.prepare("SELECT name FROM categories ORDER BY position"),
 		db.prepare("SELECT monthly, daily_mode, daily_fixed FROM plan WHERE id = 1"),
@@ -49,13 +50,22 @@ data.post("/entries", async (c) => {
 	if (!parsed.ok) return c.text(parsed.error, 400);
 	return guard(c, async () => {
 		const db = c.env.DB;
-		const insert = db.prepare("INSERT INTO entries (id, kind, satang, at, category, note, slip_ref, pot, payee_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-		await db.batch(parsed.value.map((e) => insert.bind(e.id, e.kind, e.satang, e.at, e.category, e.note, e.slipRef ?? null, e.pot ?? null, e.payeeKey ?? null)));
+		const insert = db.prepare(
+			"INSERT INTO entries (id, kind, satang, at, category, note, slip_ref, pot, payee_key, shares, share) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		);
+		await db.batch(
+			parsed.value.map((e) =>
+				insert.bind(e.id, e.kind, e.satang, e.at, e.category, e.note, e.slipRef ?? null, e.pot ?? null, e.payeeKey ?? null, sharesColumn(e), e.share ?? null),
+			),
+		);
 		return c.json({ ok: true }, 201);
 	});
 });
 
-// An edit rewrites the row except slip_ref, which stays as created because the slip's picture is stored under it.
+const sharesColumn = (e: WireEntry) => (e.shares ? JSON.stringify(e.shares) : null);
+
+// An edit rewrites the row except slip_ref, which stays as created because the slip's picture is stored under it,
+// and share, because a payback always settles the share it was made for.
 // The id in the path must match the body so one entry cannot be saved over another.
 data.put("/entries/:id", async (c) => {
 	const parsed = parseEntry(await json(c));
@@ -63,8 +73,8 @@ data.put("/entries/:id", async (c) => {
 	const e = parsed.value;
 	if (e.id !== c.req.param("id")) return c.text("id does not match", 400);
 	return guard(c, async () => {
-		const res = await c.env.DB.prepare("UPDATE entries SET kind = ?, satang = ?, at = ?, category = ?, note = ?, pot = ? WHERE id = ?")
-			.bind(e.kind, e.satang, e.at, e.category, e.note, e.pot ?? null, e.id)
+		const res = await c.env.DB.prepare("UPDATE entries SET kind = ?, satang = ?, at = ?, category = ?, note = ?, pot = ?, shares = ? WHERE id = ?")
+			.bind(e.kind, e.satang, e.at, e.category, e.note, e.pot ?? null, sharesColumn(e), e.id)
 			.run();
 		if (res.meta.changes === 0) return c.text("No such entry", 404);
 		return c.json({ ok: true });

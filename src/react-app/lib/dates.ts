@@ -1,3 +1,4 @@
+import { ownPart } from "./shares";
 import type { Entry } from "./types";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -100,7 +101,7 @@ export function groupByDay(entries: Entry[], today: Date): DayGroup[] {
 		const date = new Date(t);
 		const key = dayKey(date);
 		const list = (byDay.get(key) ?? []).sort((a, b) => b.at.getTime() - a.at.getTime());
-		const spent = list.filter((e) => e.kind === "spent").reduce((sum, e) => sum + e.satang, 0);
+		const spent = list.filter((e) => e.kind === "spent").reduce((sum, e) => sum + ownPart(e), 0);
 		groups.push({ key, date, entries: list, spent });
 	}
 	return groups;

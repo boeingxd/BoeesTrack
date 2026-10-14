@@ -3,10 +3,12 @@ import { CategoryTags } from "../components/CategoryTags";
 import { TagEditor } from "../components/TagEditor";
 import { OTHER } from "../lib/categories";
 import { PotForm } from "../components/PotForm";
+import { SplitFields } from "../components/SplitFields";
+import { splitResult, startSplit, type Split } from "../lib/split";
 import { Icon } from "../components/Icon";
 import { toInputValue, whenLabel } from "../lib/dates";
 import { formatBaht, groupInput, inputToSatang, pressKey } from "../lib/money";
-import type { Entry, Kind, Pot } from "../lib/types";
+import type { Entry, Kind, Pot, Share } from "../lib/types";
 
 type Props = {
 	// Set to change an existing entry: its kind and pot stay as they were, only the amount, note, date and tag change.
@@ -23,8 +25,12 @@ type Props = {
 	onSlips?: () => void;
 	// True while there are no entries yet, so the screen says how it works.
 	firstRun?: boolean;
+	// Friends split with before (suggested while typing), and how each settled part of the bill being edited was settled.
+	friends: string[];
+	settledShares: Map<string, string>;
 	onClose: () => void;
-	onSave: (draft: { kind: Kind; satang: number; at: Date; category: string | null; note: string; pot?: string }) => void;
+	// `shares` is always present on a spend (undefined clears a split), so an edit can take a split away.
+	onSave: (draft: { kind: Kind; satang: number; at: Date; category: string | null; note: string; pot?: string; shares?: Share[] }) => void;
 };
 
 const KINDS: { value: Kind; label: string }[] = [
@@ -35,7 +41,7 @@ const KINDS: { value: Kind; label: string }[] = [
 
 const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "back"];
 
-export function AddSpend({ editing, categories, pots, goneNames, onAddPot, onAddCategory, tagUses, onRenameCategory, onDeleteCategory, onSlips, firstRun, onClose, onSave }: Props) {
+export function AddSpend({ editing, categories, pots, goneNames, onAddPot, onAddCategory, tagUses, onRenameCategory, onDeleteCategory, onSlips, firstRun, friends, settledShares, onClose, onSave }: Props) {
 	const [kind, setKind] = useState<Kind>(editing?.kind ?? "spent");
 	const [input, setInput] = useState(editing ? String(editing.satang / 100) : "");
 	const [note, setNote] = useState(editing?.note ?? "");
@@ -45,11 +51,14 @@ export function AddSpend({ editing, categories, pots, goneNames, onAddPot, onAdd
 	const [pot, setPot] = useState<string | null>(editing?.pot ?? null);
 	const [makingPot, setMakingPot] = useState(false);
 	const [editingTags, setEditingTags] = useState(false);
+	const [split, setSplit] = useState<Split>(() => (editing?.shares ? startSplit(editing.shares, settledShares) : { rows: [], even: true }));
 	const whenInput = useRef<HTMLInputElement>(null);
 
 	const satang = inputToSatang(input);
 	const potNames = pots.map((p) => p.name);
-	const ready = satang > 0 && (kind !== "saved" || pot !== null);
+	const splitting = kind === "spent" ? splitResult(split, satang) : null;
+	const splitBlock = splitting && (splitting.own < 0 ? "Parts are over the bill" : splitting.unfinished ? "Finish the split" : null);
+	const ready = satang > 0 && (kind !== "saved" || pot !== null) && !splitBlock;
 	const verb = editing ? "Save" : kind === "spent" ? "Add" : kind === "received" ? "Add money" : "Set aside";
 
 	return (
@@ -177,6 +186,7 @@ export function AddSpend({ editing, categories, pots, goneNames, onAddPot, onAdd
 						</div>
 					</div>
 				)}
+				{kind === "spent" && <SplitFields split={split} total={satang} friends={friends} onChange={setSplit} />}
 			</div>
 			{kind === "saved" && makingPot && (
 				<PotForm
@@ -211,10 +221,18 @@ export function AddSpend({ editing, categories, pots, goneNames, onAddPot, onAdd
 					className="confirm"
 					disabled={!ready}
 					onClick={() =>
-						onSave({ kind, satang, at, category: kind === "spent" ? category : null, note: note.trim(), ...(kind !== "received" && pot ? { pot } : {}) })
+						onSave({
+							kind,
+							satang,
+							at,
+							category: kind === "spent" ? category : null,
+							note: note.trim(),
+							...(kind !== "received" && pot ? { pot } : {}),
+							...(kind === "spent" ? { shares: splitting?.shares.length ? splitting.shares : undefined } : {}),
+						})
 					}
 				>
-					{satang === 0 ? "Enter an amount" : ready ? `${verb} ${formatBaht(satang)}` : "Pick a pot"}
+					{satang === 0 ? "Enter an amount" : ready ? `${verb} ${formatBaht(satang)}` : (splitBlock ?? "Pick a pot")}
 				</button>
 			</div>
 			{editingTags && (

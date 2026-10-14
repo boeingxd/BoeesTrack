@@ -76,6 +76,10 @@ The layout was audited against a mobile UI brief (about 19 rules from a notes-ap
 - **Insight trimmed (2026-10-13).** The owner compared the old long screen with a trimmed one on the phone and kept the trimmed one: figure, bars and the top 4 tags up front, the rest behind "Show more".
 - **Gestures skipped for now** (swipe back, swipe down to dismiss, long press). **Not applied:** floating pill bar, round "+", cards, carousels; the brief's density advice does not fit History and Insight, which stay as dense ruled lists.
 
+## Friends owe me (2026-10-14)
+
+Friends' parts of a bill are more ruled lines under the spend (Split), ending in "Yours". On the entry, each friend is a line: open parts offer "Mark paid back" and "Forgive" (Keep it / Yes, forgive); a paid-back part is crossed off like a settled line in a notebook. Home gets a single quiet "Friends owe you" line under the balance, only while something is owed; it opens a sheet grouped by friend (owner chose this over a renamed Savings tab or a separate screen: the label must match what is behind it, settling is a short task, and paying back moves the balance it sits under). No new colours.
+
 ## Confirmed design brief (first pass)
 
 - **Mode:** Operate. Phone-first; short visits of seconds.

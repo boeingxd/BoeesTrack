@@ -3,13 +3,15 @@ import { DayList } from "../components/DayList";
 import { Figure } from "../components/Figure";
 import { Icon } from "../components/Icon";
 import { Meter } from "../components/Meter";
+import { OwedSheet } from "../components/Owed";
 import { Sheet } from "../components/Sheet";
 import { standing } from "../lib/allowance";
 import { balance } from "../lib/balance";
 import { groupByDay, monthTitle } from "../lib/dates";
 import { formatBaht } from "../lib/money";
 import { inputToSatang } from "../lib/money";
-import type { BudgetPlan, Entry } from "../lib/types";
+import { owedByFriend, withForgiven } from "../lib/shares";
+import type { BudgetPlan, Entry, Share } from "../lib/types";
 
 // Home shows today and the days just before it; everything older lives in the History tab.
 const HOME_DAYS = 4;
@@ -23,13 +25,18 @@ type Props = {
 	onOpenEntry: (entry: Entry) => void;
 	onCheckIn: (bankSatang: number) => void;
 	onBudget: () => void;
+	onPayback: (share: Share, at: Date) => void;
+	onForgive: (bill: Entry, shareId: string) => void;
 };
 
-export function Home({ entries, plan, today, intro, justAddedId, onOpenEntry, onCheckIn, onBudget }: Props) {
+export function Home({ entries, plan, today, intro, justAddedId, onOpenEntry, onCheckIn, onBudget, onPayback, onForgive }: Props) {
 	const budget = plan.monthly;
-	const groups = useMemo(() => groupByDay(entries, today).slice(0, HOME_DAYS), [entries, today]);
+	const groups = useMemo(() => groupByDay(withForgiven(entries), today).slice(0, HOME_DAYS), [entries, today]);
 	const s = useMemo(() => standing(entries, plan, today), [entries, plan, today]);
 	const held = useMemo(() => balance(entries), [entries]);
+	const owedList = useMemo(() => owedByFriend(entries), [entries]);
+	const owed = owedList.reduce((sum, f) => sum + f.satang, 0);
+	const [owedOpen, setOwedOpen] = useState(false);
 	const [checking, setChecking] = useState(false);
 	const [bank, setBank] = useState("");
 	const bankSatang = inputToSatang(bank.replace(/[^\d.]/g, ""));
@@ -119,6 +126,18 @@ export function Home({ entries, plan, today, intro, justAddedId, onOpenEntry, on
 						Check
 					</button>
 				</div>
+				{owed > 0 && (
+					<button type="button" className="owed-row" aria-haspopup="dialog" onClick={() => setOwedOpen(true)}>
+						<span>
+							Friends owe you <strong>{formatBaht(owed)}</strong>
+						</span>
+						<Icon name="forward" size={16} />
+					</button>
+				)}
+				{/* The sheet closes by itself once nobody owes you anything. */}
+				{owedOpen && owed > 0 && (
+					<OwedSheet owed={owedList} today={today} onClose={() => setOwedOpen(false)} onPayback={onPayback} onForgive={onForgive} onOpenEntry={onOpenEntry} />
+				)}
 				{checking && (
 					<Sheet title="Check balance" onClose={() => setChecking(false)}>
 					<div className="balance-check">

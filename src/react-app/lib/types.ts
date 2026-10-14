@@ -17,7 +17,14 @@ export type Entry = {
 	payeeKey?: string;
 	// True when the slip's picture is stored. Set by the server, never sent back.
 	hasImage?: boolean;
+	// On "spent": friends' parts of a bill you paid in full. Only what is left is your own spending.
+	shares?: Share[];
+	// On "received": the id of the friend's share this pays back. It settles the debt and is not income.
+	share?: string;
 };
+
+// One friend's part of a bill. Forgiven means they will not pay, so it becomes your spending on that day.
+export type Share = { id: string; friend: string; satang: number; forgivenAt?: Date };
 
 export type Pot = { name: string; target: number; monthly: number };
 

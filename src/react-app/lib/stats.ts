@@ -1,6 +1,7 @@
 import { OTHER } from "./categories";
 import { addDays, addMonths, dayKey, dayMonth, dayTitle, monthTitle, startOfDay, startOfMonth, startOfWeek } from "./dates";
 import { formatBaht } from "./money";
+import { income, ownSpending } from "./shares";
 import type { Entry, Kind } from "./types";
 
 export const NO_CATEGORY = "No category";
@@ -68,16 +69,21 @@ export function previousRange(scale: Scale, anchor: Date, today: Date): { range:
 }
 
 const inRange = (entry: Entry, range: Range) => entry.at.getTime() >= range.from.getTime() && entry.at.getTime() < range.to.getTime();
-const spentIn = (entries: Entry[], range: Range) => entries.filter((entry) => entry.kind === "spent" && inRange(entry, range));
+// Your own spending only: friends' parts of a bill are left out, and a forgiven part counts on the day it was forgiven.
+const spentIn = (entries: Entry[], range: Range) => ownSpending(entries).filter((entry) => inRange(entry, range));
 const sum = (entries: Entry[]) => entries.reduce((total, entry) => total + entry.satang, 0);
 
 export const totalSpent = (entries: Entry[], range: Range) => sum(spentIn(entries, range));
 
-// Money moving in a period: what came in, what went out, what was set aside. Adjustments are corrections, not flows.
+// Money moving in a period: what came in, what went out, what was set aside. Adjustments are corrections, not flows,
+// and a friend paying you back is not income.
 export function flows(entries: Entry[], range: Range) {
-	const inside = entries.filter((entry) => inRange(entry, range));
-	const by = (kind: Entry["kind"]) => sum(inside.filter((entry) => entry.kind === kind));
-	return { received: by("received"), spent: by("spent"), saved: by("saved") };
+	const inside = (list: Entry[]) => list.filter((entry) => inRange(entry, range));
+	return {
+		received: sum(inside(income(entries))),
+		spent: sum(spentIn(entries, range)),
+		saved: sum(inside(entries).filter((entry) => entry.kind === "saved")),
+	};
 }
 
 export type CategoryRow = {

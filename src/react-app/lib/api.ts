@@ -12,9 +12,15 @@ export const toWire = (e: Entry): WireEntry => ({
 	...(e.slipRef ? { slipRef: e.slipRef } : {}),
 	...(e.pot ? { pot: e.pot } : {}),
 	...(e.payeeKey ? { payeeKey: e.payeeKey } : {}),
+	...(e.shares?.length ? { shares: e.shares.map(({ forgivenAt, ...p }) => ({ ...p, ...(forgivenAt ? { forgivenAt: forgivenAt.getTime() } : {}) })) } : {}),
+	...(e.share ? { share: e.share } : {}),
 });
 
-export const fromWire = (w: WireEntry): Entry => ({ ...w, at: new Date(w.at) });
+export const fromWire = ({ shares, ...w }: WireEntry): Entry => ({
+	...w,
+	at: new Date(w.at),
+	...(shares ? { shares: shares.map(({ forgivenAt, ...p }) => ({ ...p, ...(forgivenAt !== undefined ? { forgivenAt: new Date(forgivenAt) } : {}) })) } : {}),
+});
 
 async function call(method: string, path: string, body?: unknown): Promise<Response> {
 	const res = await fetch(`/api${path}`, {

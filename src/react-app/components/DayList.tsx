@@ -1,9 +1,10 @@
 import { dayTitle, timeLabel, type DayGroup } from "../lib/dates";
 import { formatBaht } from "../lib/money";
+import { ownPart } from "../lib/shares";
 import type { Entry } from "../lib/types";
 
 function lineLabel(entry: Entry): string {
-	if (entry.kind === "received") return "Received";
+	if (entry.kind === "received") return entry.share ? "Paid back" : "Received";
 	if (entry.kind === "saved") return entry.pot ? `Saved · ${entry.pot}` : "Saved";
 	if (entry.kind === "adjust") return "Adjustment";
 	return entry.category ?? "No category";
@@ -26,6 +27,7 @@ export function EntryLine({ entry, when, isNew = false, onOpen }: LineProps) {
 					<span className="line__what">{lineLabel(entry)}</span>
 					{entry.kind === "spent" && entry.pot && <span className="line__note">Paid from {entry.pot}</span>}
 					{entry.note && <span className="line__note">{entry.note}</span>}
+					{entry.kind === "spent" && entry.shares?.length ? <span className="line__note">Your share {formatBaht(ownPart(entry))}</span> : null}
 				</span>
 				<span className="line__amount">
 					{(entry.kind === "received" || (entry.kind === "adjust" && entry.satang > 0)) && "+"}

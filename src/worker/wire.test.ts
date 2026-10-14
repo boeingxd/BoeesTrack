@@ -105,21 +105,21 @@ describe("parseCategory", () => {
 
 describe("row mapping", () => {
 	it("turns null columns into missing fields", () => {
-		const row = { id: "e1", kind: "spent" as const, satang: 100, at: 5, category: null, note: "", slip_ref: null, pot: null, payee_key: null, has_image: 0 };
+		const row = { id: "e1", kind: "spent" as const, satang: 100, at: 5, category: null, note: "", slip_ref: null, pot: null, payee_key: null, has_image: 0, shares: null, share: null };
 		expect(entryFromRow(row)).toEqual({ id: "e1", kind: "spent", satang: 100, at: 5, category: null, note: "" });
 	});
 	it("keeps slip_ref and pot as slipRef and pot", () => {
-		const row = { id: "e1", kind: "spent" as const, satang: 100, at: 5, category: "Bills", note: "", slip_ref: "r", pot: "Trip", payee_key: null, has_image: 0 };
+		const row = { id: "e1", kind: "spent" as const, satang: 100, at: 5, category: "Bills", note: "", slip_ref: "r", pot: "Trip", payee_key: null, has_image: 0, shares: null, share: null };
 		expect(entryFromRow(row)).toMatchObject({ slipRef: "r", pot: "Trip" });
 	});
 	it("round-trips payeeKey and keeps it out when empty", () => {
 		expect(parseEntries([{ ...entry, payeeKey: "b:010000000000001" }])).toMatchObject({ ok: true, value: [{ payeeKey: "b:010000000000001" }] });
 		expect(parseEntries([{ ...entry, payeeKey: "" }]).ok).toBe(false);
-		const row = { id: "e1", kind: "spent" as const, satang: 100, at: 5, category: null, note: "", slip_ref: null, pot: null, payee_key: "a:094-xxx-6338", has_image: 0 };
+		const row = { id: "e1", kind: "spent" as const, satang: 100, at: 5, category: null, note: "", slip_ref: null, pot: null, payee_key: "a:094-xxx-6338", has_image: 0, shares: null, share: null };
 		expect(entryFromRow(row)).toMatchObject({ payeeKey: "a:094-xxx-6338" });
 	});
 	it("shows hasImage only when a picture is stored", () => {
-		const row = { id: "e1", kind: "spent" as const, satang: 100, at: 5, category: null, note: "", slip_ref: "r", pot: null, payee_key: null, has_image: 1 };
+		const row = { id: "e1", kind: "spent" as const, satang: 100, at: 5, category: null, note: "", slip_ref: "r", pot: null, payee_key: null, has_image: 1, shares: null, share: null };
 		expect(entryFromRow(row)).toMatchObject({ hasImage: true });
 	});
 	it("round-trips the plan through its columns", () => {
@@ -140,5 +140,41 @@ describe("slip pictures", () => {
 		expect(SLIP_REF.test("../secret")).toBe(false);
 		expect(SLIP_REF.test("a/b0123456789")).toBe(false);
 		expect(SLIP_REF.test("short")).toBe(false);
+	});
+});
+
+describe("friends' shares", () => {
+	const bill = { ...entry, satang: 60000 };
+	const parts = [
+		{ id: "s1", friend: "Ploy", satang: 20000 },
+		{ id: "s2", friend: " Mint ", satang: 20000, forgivenAt: 1_760_000_100_000 },
+	];
+
+	it("accepts parts that fit inside the bill and trims friend names", () => {
+		const r = parseEntries([{ ...bill, shares: parts }]);
+		expect(r.ok && r.value[0].shares).toEqual([parts[0], { ...parts[1], friend: "Mint" }]);
+		// Paying for friends entirely leaves your own part at nothing, which is allowed.
+		expect(parseEntries([{ ...bill, shares: [{ id: "s1", friend: "Ploy", satang: 60000 }] }]).ok).toBe(true);
+	});
+
+	it("rejects parts over the bill, on a non-spend, empty, repeated or malformed", () => {
+		expect(parseEntries([{ ...bill, shares: [{ id: "s1", friend: "Ploy", satang: 60001 }] }]).ok).toBe(false);
+		expect(parseEntries([{ ...bill, kind: "received", category: null, shares: parts }]).ok).toBe(false);
+		expect(parseEntries([{ ...bill, shares: [] }]).ok).toBe(false);
+		expect(parseEntries([{ ...bill, shares: [parts[0], parts[0]] }]).ok).toBe(false);
+		expect(parseEntries([{ ...bill, shares: [{ id: "s1", friend: "", satang: 100 }] }]).ok).toBe(false);
+		expect(parseEntries([{ ...bill, shares: [{ id: "s1", friend: "Ploy", satang: 0 }] }]).ok).toBe(false);
+		expect(parseEntries([{ ...bill, shares: [{ id: "s1", friend: "Ploy", satang: 100, forgivenAt: -1 }] }]).ok).toBe(false);
+	});
+
+	it("takes a share link only on money received", () => {
+		expect(parseEntries([{ ...entry, kind: "received", category: null, share: "s1" }])).toMatchObject({ ok: true, value: [{ share: "s1" }] });
+		expect(parseEntries([{ ...entry, share: "s1" }]).ok).toBe(false);
+	});
+
+	it("reads both columns back from a row", () => {
+		const row = { id: "e1", kind: "spent" as const, satang: 60000, at: 5, category: null, note: "", slip_ref: null, pot: null, payee_key: null, has_image: 0, shares: JSON.stringify(parts), share: null };
+		expect(entryFromRow(row).shares).toEqual(parts);
+		expect(entryFromRow({ ...row, kind: "received", shares: null, share: "s1" })).toMatchObject({ share: "s1" });
 	});
 });
