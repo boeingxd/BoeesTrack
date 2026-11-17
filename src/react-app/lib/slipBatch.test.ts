@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fingerprint, flagDuplicates, isReady, newSlip, rememberPayee } from "./slipBatch";
+import { fingerprint, flagDuplicates, isReady, newSlip, rememberPayee, scanStatus } from "./slipBatch";
 import type { Entry, Slip } from "./types";
 
 const slip = (over: Partial<Slip>): Slip => ({ id: "s", fileName: "a.jpeg", status: "ok", note: "", category: null, removed: false, ...over });
@@ -66,5 +66,19 @@ describe("fingerprint", () => {
 		expect(a).toBe(await fingerprint(new Blob([new Uint8Array([1, 2, 3])])));
 		expect(a).not.toBe(await fingerprint(new Blob([new Uint8Array([1, 2, 4])])));
 		expect(a).toMatch(/^[A-Za-z0-9]{10,60}$/);
+	});
+});
+
+describe("scanStatus", () => {
+	it("counts the slips read so far in round one", () => {
+		expect(scanStatus([slip({}), slip({ status: "reading" }), slip({ status: "reading" })])).toBe("Reading slips… 1 of 3");
+	});
+
+	it("counts the names with all three looks done in round two", () => {
+		expect(scanStatus([slip({ refining: true, looks: 3 }), slip({ refining: true, looks: 1 }), slip({})])).toBe("Checking names… 1 of 2");
+	});
+
+	it("is null when the reader has finished", () => {
+		expect(scanStatus([slip({}), slip({ status: "unreadable" })])).toBeNull();
 	});
 });

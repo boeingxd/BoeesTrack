@@ -7,7 +7,7 @@ import { dayKey } from "./lib/dates";
 import { releaseOcr } from "./lib/ocr";
 import { saveOrUndo } from "./lib/optimistic";
 import { billId, forgive, friendNames, payback, shareState } from "./lib/shares";
-import { flagDuplicates, newSlip, readBatch, refineNames } from "./lib/slipBatch";
+import { flagDuplicates, newSlip, readBatch, refineNames, scanStatus } from "./lib/slipBatch";
 import { defaultFilters, periodRange, type Filters, type Scale } from "./lib/stats";
 import type { BudgetPlan, Entry, Pot, Share, Slip } from "./lib/types";
 import { AddSpend } from "./screens/AddSpend";
@@ -31,6 +31,8 @@ function App() {
 	const [attempt, setAttempt] = useState(0);
 	const [notice, setNotice] = useState<string | null>(null);
 	const [slips, setSlips] = useState<Slip[]>([]);
+	// True when Add was opened from the slip review, so closing it returns there; a batch left running does not pull other adds back.
+	const [addFromBatch, setAddFromBatch] = useState(false);
 	const picker = useRef<HTMLInputElement>(null);
 	// Counts batches, so a batch you closed stops being read.
 	const batchId = useRef(0);
@@ -227,7 +229,7 @@ function App() {
 	}
 
 	// With a slip batch still open (one slip was added by hand), go back to its review, not Home.
-	const afterAdd: Screen = slips.length > 0 ? "slips" : "home";
+	const afterAdd: Screen = addFromBatch && slips.length > 0 ? "slips" : "home";
 
 	function addEntries(added: Entry[]) {
 		storeEntries(added);
@@ -411,6 +413,11 @@ function App() {
 					{notice} Tap to dismiss.
 				</button>
 			)}
+			{slips.length > 0 && screen !== "slips" && screen !== "add" && (
+				<button type="button" className="notice notice--batch" onClick={() => setScreen("slips")}>
+					{scanStatus(slips) ?? `${slips.length} ${slips.length === 1 ? "slip is" : "slips are"} read and waiting`}. Tap to open.
+				</button>
+			)}
 			{(screen === "home" || screen === "budget") && (
 				<Home
 					entries={entries}
@@ -512,7 +519,7 @@ function App() {
 					tagUses={tagUses}
 					onRenameCategory={renameCategory}
 					onDeleteCategory={deleteCategory}
-					onSlips={() => picker.current?.click()}
+					onSlips={() => (slips.length > 0 ? setScreen("slips") : picker.current?.click())}
 					firstRun={entries.length === 0}
 					friends={friends}
 					settledShares={new Map()}
@@ -526,13 +533,21 @@ function App() {
 					categories={categories}
 					onChange={(id, patch) => changeSlip(id, (slip) => ({ ...slip, ...patch }))}
 					onReread={rereadName}
-					onClose={endBatch}
-					onAddByHand={() => setScreen("add")}
+					onClose={() => setScreen("home")}
+					onDiscard={endBatch}
+					onAddByHand={() => {
+						setAddFromBatch(true);
+						setScreen("add");
+					}}
 					onConfirm={confirmSlips}
 				/>
 			)}
 			{(screen === "home" || screen === "budget" || screen === "stats" || screen === "history" || screen === "savings") && (
-				<TabBar value={screen === "budget" ? "home" : screen} onChange={goToView} onAdd={() => setScreen("add")} />
+				<TabBar value={screen === "budget" ? "home" : screen} onChange={goToView} onAdd={() => {
+						setAddFromBatch(false);
+						setScreen("add");
+					}}
+				/>
 			)}
 		</div>
 	);

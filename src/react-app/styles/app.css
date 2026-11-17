@@ -355,6 +355,32 @@ button:disabled {
 	color: var(--color-muted);
 }
 
+/* The toggle and the sum being typed share one row, so typing an operator moves nothing. */
+.amount__tools {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+}
+
+.amount__expr {
+	min-width: 0;
+	font-family: var(--font-mono);
+	font-size: var(--text-sm);
+	color: var(--color-muted);
+	overflow-wrap: anywhere;
+}
+
+/* Pulled left so the glyph, not the tap area, lines up with the figure. */
+.amount__calc {
+	margin-inline-start: calc(var(--space-3) * -1);
+	color: var(--color-muted);
+}
+
+.amount__calc[aria-pressed="true"] {
+	background: var(--color-paper-3);
+	color: var(--color-ink);
+}
+
 .fields {
 	position: relative;
 	margin-top: var(--space-3);
@@ -583,6 +609,15 @@ button:disabled {
 	.key:hover {
 		background: var(--color-paper-2);
 	}
+}
+
+.keys__grid--calc {
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.key--op {
+	background: var(--color-paper-2);
+	color: var(--color-ink-2);
 }
 
 .key:active {
@@ -2029,6 +2064,13 @@ button:disabled {
 	font: inherit;
 	font-size: var(--text-sm);
 	text-align: start;
+}
+
+/* A slip batch still open behind the screen: same bar as a notice, in plain ink because nothing is wrong */
+
+.notice--batch {
+	border-bottom-color: var(--color-edge);
+	color: var(--color-ink-2);
 }
 
 /* Friends owe me: friends' parts sit under a spend as more ruled lines, then your own share */

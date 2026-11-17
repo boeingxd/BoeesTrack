@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ClipMark, Icon } from "../components/Icon";
 import { toInputValue } from "../lib/dates";
 import { formatBaht, inputToSatang } from "../lib/money";
-import { isReady } from "../lib/slipBatch";
+import { isReady, scanStatus } from "../lib/slipBatch";
 import type { Slip } from "../lib/types";
 
 type Props = {
@@ -10,7 +10,9 @@ type Props = {
 	categories: string[];
 	onChange: (id: string, patch: Partial<Slip>) => void;
 	onReread: (slip: Slip) => void;
+	// Back leaves the batch reading behind the screen; only Discard throws it away.
 	onClose: () => void;
+	onDiscard: () => void;
 	onAddByHand: () => void;
 	onConfirm: (slips: Slip[]) => void;
 };
@@ -38,12 +40,12 @@ function AmountField({ value, label, onChange }: { value: number | undefined; la
 	);
 }
 
-export function SlipReview({ slips, categories, onChange: update, onReread, onClose, onAddByHand, onConfirm }: Props) {
+export function SlipReview({ slips, categories, onChange: update, onReread, onClose, onDiscard, onAddByHand, onConfirm }: Props) {
 	const ready = slips.filter(isReady);
 	const total = ready.reduce((sum, slip) => sum + (slip.satang ?? 0), 0);
 	const uncategorised = ready.filter((slip) => slip.category === null).length;
-	const reading = slips.filter((slip) => slip.status === "reading").length;
-	const refining = slips.some((slip) => slip.refining);
+	// Nothing can be added until both rounds finish, so a slip is never saved with a half-read name.
+	const scanning = scanStatus(slips);
 	const skipped = slips.filter((slip) => slip.status === "unreadable" || slip.status === "duplicate").length;
 	const unfinished = slips.filter((slip) => slip.status === "ok" && !slip.removed && !isReady(slip)).length;
 	const noun = ready.length === 1 ? "slip" : "slips";
@@ -51,7 +53,7 @@ export function SlipReview({ slips, categories, onChange: update, onReread, onCl
 	return (
 		<div className="screen screen--sheet">
 			<header className="topbar">
-				<button type="button" className="icon-btn" onClick={onClose} aria-label="Back without adding">
+				<button type="button" className="icon-btn" onClick={onClose} aria-label="Back, the slips stay here">
 					<Icon name="back" />
 				</button>
 				<h1 className="topbar__title">Review slips</h1>
@@ -59,8 +61,8 @@ export function SlipReview({ slips, categories, onChange: update, onReread, onCl
 			</header>
 
 			<p className="review-intro" aria-live="polite">
-				{reading > 0 ? `Reading ${reading} of ${slips.length} slips…` : `${slips.length} picked · ${ready.length} ready${skipped > 0 ? ` · ${skipped} skipped` : ""}.`}{" "}
-				{refining && "Checking the names more closely… "}The reader's values are guesses: check each against its picture and fix anything wrong.
+				{scanning ? `${scanning}. You can go back and it keeps going.` : `${slips.length} picked · ${ready.length} ready${skipped > 0 ? ` · ${skipped} skipped` : ""}.`}{" "}
+				The reader's values are guesses: check each against its picture and fix anything wrong.
 				{unfinished > 0 && ` ${unfinished} still need an amount or a time.`}
 				{uncategorised > 0 && ` ${uncategorised} without a category.`}
 			</p>
@@ -177,7 +179,7 @@ export function SlipReview({ slips, categories, onChange: update, onReread, onCl
 										slip.nameBox && (
 											<p className="slip__check slip__check--done">
 												<span>{slip.looks === 3 ? "Name checked" : ""}</span>
-												<button type="button" className="icon-btn" aria-label={`Read the name again for slip ${number}`} disabled={reading > 0 || refining} onClick={() => onReread(slip)}>
+												<button type="button" className="icon-btn" aria-label={`Read the name again for slip ${number}`} disabled={scanning !== null} onClick={() => onReread(slip)}>
 													<Icon name="refresh" size={18} />
 												</button>
 											</p>
@@ -216,7 +218,7 @@ export function SlipReview({ slips, categories, onChange: update, onReread, onCl
 				</ol>
 
 				<div className="review-end">
-					<button type="button" className="text-btn text-btn--center" onClick={onClose}>
+					<button type="button" className="text-btn text-btn--center" onClick={onDiscard}>
 						Discard this batch
 					</button>
 				</div>
@@ -232,8 +234,8 @@ export function SlipReview({ slips, categories, onChange: update, onReread, onCl
 						"No readable slips left in this batch."
 					)}
 				</p>
-				<button type="button" className="confirm" disabled={ready.length === 0} onClick={() => onConfirm(ready)}>
-					{ready.length > 0 ? `Add ${ready.length} ${ready.length === 1 ? "transaction" : "transactions"}` : "Nothing to add"}
+				<button type="button" className="confirm" disabled={scanning !== null || ready.length === 0} onClick={() => onConfirm(ready)}>
+					{scanning ?? (ready.length > 0 ? `Add ${ready.length} ${ready.length === 1 ? "transaction" : "transactions"}` : "Nothing to add")}
 				</button>
 			</footer>
 		</div>

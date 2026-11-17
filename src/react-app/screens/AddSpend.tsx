@@ -7,7 +7,8 @@ import { SplitFields } from "../components/SplitFields";
 import { splitResult, startSplit, type Split } from "../lib/split";
 import { Icon } from "../components/Icon";
 import { toInputValue, whenLabel } from "../lib/dates";
-import { formatBaht, groupInput, inputToSatang, pressKey } from "../lib/money";
+import { bahtParts, formatBaht, groupInput, pressKey } from "../lib/money";
+import { calcSatang, hasOperator, pressCalcKey, showExpr } from "../lib/calc";
 import type { Entry, Kind, Pot, Share } from "../lib/types";
 
 type Props = {
@@ -40,6 +41,8 @@ const KINDS: { value: Kind; label: string }[] = [
 ];
 
 const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "back"];
+const CALC_KEYS = ["1", "2", "3", "/", "4", "5", "6", "*", "7", "8", "9", "-", ".", "0", "back", "+"];
+const KEY_LABELS: Record<string, string> = { back: "Delete last digit", ".": "Decimal point", "/": "Divide", "*": "Multiply", "-": "Subtract", "+": "Add" };
 
 export function AddSpend({ editing, categories, pots, goneNames, onAddPot, onAddCategory, tagUses, onRenameCategory, onDeleteCategory, onSlips, firstRun, friends, settledShares, onClose, onSave }: Props) {
 	const [kind, setKind] = useState<Kind>(editing?.kind ?? "spent");
@@ -54,7 +57,11 @@ export function AddSpend({ editing, categories, pots, goneNames, onAddPot, onAdd
 	const [split, setSplit] = useState<Split>(() => (editing?.shares ? startSplit(editing.shares, settledShares) : { rows: [], even: true }));
 	const whenInput = useRef<HTMLInputElement>(null);
 
-	const satang = inputToSatang(input);
+	// Arithmetic keys: the amount can be a sum ("120+45*2") and the figure shows its result as it is typed.
+	const [calc, setCalc] = useState(false);
+
+	const satang = calcSatang(input);
+	const sum = hasOperator(input);
 	const potNames = pots.map((p) => p.name);
 	const splitting = kind === "spent" ? splitResult(split, satang) : null;
 	const splitBlock = splitting && (splitting.own < 0 ? "Parts are over the bill" : splitting.unfinished ? "Finish the split" : null);
@@ -104,8 +111,24 @@ export function AddSpend({ editing, categories, pots, goneNames, onAddPot, onAdd
 				</p>
 				<p className={ready ? "amount__figure" : "amount__figure amount__figure--empty"} aria-labelledby="amount-label" aria-live="polite">
 					<span className="figure__cur">฿</span>
-					{groupInput(input)}
+					{sum ? bahtParts(satang).digits : groupInput(input)}
 				</p>
+				<div className="amount__tools">
+					<button
+						type="button"
+						className="icon-btn amount__calc"
+						aria-pressed={calc}
+						aria-label="Arithmetic keys"
+						onClick={() => {
+							// The plain keypad never sees operators: a sum becomes its result when the keys go away.
+							if (calc && sum) setInput(satang === 0 ? "" : String(satang / 100));
+							setCalc(!calc);
+						}}
+					>
+						<Icon name="calc" />
+					</button>
+					{sum && <p className="amount__expr">{showExpr(input)}</p>}
+				</div>
 			</div>
 
 			{firstRun && !editing && <p className="review-intro">Type the amount, pick a tag, then tap Add. Slips (top right) reads bank slip pictures instead.</p>}
@@ -206,16 +229,16 @@ export function AddSpend({ editing, categories, pots, goneNames, onAddPot, onAdd
 			)}
 
 			<div className="keys">
-				<div className="keys__grid">
-					{KEYS.map((key) => (
+				<div className={calc ? "keys__grid keys__grid--calc" : "keys__grid"}>
+					{(calc ? CALC_KEYS : KEYS).map((key) => (
 						<button
 							key={key}
 							type="button"
-							className="key"
-							aria-label={key === "back" ? "Delete last digit" : key === "." ? "Decimal point" : key}
-							onClick={() => setInput((current) => pressKey(current, key))}
+							className={hasOperator(key) ? "key key--op" : "key"}
+							aria-label={KEY_LABELS[key] ?? key}
+							onClick={() => setInput((current) => (calc ? pressCalcKey : pressKey)(current, key))}
 						>
-							{key === "back" ? <Icon name="backspace" /> : key}
+							{key === "back" ? <Icon name="backspace" /> : showExpr(key)}
 						</button>
 					))}
 				</div>

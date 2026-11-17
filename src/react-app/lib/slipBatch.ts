@@ -118,3 +118,13 @@ export function flagDuplicates(slips: Slip[], saved: Set<string>): Slip[] {
 
 // Ready to add: read, not removed, and the two things an entry cannot do without.
 export const isReady = (slip: Slip) => slip.status === "ok" && !slip.removed && !!slip.satang && !!slip.at && !!slip.ref;
+
+// What the reader is doing right now, as "12 of 100", or null when it has finished. Round one reads every slip; round two
+// looks at the names again, and a slip counts as done there after its third look.
+export function scanStatus(slips: Slip[]): string | null {
+	const reading = slips.filter((s) => s.status === "reading").length;
+	if (reading > 0) return `Reading slips… ${slips.length - reading} of ${slips.length}`;
+	const refining = slips.filter((s) => s.refining);
+	if (refining.length > 0) return `Checking names… ${refining.filter((s) => (s.looks ?? 0) >= 3).length} of ${refining.length}`;
+	return null;
+}
