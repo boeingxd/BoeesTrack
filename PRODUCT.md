@@ -39,14 +39,13 @@ Thailand, baht. Money moves mostly through bank transfer slips (screenshots, eac
 - Friends owe me (2026-10-14): when the owner pays a whole bill, a spend can list friends' parts (Split, on Add or when editing; "Split evenly" in whole baht, leftover stays with the owner). Only the owner's part counts as spending. A friend paying back is its own "Paid back" line: it raises the balance but is not counted as Received, and deleting it means they owe again. An unpaid part can be forgiven, which makes it the owner's spending on that day (shown as its own line). Home shows one "Friends owe you" line under the balance while anything is owed; it opens a sheet of open parts by friend (Savings stays pots only). Parts already paid back or forgiven can't be changed. Paybacks are typed in, not read from slips.
 - Export of everything: a JSON backup and a spreadsheet (CSV) of the entries, at the bottom of History. There is no restore yet.
 - Stack already in place: React, TypeScript and Vite, a Hono API on a Cloudflare Worker, Cloudflare D1 holds the data and a private R2 bucket holds the slip pictures (both live).
-- Undecided: one or several categories per entry; support for banks other than Bangkok Bank and for paper receipts; whether transfers or e-wallet top-ups to the owner's own name count as spending (they are probably not spending, and are read like any other slip for now); a restore for the backup; whether any charts exist; how budgets are displayed.
+- Undecided: one or several categories per entry; support for banks other than Bangkok Bank and for paper receipts; whether transfers or e-wallet top-ups to the owner's own name count as spending (they are probably not spending, and are read like any other slip for now); a restore for the backup.
 
 ## Optional goals (from the 2026-10-14 comparison and audit)
 
 Nothing here is decided or promised. It came from comparing BoeesTrack with Yayikast/expenses-tracker (a Google Sheets, Apps Script and GitHub Pages app) and auditing both. Pick a phase when it is wanted; each phase should ship on its own. Their app is a reference for ideas only: do not copy its stack, its session handling or its one-file frontend. BoeesTrack is ahead on login (Cloudflare Access), typing and tests, money stored as integer satang, and on-device slip reading with the pictures kept private.
 
 **Phase 1: Safety (small, no screen changes)**
-- Update Hono (`npm audit` flags versions up to 4.13.6; the flagged parts are middleware this app does not use, so the risk is probably low). Then `npm test` and `npm run build`.
 - Add route tests for `src/worker/data.ts` and `slips.ts`. Today only `wire.ts` and `access.ts` have tests, and these routes hold the code that deletes data. Cases: a repeated id gives 409, deleting an entry deletes its picture, a batch of 500 ids, an unknown pot or tag.
 - `PUT /slips/:ref` trusts the Content-Type header: check the file's first bytes are JPEG, PNG or WebP.
 - `lib/csv.ts` does not neutralise cells that start with `=`, `+`, `-` or `@` (a note read from a slip could). Prefix them so a spreadsheet shows them as text.

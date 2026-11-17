@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Figure } from "../components/Figure";
+import { Confirm } from "../components/Confirm";
 import { Icon } from "../components/Icon";
 import { MeterTrack } from "../components/Meter";
 import { PotForm } from "../components/PotForm";
@@ -118,33 +119,22 @@ export function Savings({ entries, pots, today, onAddPot, onEditPot, onDeletePot
 						onCancel={stopEditing}
 					>
 						{deleting ? (
-							<div className="detail__confirm">
-								<p className="today__note today__note--warn" role="alert">
-									<Icon name="warning" size={18} />
-									<span>
-										Delete {editingRow.pot.name}?{" "}
-										{editingRow.total > 0
-											? `${formatBaht(editingRow.total)} goes back to your balance.`
-											: editingRow.total < 0
-												? `It is ${formatBaht(-editingRow.total)} overdrawn, so that comes off your balance.`
-												: ""}{" "}
-										Its entries stay in History. This can't be undone.
-									</span>
-								</p>
-								<button type="button" className="detail__btn detail__btn--keep" onClick={() => setDeleting(false)}>
-									Keep it
-								</button>
-								<button
-									type="button"
-									className="detail__btn detail__btn--delete"
-									onClick={() => {
-										onDeletePot(editingRow.pot);
-										stopEditing();
-									}}
-								>
-									Yes, delete
-								</button>
-							</div>
+							<Confirm
+								yes="Yes, delete"
+								onKeep={() => setDeleting(false)}
+								onYes={() => {
+									onDeletePot(editingRow.pot);
+									stopEditing();
+								}}
+							>
+								Delete {editingRow.pot.name}?{" "}
+								{editingRow.total > 0
+									? `${formatBaht(editingRow.total)} goes back to your balance.`
+									: editingRow.total < 0
+										? `It is ${formatBaht(-editingRow.total)} overdrawn, so that comes off your balance.`
+										: ""}{" "}
+								Its entries stay in History. This can't be undone.
+							</Confirm>
 						) : (
 							<button type="button" className="cancel cancel--danger" onClick={() => setDeleting(true)}>
 								Delete pot

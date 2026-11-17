@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { OTHER } from "../lib/categories";
+import { Confirm } from "./Confirm";
 import { Icon } from "./Icon";
 import { Sheet } from "./Sheet";
 
@@ -67,27 +68,16 @@ export function TagEditor({ categories, uses, onRename, onDelete, onClose }: Pro
 					if (deleting === tag) {
 						return (
 							<li className="tag-edit__row tag-edit__row--ask" key={tag} ref={(el) => el?.scrollIntoView({ block: "nearest" })}>
-								<div className="detail__confirm">
-									<p className="today__note today__note--warn" role="alert">
-										<Icon name="warning" size={18} />
-										<span>
-											Delete {tag}? {count > 0 ? `${entries} will move to ${OTHER}.` : "No transactions use it."} This can't be undone.
-										</span>
-									</p>
-									<button type="button" className="detail__btn detail__btn--keep" onClick={() => setDeleting(null)}>
-										Keep it
-									</button>
-									<button
-										type="button"
-										className="detail__btn detail__btn--delete"
-										onClick={() => {
-											onDelete(tag);
-											setDeleting(null);
-										}}
-									>
-										Yes, delete
-									</button>
-								</div>
+								<Confirm
+									yes="Yes, delete"
+									onKeep={() => setDeleting(null)}
+									onYes={() => {
+										onDelete(tag);
+										setDeleting(null);
+									}}
+								>
+									Delete {tag}? {count > 0 ? `${entries} will move to ${OTHER}.` : "No transactions use it."} This can't be undone.
+								</Confirm>
 							</li>
 						);
 					}

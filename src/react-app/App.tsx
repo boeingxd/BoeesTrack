@@ -4,6 +4,7 @@ import { balance, checkIn, returnFromPot } from "./lib/balance";
 import * as api from "./lib/api";
 import { OTHER, otherLast } from "./lib/categories";
 import { dayKey } from "./lib/dates";
+import { releaseOcr } from "./lib/ocr";
 import { saveOrUndo } from "./lib/optimistic";
 import { billId, forgive, friendNames, payback, shareState } from "./lib/shares";
 import { flagDuplicates, newSlip, readBatch, refineNames } from "./lib/slipBatch";
@@ -240,9 +241,18 @@ function App() {
 		setSlips((current) => flagDuplicates(current.map((s) => (s.id === slipId ? change(s) : s)), savedRefs()));
 	}
 
+	// Dropping a batch stops its reading and frees the reader and the picture previews it was holding.
+	function dropBatch() {
+		batchId.current++;
+		releaseOcr();
+		slips.forEach((slip) => slip.url && URL.revokeObjectURL(slip.url));
+		setSlips([]);
+	}
+
 	// Picking pictures opens the review at once; each slip fills in as it is read, then its name is looked at again more closely.
 	async function startBatch(files: File[]) {
-		const id = ++batchId.current;
+		dropBatch();
+		const id = batchId.current;
 		const stamp = Date.now();
 		const batch = files.map((file, i) => newSlip(file, `slip-${stamp}-${i}`));
 		setSlips(flagDuplicates(batch, savedRefs()));
@@ -258,11 +268,8 @@ function App() {
 		void refineNames([slip], changeSlip, () => batchId.current !== id);
 	}
 
-	// Closing a batch frees the picture previews it was holding.
 	function endBatch() {
-		batchId.current++;
-		slips.forEach((slip) => slip.url && URL.revokeObjectURL(slip.url));
-		setSlips([]);
+		dropBatch();
 		setScreen("home");
 	}
 
@@ -281,11 +288,14 @@ function App() {
 		}));
 		setEntries((current) => [...current, ...added]);
 		setJustAddedId(added[0]?.id ?? null);
-		endBatch();
+		setScreen("home");
 		const ids = new Set(added.map((e) => e.id));
+		// The review is only thrown away once the entries are saved; if the save fails you are back on it with nothing lost.
+		const batch = batchId.current;
 		save(
 			async () => {
 				await api.addEntries(added);
+				if (batchId.current === batch) dropBatch();
 				const stored = new Set<string>();
 				for (const slip of ready) {
 					try {
@@ -298,7 +308,10 @@ function App() {
 				setEntries((current) => current.map((e) => (e.slipRef && stored.has(e.slipRef) ? { ...e, hasImage: true } : e)));
 				if (stored.size < ready.length) setNotice(`Saved the transactions, but ${ready.length - stored.size} of the pictures did not upload.`);
 			},
-			() => setEntries((current) => current.filter((e) => !ids.has(e.id))),
+			() => {
+				setEntries((current) => current.filter((e) => !ids.has(e.id)));
+				if (batchId.current === batch) setScreen("slips");
+			},
 		);
 	}
 

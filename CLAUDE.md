@@ -25,6 +25,7 @@ BoeesTrack is a personal daily/monthly money tracker for one user (the owner, a 
 ## Money and dates
 
 - Amounts are integer satang (฿1 = 100). Only entries of kind `spent` count toward budgets; `received` and `saved` do not. A split bill counts only the owner's part, and a payback (`received` with `share`) is not income: always go through `ownSpending` and `income` in `lib/shares.ts`.
+- Home's budget leaves out a spend paid from a pot (it comes from savings, not from the month's budget); Insight counts it, because Insight shows where money went. This difference is intended.
 - Daily allowance = `floor((budget − spentBeforeToday) / daysLeftInclToday)` in whole baht (`lib/allowance.ts`). Show averages and similar figures in whole baht.
 - Pure logic lives in `src/react-app/lib` with tests next to it; keep screens thin.
 

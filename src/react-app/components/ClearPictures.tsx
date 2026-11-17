@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import * as api from "../lib/api";
 import { formatSize } from "../lib/size";
 import type { Entry } from "../lib/types";
+import { Confirm } from "./Confirm";
 import { Icon } from "./Icon";
 import { Segmented, type Option } from "./ViewSwitch";
 
@@ -61,28 +62,18 @@ export function ClearPictures({ entries, today, onClear }: { entries: Entry[]; t
 					</p>
 					{stored && stored.count > 0 &&
 						(confirming ? (
-							<div className="detail__confirm">
-								<p className="today__note today__note--warn" role="alert">
-									<Icon name="warning" size={18} />
-									<span>
-										Remove {stored.count} {stored.count === 1 ? "picture" : "pictures"} ({formatSize(stored.bytes)})? This can't be undone.
-									</span>
-								</p>
-								<button type="button" className="detail__btn detail__btn--keep" onClick={() => setAskedKey(null)}>
-									Keep them
-								</button>
-								<button
-									type="button"
-									className="detail__btn detail__btn--delete"
-									onClick={() => {
-										setAskedKey(null);
-										setOpen(false);
-										onClear(new Date(before));
-									}}
-								>
-									Yes, remove
-								</button>
-							</div>
+							<Confirm
+								keep="Keep them"
+								yes="Yes, remove"
+								onKeep={() => setAskedKey(null)}
+								onYes={() => {
+									setAskedKey(null);
+									setOpen(false);
+									onClear(new Date(before));
+								}}
+							>
+								Remove {stored.count} {stored.count === 1 ? "picture" : "pictures"} ({formatSize(stored.bytes)})? This can't be undone.
+							</Confirm>
 						) : (
 							<button type="button" className="detail__btn detail__btn--outline detail__delete" onClick={() => setAskedKey(key)}>
 								Remove these {stored.count} {stored.count === 1 ? "picture" : "pictures"}

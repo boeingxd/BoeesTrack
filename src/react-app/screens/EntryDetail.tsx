@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Confirm } from "../components/Confirm";
 import { Icon } from "../components/Icon";
 import { OwedLine, PaybackSheet } from "../components/Owed";
 import { dayTitle, timeLabel } from "../lib/dates";
@@ -138,34 +139,23 @@ export function EntryDetail({ entry, entries, today, onClose, onEdit, onDelete, 
 			)}
 
 			{confirming ? (
-				<div className="detail__confirm">
-					<p className="today__note today__note--warn" role="alert">
-						<Icon name="warning" size={18} />
-						<span>
-							{confirming === "picture"
-								? "Remove the picture? The transaction stays. This can't be undone."
-								: settles
-									? `Delete this payback? ${settles.share.friend} will owe ${formatBaht(settles.share.satang)} again.`
-									: repaid > 0
-										? `Delete this transaction? Its ${repaid === 1 ? "payback stays" : "paybacks stay"} and will count as money received. This can't be undone.`
-										: "Delete this transaction? This can't be undone."}
-						</span>
-					</p>
-					<button type="button" className="detail__btn detail__btn--keep" onClick={() => setConfirming(null)}>
-						Keep it
-					</button>
-					<button
-						type="button"
-						className="detail__btn detail__btn--delete"
-						onClick={() => {
-							setConfirming(null);
-							if (confirming === "entry") onDelete();
-							else onRemovePicture();
-						}}
-					>
-						{confirming === "entry" ? "Yes, delete" : "Yes, remove"}
-					</button>
-				</div>
+				<Confirm
+					yes={confirming === "entry" ? "Yes, delete" : "Yes, remove"}
+					onKeep={() => setConfirming(null)}
+					onYes={() => {
+						setConfirming(null);
+						if (confirming === "entry") onDelete();
+						else onRemovePicture();
+					}}
+				>
+					{confirming === "picture"
+						? "Remove the picture? The transaction stays. This can't be undone."
+						: settles
+							? `Delete this payback? ${settles.share.friend} will owe ${formatBaht(settles.share.satang)} again.`
+							: repaid > 0
+								? `Delete this transaction? Its ${repaid === 1 ? "payback stays" : "paybacks stay"} and will count as money received. This can't be undone.`
+								: "Delete this transaction? This can't be undone."}
+				</Confirm>
 			) : (
 				<>
 					{picture && (

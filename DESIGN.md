@@ -95,7 +95,7 @@ Density is calm and phone-first (a 30rem column, centred on wider screens, with 
 
 **Key Characteristics:**
 - Rules, margin and day headers carry the structure; fills are rare and always ink.
-- One red (margin line, warnings, over-budget). One blue (focus ring only).
+- One red (margin line, warnings, over-budget). One blue (focus ring only). Five series inks (`--color-series-*`, red through to ink blue) for the Insight donut and its share bars only.
 - Amounts are tabular figures; money is whole baht when averaged.
 - Works at 320px with no horizontal overflow; every tap target is at least 44px.
 
@@ -120,8 +120,8 @@ Restrained: blue-leaning neutrals plus ink, one red, and a focus blue. Neutrals 
 - **Focus Blue** (oklch(52% 0.19 258)) and **Selection** (oklch(88% 0.06 258)): focus ring and text selection only.
 
 ### Named Rules
-**The One Red Rule.** Red marks the margin line and warnings (over today, over month, unreadable or duplicate slip). Never decoration, category or status colour.
-**The Ink-Only Rule.** Charts and bars use ink, edge and rule tones. Today is the darkest bar; the rest are edge.
+**The One Red Rule.** Red marks the margin line and warnings (over today, over month, unreadable or duplicate slip). Never decoration, category or status colour. The one exception is the Insight donut, where red marks the tag you spent most on.
+**The Ink-Only Rule.** Charts and bars use ink, edge and rule tones. Today is the darkest bar; the rest are edge. The Insight donut and the share bars beside it are the one exception: five series inks from red (spent most) to ink blue (spent least), with grey for Other.
 
 ## Typography
 
@@ -144,11 +144,11 @@ Restrained: blue-leaning neutrals plus ink, one red, and a focus blue. Neutrals 
 
 A single column, max 30rem, centred; from 40rem up it gains a 1px rule on both sides. Grid: 4px-based spacing; page padding 1.25rem; a 3.5rem margin column holds time/label on the left of every ruled row; row height 3.25rem. The red margin line sits at page-pad + margin-col and runs only beside ruled rows (day lines, add fields, review sheet), never behind titles or the hero.
 
-Home: month title; "Spent today" label and figure; the Budget meters with an edit gear; a note line; the Balance with a "Check" button; day pages (today plus three earlier days), or, with no entries yet, a short "Your notebook is empty" help block. The four main screens (Home, Insight, History, Savings) share the bottom bar. Insight: a title with previous/next arrows, a Day / Week / Month switch, the Spent figure with its comparison bars, then Day by day bars (week and month) or the day's entries (day), then Where it went limited to the top 4 tags with "See all entries" beside it, and a "Show more" row (52px, chevron flips) that reveals the rest: the other tags, the weekly list (month), Biggest, and Money in and out (Saved and Received, the pair of small figures). Collapsed by default. The Add screen, entry screen and slip review are full-height screens that hide the bottom bar (entrance: slide up 1.5rem and fade, 220ms) with the keypad or batch bar anchored at the bottom with safe-area padding. Under 44rem tall, the Add screen shrinks its amount and key heights and turns the tag row into one scrolling line.
+Home: month title; "Spent today" label and figure; the Budget meters with an edit gear; a note line; the Balance with a "Check" button; day pages (today plus three earlier days), or, with no entries yet, a short "Your notebook is empty" help block. The four main screens (Home, Insight, History, Savings) share the bottom bar. Insight: a title with previous/next arrows, a Day / Week / Month switch, the Spent figure with its comparison bars, then Day by day bars (week and month) or the day's entries (day), then the weekly list (month), then Where it went (the tappable donut and every tag, with a link to see all transactions), then Biggest spendings. Saved and Received sit as a pair of small figures under Spent. Nothing is collapsed. The Add screen, entry screen and slip review are full-height screens that hide the bottom bar (entrance: slide up 1.5rem and fade, 220ms) with the keypad or batch bar anchored at the bottom with safe-area padding. Under 44rem tall, the Add screen shrinks its amount and key heights and turns the tag row into one scrolling line.
 
 ## Elevation & Depth
 
-Flat. There are no drop shadows. Depth is the page against the desk tone, hairline rules, and the lighter Sheet tone for slips. The only box-shadow is an inset 1px ink ring used as an outline (the free-allowance segment of the budget bar). Bottom sheets are separated by a 1px ink rule on their top edge and a dimmed screen behind them, not by a shadow.
+Flat. There are no drop shadows. Depth is the page against the desk tone, hairline rules, and the lighter Sheet tone for slips. The only box-shadow is an inset 1px ring used as an outline (the Keep and outlined buttons). Bottom sheets are separated by a 1px ink rule on their top edge and a dimmed screen behind them, not by a shadow.
 
 **The Flat Rule.** Surfaces separate by rule or tone, never by shadow.
 
@@ -170,8 +170,8 @@ The bottom bar (TabBar) is pinned to the bottom of Home, Insight, History and Sa
 ### Figure
 Baht sign small and muted, digits large; used for the Home and Insight hero.
 
-### BudgetBar
-One 10px bar for the month budget on a rule-tone track: before today (edge), today (ink), still free today (outlined, not filled). Turns red when the month is over; only today's segment turns red when today is over. Exposed as an image with a text alternative.
+### Meter
+One row per budget: the name and a small note on the left, a bar on a rule-tone track, the amount on the right. The fill is ink for the main figure, edge for "the one before", and red only when over. The bar itself is hidden from screen readers; the name and amount carry the meaning.
 
 ### DayList
 Per day: a title row (bold date left, day total right, 1px ink rule under) then ruled lines in a grid (time in the margin column, category and optional note, amount right with "+" for received). Empty days read "Nothing spent". A newly added line settles in (translateY -6px, 420ms).
@@ -195,15 +195,15 @@ Amount first as a Display figure; ruled fields (Note, When with "Change", Tag) w
 Each slip is a Sheet-tone page with 1px rule, 2px radius, and a paperclip (ClipMark) straddling its top edge. Two columns: the real slip picture on the left (clamp 5.5 to 7.5rem wide, 9:14, cropped to the top where the amount and date are, 1px rule border), and the fields on the right: the amount in mono (an AmountField), a datetime field, a note field (the receiver's name) with a status line under it (while the closer name read runs: a thin rule with an ink stretch moving along it and "Checking the name… 1 of 3", the note flashing an ink underline each time the reader changes it; afterwards "Name checked" and a 44px refresh button, "Read the name again", which replaces the note with a fresh reading), the category select, a small muted hint line "Name and tag filled in from your earlier slip" when shop memory filled them, and the mono bank reference (hidden when it is only a picture fingerprint); an X sits at the top corner. Fields are borderless with a 1px rule underneath. Warning slips (reading, unreadable, duplicate) use a red border, warning icon and deep-red title, listed by file name; "Reading slip N…" has no icon. Removed slips collapse to one muted line with a "Put back" text button. A sticky batch bar holds the total and confirm.
 
 ### Entry screen picture and buttons (EntryDetail)
-A slip entry shows its saved picture below the fields at full column width (1px rule border, Paper-2 behind it), as a link that opens the picture full size. Under it are two outlined red buttons, 56px tall: "Remove picture" then "Delete entry", 8px apart, with 32px of room under the last one so it never sits on the screen edge. Either one swaps in the same two-button confirmation: a warning line, then "Keep it" (outlined ink) and "Yes, remove" or "Yes, delete" (filled deep red).
+A slip entry shows its saved picture below the fields at full column width (1px rule border, Paper-2 behind it), as a link that opens the picture full size. Under it are two outlined red buttons, 56px tall: "Remove picture" then "Delete transaction", 8px apart, with 32px of room under the last one so it never sits on the screen edge. Either one swaps in the same two-button confirmation: a warning line, then "Keep it" (outlined ink) and "Yes, remove" or "Yes, delete" (filled deep red).
 
 ### History controls
 Top to bottom: the period title with arrows, the Day / Week / Month switch, a search field, one "Filters" row with the sort beside it, the results line, then DayList groups, then a footer block.
 - **Search:** a full box (1px edge border, 6px radius, 46px tall) with a magnifier icon inside at the left; the border and icon turn ink on focus.
-- **Filters row:** a full-width text button with a funnel icon, the word "Filters", a muted "N set" count when any are set, and the Sort select on the right. Tapping it opens the Filters bottom sheet with three ruled rows (Kind, Tag, Source), each a muted label (5rem column) and a borderless native select (a value that is set is ink and weight 500, an unset one is muted), a filled "Show N entries" button and, when any are set, a "Clear filters" text button. Filters apply as they are changed.
+- **Filters row:** a full-width text button with a funnel icon, the word "Filters", a muted "N set" count when any are set, and the Sort select on the right. Tapping it opens the Filters bottom sheet with three ruled rows (Kind, Tag, Source), each a muted label (5rem column) and a borderless native select (a value that is set is ink and weight 500, an unset one is muted), a filled "Show N transactions" button and, when any are set, a "Clear filters" text button. Filters apply as they are changed.
 - **Results line:** the count and total on the left, a Sort select with an up-down icon, and Reset when anything differs from the default (it wraps below at 320px).
 - **No results:** a muted search icon, "Nothing matched", a one-line hint (a spelling hint when searching), and one filled button: "Clear search" when a search is typed, otherwise "Reset filters".
-- **Footer block:** under one 1px rule and with 32px of room at the bottom: "Download backup" and "Spreadsheet" as two equal text links; "Clear old slip pictures", a row like the Filters row that opens a 3 / 6 / 12 months Segmented control, a status line ("N pictures · size. The entries stay.") and an outlined red "Remove these N pictures"; then an outlined red "Delete these N entries" for what the filters show. Both red buttons confirm with a warning and Keep them / Yes buttons, and are kept 24px apart so one is not tapped for the other.
+- **Footer block:** under one 1px rule and with 32px of room at the bottom: "Download backup" and "Spreadsheet" as two equal text links; "Clear old slip pictures", a row like the Filters row that opens a 3 / 6 / 12 months Segmented control, a status line ("N pictures · size. The transactions stay.") and an outlined red "Remove these N pictures"; then an outlined red "Delete these N transactions" for what the filters show. Both red buttons confirm with a warning and Keep them / Yes buttons, and are kept 24px apart so one is not tapped for the other.
 
 ### Icon / ClipMark
 Inline SVG, 1.75 stroke, round caps, currentColor; a fixed set (back, forward, down, plus, close, check, backspace, edit, clip, settings, search, filter, sort, refresh, trash, home, insight, history, savings, warning). ClipMark is a purpose-drawn paperclip.
@@ -222,11 +222,11 @@ Inline SVG, 1.75 stroke, round caps, currentColor; a fixed set (back, forward, d
 - **Do** honour reduced motion (fade only, 150ms).
 
 ### Don't:
-- **Don't** add cards, colourful tiles, per-category colours, pills, gradients, pie or gauge charts.
+- **Don't** add cards, colourful tiles, per-category colours, pills, gradients or gauge charts, or any pie besides the one Insight donut.
 - **Don't** use red for anything but the margin line and warnings.
 - **Don't** add leather, stitching, paper textures or handwriting; the metaphor is lines and pages.
 - **Don't** use shadows for depth.
-- **Don't** colour bars; ink and edge tones only.
+- **Don't** colour bars; ink and edge tones only (the donut's share bars are the one exception).
 - **Don't** use Geist Mono outside slip references and scanned values.
 - **Don't** make the month bars tappable; 28 to 31 columns are too narrow.
 

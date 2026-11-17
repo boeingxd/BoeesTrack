@@ -3,6 +3,7 @@ import { dayDiff, dayMonth, toInputValue, whenLabel } from "../lib/dates";
 import { formatBaht } from "../lib/money";
 import type { FriendOwes, OpenShare, ShareState } from "../lib/shares";
 import type { Entry, Share } from "../lib/types";
+import { Confirm } from "./Confirm";
 import { Icon } from "./Icon";
 import { Sheet } from "./Sheet";
 
@@ -56,25 +57,17 @@ export function OwedLine({ title, detail, satang, state, today, onPaid, onForgiv
 			)}
 			{state.kind === "open" &&
 				(confirming ? (
-					<div className="detail__confirm owed__confirm">
-						<p className="today__note today__note--warn" role="alert">
-							<Icon name="warning" size={18} />
-							<span>Forgive {formatBaht(satang)}? It becomes your own spending today.</span>
-						</p>
-						<button type="button" className="detail__btn detail__btn--keep" onClick={() => setConfirming(false)}>
-							Keep it
-						</button>
-						<button
-							type="button"
-							className="detail__btn detail__btn--delete"
-							onClick={() => {
-								setConfirming(false);
-								onForgive();
-							}}
-						>
-							Yes, forgive
-						</button>
-					</div>
+					<Confirm
+						className="owed__confirm"
+						yes="Yes, forgive"
+						onKeep={() => setConfirming(false)}
+						onYes={() => {
+							setConfirming(false);
+							onForgive();
+						}}
+					>
+						Forgive {formatBaht(satang)}? It becomes your own spending today.
+					</Confirm>
 				) : (
 					<div className="owed__actions">
 						<button type="button" className="owed__paid" onClick={onPaid}>

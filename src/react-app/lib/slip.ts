@@ -92,7 +92,7 @@ export function parseSlip(raw: string): SlipFields {
 	const text = normalizeThai(raw);
 	const lines = text.split("\n").map((l) => l.trim());
 	// It must start with a real date (YYYYMMDD): a shop slip also prints a 20-digit shop code, which is not unique per payment.
-	const slipRef = text.match(/\b20\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01])\d{9,}[A-Z]{0,3}\b/)?.[0] ?? null;
+	const slipRef = text.match(/\b20\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01])\d{9,49}[A-Z]{0,3}\b/)?.[0] ?? null;
 	// The amount is the first money figure above the sender block; later 0.00 is the fee.
 	const sender = lines.findIndex((l) => l.includes("จาก"));
 	const top = lines.slice(0, sender < 0 ? undefined : sender).join("\n");

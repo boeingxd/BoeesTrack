@@ -51,7 +51,7 @@ Kitsch from skeuomorphic detail; two metaphors blurring into each other. Check e
 
 - **Keep:** the day groups (small-caps day header, daily subtotal, hairline rule, entries as ruled lines) and the amount-first add flow.
 - **Drop:** the colourful category tiles (categories become plain text tags).
-- **Still open:** charts and how budgets are shown (Dime uses a gauge and cards). The bottom bar was settled in the 2026-10-13 revamp, below.
+- **Settled since:** charts are ink-only bars plus the one Insight donut, and budgets are shown as meters on Home (Dime uses a gauge and cards). The bottom bar was settled in the 2026-10-13 revamp, below.
 
 ## Since the first pass (2026-10-12)
 
@@ -60,7 +60,7 @@ The slips are real now, and the owner's decisions shaped how:
 - **Read on the device, kept private.** Slips are read in the browser (no AI-vision button for now). The picture is kept in a private bucket, so the owner can look back at the evidence.
 - **Review row: picture beside fields.** In the review the slip picture sits on the left, cropped to the top where the amount and time are, with the amount, time, note and tag to its right and an X at the corner. The receiver's name goes into the note.
 - **Shop memory.** A slip from a shop seen before starts with that shop's earlier note and tag, and a small line says so. Reading is two rounds: the whole slip for amount, time and reference, then a closer look at just the name.
-- **The guest stays a guest.** Slips still never take over the notebook. Besides the review, the only other place a slip shows is the entry screen: its picture sits below the entry's fields as a clipped page, with "Remove picture" beside "Delete entry". A slip entry is edited like any other.
+- **The guest stays a guest.** Slips still never take over the notebook. Besides the review, the only other place a slip shows is the entry screen: its picture sits below the entry's fields as a clipped page, with "Remove picture" beside "Delete transaction". A slip entry is edited like any other.
 - **Clearing.** Pictures can be removed one at a time, in bulk by age (3, 6 or 12 months, with the count and size shown first), or with the entry. History gets a Source filter (all, slips, typed in by hand).
 - **Calm filters.** History keeps its period, search and result line in view and tucks Kind, Tag and Source behind one "Filters" row, after the first version with three dropdowns felt overwhelming.
 
@@ -73,7 +73,7 @@ The layout was audited against a mobile UI brief (about 19 rules from a notes-ap
 - **Bottom sheets for small choices.** Budget, Check balance, History filters and the pot forms rise over the current screen instead of replacing it or expanding inline.
 - **Empty states.** Home, Savings and Add explain themselves when there is nothing yet; History's no-results state offers one way out.
 - **Donut in Where it went (2026-10-13).** The owner first chose real colours, then asked for an ink run from red (the biggest tag) to ink blue (the smallest): `--color-series-1..5` are red, pink, purple, periwinkle and ink blue, checked for colour-blind separation, with grey for the rest. The donut is tappable: a tap selects a slice and shows its tag, amount and share in the centre (the matching list row is highlighted); tapping the centre opens that tag's entries, or expands the tag list for the grey Other slice. This overrides the earlier "no pie charts / no charts" lines and lets red also colour the top slice.
-- **Insight trimmed (2026-10-13).** The owner compared the old long screen with a trimmed one on the phone and kept the trimmed one: figure, bars and the top 4 tags up front, the rest behind "Show more".
+- **Insight trimmed (2026-10-13).** The owner compared the old long screen with a trimmed one on the phone and kept the trimmed one: figure, bars and the top 4 tags up front, the rest behind "Show more". Later the same day "Show more" was dropped: every tag, the Weeks list and Biggest spendings always show.
 - **Gestures skipped for now** (swipe back, swipe down to dismiss, long press). **Not applied:** floating pill bar, round "+", cards, carousels; the brief's density advice does not fit History and Insight, which stay as dense ruled lists.
 
 ## Friends owe me (2026-10-14)

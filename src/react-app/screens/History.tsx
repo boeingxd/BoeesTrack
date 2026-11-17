@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { ClearPictures } from "../components/ClearPictures";
 import { DayList, EntryLine } from "../components/DayList";
+import { Confirm } from "../components/Confirm";
 import { Icon } from "../components/Icon";
 import { Sheet } from "../components/Sheet";
 import { ScaleSwitch } from "../components/ViewSwitch";
@@ -262,28 +263,18 @@ export function History({ entries, categories, today, filters, onFilters, onOpen
 				<ClearPictures entries={entries} today={today} onClear={onClearPictures} />
 				{real.length > 0 &&
 					(confirming ? (
-						<div className="detail__confirm">
-							<p className="today__note today__note--warn" role="alert">
-								<Icon name="warning" size={18} />
-								<span>
-									Delete {real.length} {real.length === 1 ? "transaction" : "transactions"} ({formatBaht(total)} {totalKind}) and their slip pictures? Download a backup first. This
-									can't be undone.
-								</span>
-							</p>
-							<button type="button" className="detail__btn detail__btn--keep" onClick={() => setConfirming(false)}>
-								Keep them
-							</button>
-							<button
-								type="button"
-								className="detail__btn detail__btn--delete"
-								onClick={() => {
-									setConfirming(false);
-									onDeleteShown(real);
-								}}
-							>
-								Yes, delete {real.length}
-							</button>
-						</div>
+						<Confirm
+							keep="Keep them"
+							yes={`Yes, delete ${real.length}`}
+							onKeep={() => setConfirming(false)}
+							onYes={() => {
+								setConfirming(false);
+								onDeleteShown(real);
+							}}
+						>
+							Delete {real.length} {real.length === 1 ? "transaction" : "transactions"} ({formatBaht(total)} {totalKind}) and their slip pictures? Download a backup first. This
+							can't be undone.
+						</Confirm>
 					) : (
 						<button type="button" className="detail__btn detail__btn--outline detail__delete" onClick={() => setConfirming(true)}>
 							Delete these {real.length} {real.length === 1 ? "transaction" : "transactions"}

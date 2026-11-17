@@ -30,6 +30,13 @@ async function modelWorker(model: NameModel): Promise<Worker> {
 	return w;
 }
 
+// Frees the reader and its language models once a batch is closed; the next batch loads them again.
+export function releaseOcr() {
+	void worker?.then((w) => w.terminate()).catch(() => {});
+	worker = null;
+	loaded = "tha+eng";
+}
+
 // Thai comes back one character at a time, so lines are kept as characters with their left edge.
 function toLines(blocks: Block[] | null): OcrLine[] {
 	return (blocks ?? []).flatMap((b) =>
