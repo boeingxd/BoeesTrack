@@ -27,6 +27,9 @@ export function pressKey(current: string, key: string): string {
 	return current + key;
 }
 
+// Keeps digits and the first dot only, so a typed amount is always a number ("1.2.3" becomes "1.23").
+export const cleanAmount = (text: string) => text.replace(/[^\d.]/g, "").replace(/\./g, (dot, i, s) => (s.indexOf(".") === i ? dot : ""));
+
 export function inputToSatang(input: string): number {
 	if (input === "" || input === ".") return 0;
 	return Math.round(Number(input) * 100);

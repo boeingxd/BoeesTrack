@@ -1,5 +1,5 @@
 import { OTHER } from "./categories";
-import { addDays, addMonths, dayKey, dayMonth, dayTitle, monthTitle, startOfDay, startOfMonth, startOfWeek } from "./dates";
+import { DAY_MS, addDays, addMonths, dayKey, dayMonth, dayTitle, monthTitle, startOfDay, startOfMonth, startOfWeek } from "./dates";
 import { formatBaht } from "./money";
 import { income, ownSpending } from "./shares";
 import type { Entry, Kind } from "./types";
@@ -27,7 +27,6 @@ export function defaultFilters(today: Date): Filters {
 // `to` is exclusive: the first instant of the next period.
 export type Range = { from: Date; to: Date };
 
-const DAY_MS = 86_400_000;
 const daysIn = (range: Range) => Math.round((range.to.getTime() - range.from.getTime()) / DAY_MS);
 
 export function periodRange(scale: Scale, anchor: Date): Range {
@@ -68,12 +67,10 @@ export function previousRange(scale: Scale, anchor: Date, today: Date): { range:
 	return to.getTime() < before.to.getTime() ? { range: { from: before.from, to }, partial: true } : { range: before, partial: false };
 }
 
-const inRange = (entry: Entry, range: Range) => entry.at.getTime() >= range.from.getTime() && entry.at.getTime() < range.to.getTime();
+export const inRange = (entry: Entry, range: Range) => entry.at.getTime() >= range.from.getTime() && entry.at.getTime() < range.to.getTime();
 // Your own spending only: friends' parts of a bill are left out, and a forgiven part counts on the day it was forgiven.
 const spentIn = (entries: Entry[], range: Range) => ownSpending(entries).filter((entry) => inRange(entry, range));
 const sum = (entries: Entry[]) => entries.reduce((total, entry) => total + entry.satang, 0);
-
-export const totalSpent = (entries: Entry[], range: Range) => sum(spentIn(entries, range));
 
 // Money moving in a period: what came in, what went out, what was set aside. Adjustments are corrections, not flows,
 // and a friend paying you back is not income.
@@ -165,7 +162,8 @@ export function topSpends(entries: Entry[], range: Range, n = 3): Entry[] {
 		.slice(0, n);
 }
 
-const wholeBaht = (satang: number) => Math.round(satang / 100) * 100;
+// Nearest whole baht, for averages. (allowance.ts has its own wholeBaht, which rounds down on purpose.)
+const nearestBaht = (satang: number) => Math.round(satang / 100) * 100;
 
 export type Habits = {
 	avgPerDay: number;
@@ -175,7 +173,7 @@ export type Habits = {
 export function habits(entries: Entry[], range: Range, today: Date): Habits {
 	const elapsed = dailyTotals(entries, range).filter((day) => day.date.getTime() <= today.getTime());
 	const total = elapsed.reduce((n, day) => n + day.satang, 0);
-	return { avgPerDay: elapsed.length === 0 ? 0 : wholeBaht(total / elapsed.length) };
+	return { avgPerDay: elapsed.length === 0 ? 0 : nearestBaht(total / elapsed.length) };
 }
 
 // Lower-case and drop thousands commas, so "1,200", "1200" and "฿1,200" all find the same entry.

@@ -12,13 +12,13 @@ export const ownPart = (entry: Entry) => entry.satang - sumOf(entry.shares ?? []
 // Every share id still on a bill, so a payback for a deleted bill counts as ordinary money in.
 const liveShareIds = (entries: Entry[]) => new Set(entries.flatMap((e) => (e.shares ?? []).map((p) => p.id)));
 
-export function isPayback(entry: Entry, live: Set<string>): boolean {
+function isPayback(entry: Entry, live: Set<string>): boolean {
 	return entry.kind === "received" && entry.share !== undefined && live.has(entry.share);
 }
 
 // A forgiven share as a line of its own on the day it was forgiven, in the bill's tag. It is not a saved transaction:
 // its id is `<bill id>#<share id>`, so a tap on it opens the bill (see billId) and it can't be deleted on its own.
-export function forgivenItems(entries: Entry[]): Entry[] {
+function forgivenItems(entries: Entry[]): Entry[] {
 	return entries.flatMap((e) =>
 		e.kind === "spent"
 			? (e.shares ?? []).flatMap((p) =>
@@ -105,7 +105,7 @@ export function splitEvenly(total: number, friends: number): number {
 }
 
 export function payback(share: Share, at: Date): Entry {
-	return { id: `payback-${at.getTime()}`, kind: "received", satang: share.satang, at, category: null, note: share.friend, share: share.id };
+	return { id: `payback-${share.id}`, kind: "received", satang: share.satang, at, category: null, note: share.friend, share: share.id };
 }
 
 export function forgive(bill: Entry, shareId: string, at: Date): Entry {

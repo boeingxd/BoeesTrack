@@ -88,4 +88,11 @@ describe("friends owe me", () => {
 		const back = payback(dinner.shares![0], today);
 		expect(fromWire(toWire(back))).toEqual(back);
 	});
+
+	it("gives two paybacks at the same minute different ids", () => {
+		const at = new Date(2026, 9, 20, 19, 30);
+		const a = payback({ id: "s1", friend: "A", satang: 100 }, at);
+		const b = payback({ id: "s2", friend: "B", satang: 100 }, at);
+		expect(a.id).not.toBe(b.id);
+	});
 });

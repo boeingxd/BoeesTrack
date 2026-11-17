@@ -3,6 +3,7 @@ import { TabBar, type View } from "./components/ViewSwitch";
 import { balance, checkIn, returnFromPot } from "./lib/balance";
 import * as api from "./lib/api";
 import { OTHER, otherLast } from "./lib/categories";
+import { dayKey } from "./lib/dates";
 import { saveOrUndo } from "./lib/optimistic";
 import { billId, forgive, friendNames, payback, shareState } from "./lib/shares";
 import { flagDuplicates, newSlip, readBatch, refineNames } from "./lib/slipBatch";
@@ -20,7 +21,7 @@ import { Stats } from "./screens/Stats";
 type Screen = "home" | "stats" | "history" | "add" | "slips" | "savings" | "budget" | "entry" | "edit";
 
 function App() {
-	const [today] = useState(() => new Date());
+	const [today, setToday] = useState(() => new Date());
 	const [entries, setEntries] = useState<Entry[]>([]);
 	const [categories, setCategories] = useState<string[]>([]);
 	const [plan, setPlan] = useState<BudgetPlan>({ monthly: 0, daily: "auto" });
@@ -39,7 +40,18 @@ function App() {
 	const [statsAnchor, setStatsAnchor] = useState(today);
 	const [filters, setFilters] = useState<Filters>(() => defaultFilters(today));
 	// An entry opens from any list and closes back to the screen it was opened from.
-	const [detail, setDetail] = useState<{ entry: Entry; from: Screen } | null>(null);
+	// Only the id is kept, so the open entry always shows what is in `entries`, also after a failed save is taken back.
+	const [detail, setDetail] = useState<{ id: string; from: Screen } | null>(null);
+	const detailEntry = detail ? entries.find((e) => e.id === detail.id) : undefined;
+
+	// The app can stay open overnight on a phone: when it comes back into view on a new day, "today" moves on.
+	useEffect(() => {
+		const refresh = () => {
+			if (document.visibilityState === "visible") setToday((t) => (dayKey(t) === dayKey(new Date()) ? t : new Date()));
+		};
+		document.addEventListener("visibilitychange", refresh);
+		return () => document.removeEventListener("visibilitychange", refresh);
+	}, []);
 
 	// The page-load entrance plays once; coming back to home from another screen stays still.
 	useEffect(() => {
@@ -69,8 +81,10 @@ function App() {
 	}, [attempt]);
 
 	// Each change shows at once; if the save fails it is taken back and a notice appears.
+	// Saves run one after another, so an edit never reaches the Worker before the add it belongs to.
+	const queue = useRef<Promise<void>>(Promise.resolve());
 	function save(request: () => Promise<unknown>, undo: () => void) {
-		void saveOrUndo(request, undo, setNotice);
+		queue.current = queue.current.then(() => saveOrUndo(request, undo, setNotice));
 	}
 
 	function addCategory(name: string) {
@@ -84,7 +98,6 @@ function App() {
 		const apply = (a: string, b: string) => {
 			setCategories((current) => otherLast(current.map((c) => (c === a ? b : c))));
 			setEntries((current) => current.map((e) => (e.category === a ? { ...e, category: b } : e)));
-			setDetail((current) => (current && current.entry.category === a ? { ...current, entry: { ...current.entry, category: b } } : current));
 			setSlips((current) => current.map((s) => (s.category === a ? { ...s, category: b } : s)));
 			setFilters((current) => (current.category === a ? { ...current, category: b } : current));
 		};
@@ -98,7 +111,6 @@ function App() {
 		const moved = new Set(entries.filter((e) => e.category === name).map((e) => e.id));
 		setCategories((current) => current.filter((c) => c !== name));
 		setEntries((current) => current.map((e) => (moved.has(e.id) ? { ...e, category: OTHER } : e)));
-		setDetail((current) => (current && moved.has(current.entry.id) ? { ...current, entry: { ...current.entry, category: OTHER } } : current));
 		setSlips((current) => current.map((s) => (s.category === name ? { ...s, category: OTHER } : s)));
 		setFilters((current) => (current.category === name ? { ...current, category: null } : current));
 		save(
@@ -143,7 +155,7 @@ function App() {
 	// Moving from one entry to another (a bill and its payback) keeps the screen you started from, so Close goes back there.
 	function openEntry(entry: Entry) {
 		const real = entries.find((e) => e.id === billId(entry.id)) ?? entry;
-		setDetail({ entry: real, from: screen === "entry" && detail ? detail.from : screen });
+		setDetail({ id: real.id, from: screen === "entry" && detail ? detail.from : screen });
 		setScreen("entry");
 	}
 
@@ -152,7 +164,6 @@ function App() {
 		const before = entries.find((e) => e.id === updated.id);
 		if (!before) return;
 		setEntries((current) => current.map((e) => (e.id === updated.id ? updated : e)));
-		setDetail((current) => (current && current.entry.id === updated.id ? { ...current, entry: updated } : current));
 		save(() => api.editEntry(updated), () => setEntries((current) => current.map((e) => (e.id === updated.id ? before : e))));
 	}
 
@@ -172,7 +183,7 @@ function App() {
 
 	// While editing a bill, parts already paid back or forgiven are shown but cannot change, so a payback always matches its part.
 	const settledShares = new Map(
-		(detail?.entry.shares ?? []).flatMap((p): [string, string][] => {
+		(detailEntry?.shares ?? []).flatMap((p): [string, string][] => {
 			const state = shareState(p, entries);
 			return state.kind === "open" ? [] : [[p.id, state.kind === "paid" ? "paid back" : "forgiven"]];
 		}),
@@ -188,10 +199,7 @@ function App() {
 	// Only the picture goes; the entry stays. A failed save puts the picture back on screen.
 	function removePicture(entry: Entry) {
 		if (!entry.slipRef) return;
-		const mark = (hasImage: boolean) => {
-			setEntries((current) => current.map((e) => (e.id === entry.id ? { ...e, hasImage } : e)));
-			setDetail((current) => (current && current.entry.id === entry.id ? { ...current, entry: { ...current.entry, hasImage } } : current));
-		};
+		const mark = (hasImage: boolean) => setEntries((current) => current.map((e) => (e.id === entry.id ? { ...e, hasImage } : e)));
 		mark(false);
 		save(() => api.deleteSlip(entry.slipRef as string), () => mark(true));
 	}
@@ -217,10 +225,13 @@ function App() {
 		save(() => api.addEntries(added), () => setEntries((current) => current.filter((e) => !ids.has(e.id))));
 	}
 
+	// With a slip batch still open (one slip was added by hand), go back to its review, not Home.
+	const afterAdd: Screen = slips.length > 0 ? "slips" : "home";
+
 	function addEntries(added: Entry[]) {
 		storeEntries(added);
 		setJustAddedId(added[0]?.id ?? null);
-		setScreen("home");
+		setScreen(afterAdd);
 	}
 
 	const savedRefs = () => new Set(entries.flatMap((e) => (e.slipRef ? [e.slipRef] : [])));
@@ -428,23 +439,23 @@ function App() {
 					onClearPictures={clearOldPictures}
 				/>
 			)}
-			{screen === "entry" && detail && (
+			{screen === "entry" && detail && detailEntry && (
 				<EntryDetail
-					entry={detail.entry}
+					entry={detailEntry}
 					entries={entries}
 					today={today}
 					onPayback={recordPayback}
-					onForgive={(shareId) => forgiveShare(detail.entry, shareId)}
+					onForgive={(shareId) => forgiveShare(detailEntry, shareId)}
 					onOpenEntry={openEntry}
 					onClose={() => setScreen(detail.from)}
 					onEdit={() => setScreen("edit")}
-					onDelete={() => deleteEntry(detail.entry)}
-					onRemovePicture={() => removePicture(detail.entry)}
+					onDelete={() => deleteEntry(detailEntry)}
+					onRemovePicture={() => removePicture(detailEntry)}
 				/>
 			)}
-			{screen === "edit" && detail && (
+			{screen === "edit" && detailEntry && (
 				<AddSpend
-					editing={detail.entry}
+					editing={detailEntry}
 					categories={categories}
 					pots={pots}
 					goneNames={goneNames}
@@ -456,7 +467,7 @@ function App() {
 					friends={friends}
 					settledShares={settledShares}
 					onClose={() => setScreen("entry")}
-					onSave={(draft) => editEntry({ ...detail.entry, ...draft })}
+					onSave={(draft) => editEntry({ ...detailEntry, ...draft })}
 				/>
 			)}
 			{screen === "savings" && (
@@ -492,7 +503,7 @@ function App() {
 					firstRun={entries.length === 0}
 					friends={friends}
 					settledShares={new Map()}
-					onClose={() => setScreen("home")}
+					onClose={() => setScreen(afterAdd)}
 					onSave={(draft) => addEntries([{ id: `entry-${Date.now()}`, ...draft }])}
 				/>
 			)}
@@ -500,7 +511,7 @@ function App() {
 				<SlipReview
 					slips={slips}
 					categories={categories}
-					onChange={(next) => setSlips(flagDuplicates(next, savedRefs()))}
+					onChange={(id, patch) => changeSlip(id, (slip) => ({ ...slip, ...patch }))}
 					onReread={rereadName}
 					onClose={endBatch}
 					onAddByHand={() => setScreen("add")}

@@ -190,12 +190,6 @@ button:disabled {
 	color: var(--color-ink);
 }
 
-.stat-note {
-	padding: var(--space-2) var(--page-pad);
-	font-size: var(--text-sm);
-	color: var(--color-muted);
-}
-
 .day__head > span {
 	white-space: nowrap;
 }
@@ -317,8 +311,7 @@ button:disabled {
 }
 
 .kind,
-.tag,
-.chip {
+.tag {
 	min-width: var(--tap);
 	min-height: var(--tap);
 	padding-inline: var(--space-2);
@@ -329,17 +322,14 @@ button:disabled {
 }
 
 .kind[aria-checked="true"],
-.tag[aria-checked="true"],
-.chip[aria-pressed="true"],
-.chip--on {
+.tag[aria-checked="true"] {
 	border-bottom-color: var(--color-ink);
 	color: var(--color-ink);
 }
 
 @media (hover: hover) {
 	.kind:hover,
-	.tag:hover,
-	.chip:hover {
+	.tag:hover {
 		color: var(--color-ink);
 	}
 }
@@ -432,9 +422,6 @@ button:disabled {
 .note {
 	padding: 0;
 	color: var(--color-ink);
-}
-
-.note {
 	appearance: none;
 }
 
@@ -1625,14 +1612,6 @@ button:disabled {
 	display: flex;
 	margin-top: var(--space-5);
 	border-block: 1px solid var(--color-rule);
-}
-
-.more-line__btn[aria-expanded="true"] svg {
-	transform: rotate(180deg);
-}
-
-.more-line__btn strong {
-	font-weight: var(--weight-strong);
 }
 
 .more-line__btn {

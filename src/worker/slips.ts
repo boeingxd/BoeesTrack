@@ -43,6 +43,8 @@ slips.put("/slips/:ref", async (c) => {
 	if (badRef(c)) return c.text("bad slip reference", 400);
 	const type = c.req.header("content-type")?.split(";")[0].trim() ?? "";
 	if (!IMAGE_TYPES.includes(type)) return c.text("expected a jpeg, png or webp image", 415);
+	// Refuse an oversized upload before reading it into memory.
+	if (Number(c.req.header("content-length")) > MAX_IMAGE_BYTES) return c.text("image must be 1 byte to 6 MB", 413);
 	const body = await c.req.arrayBuffer();
 	if (body.byteLength === 0 || body.byteLength > MAX_IMAGE_BYTES) return c.text("image must be 1 byte to 6 MB", 413);
 	const entry = await c.env.DB.prepare("SELECT 1 FROM entries WHERE slip_ref = ?").bind(ref).first();

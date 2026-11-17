@@ -18,10 +18,14 @@ export function Sheet({ title, onClose, children }: Props) {
 	});
 
 	useEffect(() => {
+		const opener = document.activeElement as HTMLElement | null;
 		panel.current?.focus();
 		const onKey = (event: KeyboardEvent) => event.key === "Escape" && close.current();
 		window.addEventListener("keydown", onKey);
-		return () => window.removeEventListener("keydown", onKey);
+		return () => {
+			window.removeEventListener("keydown", onKey);
+			opener?.focus();
+		};
 	}, []);
 
 	return (

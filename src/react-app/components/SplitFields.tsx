@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { formatBaht } from "../lib/money";
+import { cleanAmount, formatBaht } from "../lib/money";
 import { newShareId, partOf, splitResult, toText, type Split, type SplitRow } from "../lib/split";
 import { Icon } from "./Icon";
 
@@ -79,7 +79,7 @@ export function SplitFields({ split, total, friends, onChange }: Props) {
 									className="note split__amount"
 									inputMode="decimal"
 									value={split.even ? toText(partOf(split, row, total)) : row.input}
-									onChange={(event) => typePart(row.id, event.target.value.replace(/[^\d.]/g, ""))}
+									onChange={(event) => typePart(row.id, cleanAmount(event.target.value))}
 									placeholder="0"
 									aria-label={`${row.friend.trim() || `Friend ${i + 1}`} owes, in baht`}
 									maxLength={9}

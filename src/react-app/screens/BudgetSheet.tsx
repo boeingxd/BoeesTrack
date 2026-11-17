@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Sheet } from "../components/Sheet";
 import { Segmented, type Option } from "../components/ViewSwitch";
 import { fromBalance } from "../lib/allowance";
-import { formatBaht, inputToSatang } from "../lib/money";
+import { formatBaht, cleanAmount, inputToSatang } from "../lib/money";
 import type { BudgetPlan } from "../lib/types";
 
 type SetBy = "amount" | "percent";
@@ -34,7 +34,6 @@ const EXPLAIN: Record<Mode, string> = {
 
 const toText = (satang: number) => String(satang / 100);
 // Keeps digits and one dot, so "฿1,200" typed or pasted still reads as 1200.
-const clean = (text: string) => text.replace(/[^\d.]/g, "");
 
 export function BudgetSheet({ plan, balance, onClose, onSave }: Props) {
 	const [setBy, setSetBy] = useState<SetBy>("amount");
@@ -44,8 +43,8 @@ export function BudgetSheet({ plan, balance, onClose, onSave }: Props) {
 	const [fixed, setFixed] = useState(typeof plan.daily === "object" ? toText(plan.daily.fixed) : "");
 
 	const percentValue = Math.min(100, Number(percent) || 0);
-	const monthlySatang = setBy === "percent" ? fromBalance(balance, percentValue) : inputToSatang(clean(monthly));
-	const fixedSatang = inputToSatang(clean(fixed));
+	const monthlySatang = setBy === "percent" ? fromBalance(balance, percentValue) : inputToSatang(cleanAmount(monthly));
+	const fixedSatang = inputToSatang(cleanAmount(fixed));
 	const ready = monthlySatang > 0 && (mode !== "fixed" || fixedSatang > 0);
 
 	return (
@@ -69,7 +68,7 @@ export function BudgetSheet({ plan, balance, onClose, onSave }: Props) {
 								className="note"
 								inputMode="decimal"
 								value={monthly}
-								onChange={(event) => setMonthly(clean(event.target.value))}
+								onChange={(event) => setMonthly(cleanAmount(event.target.value))}
 								aria-label="Budget for the month, in baht"
 								placeholder="Baht per month"
 								maxLength={9}
@@ -112,7 +111,7 @@ export function BudgetSheet({ plan, balance, onClose, onSave }: Props) {
 								className="note"
 								inputMode="decimal"
 								value={fixed}
-								onChange={(event) => setFixed(clean(event.target.value))}
+								onChange={(event) => setFixed(cleanAmount(event.target.value))}
 								aria-label="Fixed daily amount, in baht"
 								placeholder="Baht per day"
 								maxLength={7}

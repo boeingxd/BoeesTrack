@@ -78,7 +78,10 @@ export function AddSpend({ editing, categories, pots, goneNames, onAddPot, onAdd
 								role="radio"
 								aria-checked={kind === k.value}
 								className="kind"
-								onClick={() => setKind(k.value)}
+								onClick={() => {
+									setKind(k.value);
+									if (k.value !== kind) setPot(null);
+								}}
 							>
 								{k.label}
 							</button>

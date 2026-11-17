@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { inputToSatang } from "../lib/money";
+import { cleanAmount, inputToSatang } from "../lib/money";
 import type { Pot } from "../lib/types";
 
 type Props = {
@@ -12,7 +12,6 @@ type Props = {
 	onCancel: () => void;
 };
 
-const clean = (text: string) => text.replace(/[^\d.]/g, "");
 const toText = (satang: number) => (satang > 0 ? String(satang / 100) : "");
 
 // Name, target and monthly amount for a savings pot; used to make a pot (Savings, Add) and to edit one.
@@ -23,7 +22,7 @@ export function PotForm({ pots, reserved = [], children, initial, submitLabel, o
 
 	// "Balance" is the other choice under "Paid from", so a pot cannot take that name; nor can the name of a pot that was deleted.
 	const taken = [...pots.map((p) => p.name).filter((n) => n !== initial?.name), ...reserved, "Balance"];
-	const ready = name.trim() !== "" && inputToSatang(clean(target)) > 0 && !taken.some((n) => n.toLowerCase() === name.trim().toLowerCase());
+	const ready = name.trim() !== "" && inputToSatang(cleanAmount(target)) > 0 && !taken.some((n) => n.toLowerCase() === name.trim().toLowerCase());
 
 	const rows = [
 		{ label: "Name", value: name, set: setName, placeholder: "Pot name", numeric: false },
@@ -44,7 +43,7 @@ export function PotForm({ pots, reserved = [], children, initial, submitLabel, o
 								className="note"
 								inputMode={f.numeric ? "decimal" : "text"}
 								value={f.value}
-								onChange={(event) => f.set(f.numeric ? clean(event.target.value) : event.target.value)}
+								onChange={(event) => f.set(f.numeric ? cleanAmount(event.target.value) : event.target.value)}
 								aria-label={f.placeholder}
 								placeholder={f.placeholder}
 								maxLength={f.numeric ? 9 : 24}
@@ -58,7 +57,7 @@ export function PotForm({ pots, reserved = [], children, initial, submitLabel, o
 					type="button"
 					className="confirm"
 					disabled={!ready}
-					onClick={() => onSubmit({ name: name.trim(), target: inputToSatang(clean(target)), monthly: inputToSatang(clean(monthly)) })}
+					onClick={() => onSubmit({ name: name.trim(), target: inputToSatang(cleanAmount(target)), monthly: inputToSatang(cleanAmount(monthly)) })}
 				>
 					{submitLabel}
 				</button>

@@ -1,4 +1,4 @@
-import { inputToSatang } from "./money";
+import { cleanAmount, inputToSatang } from "./money";
 import { splitEvenly } from "./shares";
 import type { Share } from "./types";
 
@@ -7,7 +7,6 @@ export type SplitRow = { id: string; friend: string; input: string; forgivenAt?:
 // `even` keeps every open part equal and follows the total as it is typed, until a part is typed by hand.
 export type Split = { rows: SplitRow[]; even: boolean };
 
-export const clean = (text: string) => text.replace(/[^\d.]/g, "");
 export const toText = (satang: number) => (satang > 0 ? String(satang / 100) : "");
 export const newShareId = () => `share-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
@@ -21,7 +20,7 @@ export function startSplit(shares: Share[] | undefined, settled: Map<string, str
 // What each line comes to now: an even part of the total, or what was typed.
 export function partOf(split: Split, row: SplitRow, total: number): number {
 	if (split.even && !row.settled) return splitEvenly(total, split.rows.length);
-	return inputToSatang(clean(row.input));
+	return inputToSatang(cleanAmount(row.input));
 }
 
 // Empty lines are ignored; a line with only a name or only an amount is unfinished and holds the save back.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addMonths, monthFromKey, monthKey } from "./dates";
+import { addMonths, monthKey } from "./dates";
 import {
 	categoryBreakdown,
 	dailyTotals,
@@ -44,9 +44,8 @@ const entries = [
 ];
 
 describe("month keys", () => {
-	it("round-trips and steps months, including across a year", () => {
+	it("names and steps months, including across a year", () => {
 		expect(monthKey(new Date(2026, 9, 31))).toBe("2026-10");
-		expect(monthFromKey("2026-10").getMonth()).toBe(9);
 		expect(monthKey(addMonths(new Date(2026, 0, 15), -1))).toBe("2025-12");
 	});
 });

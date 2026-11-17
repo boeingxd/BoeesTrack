@@ -60,7 +60,6 @@
 
 	/* Motion */
 	--ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-	--ease-in: cubic-bezier(0.7, 0, 0.84, 0);
 	--dur-micro: 120ms;
 	--dur-short: 220ms;
 	--dur-long: 420ms;

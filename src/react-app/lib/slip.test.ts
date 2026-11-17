@@ -105,4 +105,9 @@ describe("parseSlip", () => {
 		expect(parseSlip("คําธรรมเนียม 0.00 THB").satang).toBeNull();
 		expect(parseSlip("hello")).toEqual({ satang: null, at: null, receiver: "", slipRef: null, payeeKey: null });
 	});
+
+	it("ignores an impossible header date and uses the reference's time", () => {
+		const at = parseSlip(SHOP.replace("03 ม.ค. 70, 09:15", "32 ม.ค. 70, 25:61")).at;
+		expect(at).toEqual(new Date(2030, 0, 3, 9, 15));
+	});
 });

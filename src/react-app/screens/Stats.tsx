@@ -15,6 +15,7 @@ import {
 	donutSlices,
 	flows,
 	habits,
+	inRange,
 	monthWeeks,
 	NO_CATEGORY,
 	periodRange,
@@ -60,7 +61,7 @@ export function Stats({ entries, today, scale, anchor, onAnchor, onScale, onOpen
 		() =>
 			scale === "day"
 				? groupByDay(
-						withForgiven(entries).filter((entry) => entry.at.getTime() >= range.from.getTime() && entry.at.getTime() < range.to.getTime()),
+						withForgiven(entries).filter((entry) => inRange(entry, range)),
 						range.from,
 					)
 				: [],

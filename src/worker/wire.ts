@@ -1,8 +1,8 @@
 // What travels between the app and the Worker, and what D1 rows look like.
 // The Worker never trusts the browser: every body is checked here before it touches the database.
 
-export const KINDS = ["spent", "received", "saved", "adjust"] as const;
-export type WireKind = (typeof KINDS)[number];
+const KINDS = ["spent", "received", "saved", "adjust"] as const;
+type WireKind = (typeof KINDS)[number];
 
 // `at` is UTC milliseconds on the wire; only the app turns it into a Date.
 export type WireEntry = {
@@ -25,11 +25,11 @@ export type WireShare = { id: string; friend: string; satang: number; forgivenAt
 export type WirePot = { name: string; target: number; monthly: number };
 export type WirePlan = { monthly: number; daily: "auto" | "off" | { fixed: number } };
 
-export type Parsed<T> = { ok: true; value: T } | { ok: false; error: string };
+type Parsed<T> = { ok: true; value: T } | { ok: false; error: string };
 const fail = (error: string): { ok: false; error: string } => ({ ok: false, error });
 
 export const MAX_BATCH = 200;
-export const MAX_SHARES = 20;
+const MAX_SHARES = 20;
 
 // The picture's bucket key is the slip's reference, so it must be plain letters and digits (no "/" or "..").
 export const SLIP_REF = /^[A-Za-z0-9]{10,60}$/;
@@ -105,12 +105,13 @@ export function parseEntries(body: unknown): Parsed<WireEntry[]> {
 	return { ok: true, value: out };
 }
 
-// D1 allows 100 bound values per statement and R2 deletes up to 1000 keys per call; the route chunks the ids to fit.
-export const MAX_DELETE = 500;
+// D1 allows 100 bound values per statement and R2 deletes up to 1000 keys per call; the route chunks both to fit.
+// 5000 covers a few years of History in one "delete these".
+export const MAX_DELETE = 5000;
 
 export function parseIds(body: unknown): Parsed<string[]> {
 	const ids = isObject(body) ? body.ids : null;
-	if (!Array.isArray(ids) || ids.length === 0 || ids.length > MAX_DELETE) return fail("expected 1 to 500 ids");
+	if (!Array.isArray(ids) || ids.length === 0 || ids.length > MAX_DELETE) return fail("expected 1 to 5000 ids");
 	if (!ids.every((id) => isText(id, 100))) return fail("bad id");
 	if (new Set(ids).size !== ids.length) return fail("repeated id");
 	return { ok: true, value: ids };

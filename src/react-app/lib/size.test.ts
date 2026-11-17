@@ -6,5 +6,6 @@ describe("formatSize", () => {
 		expect(formatSize(0)).toBe("0 KB");
 		expect(formatSize(450_000)).toBe("450 KB");
 		expect(formatSize(2_340_000)).toBe("2.3 MB");
+		expect(formatSize(999_600)).toBe("1.0 MB");
 	});
 });

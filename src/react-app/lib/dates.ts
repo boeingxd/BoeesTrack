@@ -2,9 +2,8 @@ import { ownPart } from "./shares";
 import type { Entry } from "./types";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const WEEKDAYS_FULL = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const DAY_MS = 86_400_000;
+export const DAY_MS = 86_400_000;
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -30,10 +29,6 @@ export function shortDay(d: Date): string {
 
 export function dayMonth(d: Date): string {
 	return `${d.getDate()} ${MONTHS[d.getMonth()]}`;
-}
-
-export function weekdayName(index: number): string {
-	return WEEKDAYS_FULL[index];
 }
 
 // Weeks run Monday to Sunday.
@@ -97,8 +92,8 @@ export function groupByDay(entries: Entry[], today: Date): DayGroup[] {
 	}
 
 	const groups: DayGroup[] = [];
-	for (let t = newest; t >= oldest; t -= DAY_MS) {
-		const date = new Date(t);
+	// Stepping by calendar day, not by 24 hours, so a clock change abroad never skips a day.
+	for (let date = new Date(newest); date.getTime() >= oldest; date = addDays(date, -1)) {
 		const key = dayKey(date);
 		const list = (byDay.get(key) ?? []).sort((a, b) => b.at.getTime() - a.at.getTime());
 		const spent = list.filter((e) => e.kind === "spent").reduce((sum, e) => sum + ownPart(e), 0);
@@ -118,9 +113,4 @@ export function addMonths(d: Date, n: number): Date {
 // "2026-10": sortable, and cheap to compare or store in a filter.
 export function monthKey(d: Date): string {
 	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
-}
-
-export function monthFromKey(key: string): Date {
-	const [year, month] = key.split("-").map(Number);
-	return new Date(year, month - 1, 1);
 }

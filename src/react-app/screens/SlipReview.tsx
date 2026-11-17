@@ -8,7 +8,7 @@ import type { Slip } from "../lib/types";
 type Props = {
 	slips: Slip[];
 	categories: string[];
-	onChange: (slips: Slip[]) => void;
+	onChange: (id: string, patch: Partial<Slip>) => void;
 	onReread: (slip: Slip) => void;
 	onClose: () => void;
 	onAddByHand: () => void;
@@ -38,10 +38,7 @@ function AmountField({ value, label, onChange }: { value: number | undefined; la
 	);
 }
 
-export function SlipReview({ slips, categories, onChange, onReread, onClose, onAddByHand, onConfirm }: Props) {
-	const update = (id: string, patch: Partial<Slip>) =>
-		onChange(slips.map((slip) => (slip.id === id ? { ...slip, ...patch } : slip)));
-
+export function SlipReview({ slips, categories, onChange: update, onReread, onClose, onAddByHand, onConfirm }: Props) {
 	const ready = slips.filter(isReady);
 	const total = ready.reduce((sum, slip) => sum + (slip.satang ?? 0), 0);
 	const uncategorised = ready.filter((slip) => slip.category === null).length;
@@ -180,7 +177,7 @@ export function SlipReview({ slips, categories, onChange, onReread, onClose, onA
 										slip.nameBox && (
 											<p className="slip__check slip__check--done">
 												<span>{slip.looks === 3 ? "Name checked" : ""}</span>
-												<button type="button" className="icon-btn" aria-label={`Read the name again for slip ${number}`} onClick={() => onReread(slip)}>
+												<button type="button" className="icon-btn" aria-label={`Read the name again for slip ${number}`} disabled={reading > 0 || refining} onClick={() => onReread(slip)}>
 													<Icon name="refresh" size={18} />
 												</button>
 											</p>

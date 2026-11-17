@@ -9,7 +9,7 @@ import { standing } from "../lib/allowance";
 import { balance } from "../lib/balance";
 import { groupByDay, monthTitle } from "../lib/dates";
 import { formatBaht } from "../lib/money";
-import { inputToSatang } from "../lib/money";
+import { cleanAmount, inputToSatang } from "../lib/money";
 import { owedByFriend, withForgiven } from "../lib/shares";
 import type { BudgetPlan, Entry, Share } from "../lib/types";
 
@@ -39,7 +39,7 @@ export function Home({ entries, plan, today, intro, justAddedId, onOpenEntry, on
 	const [owedOpen, setOwedOpen] = useState(false);
 	const [checking, setChecking] = useState(false);
 	const [bank, setBank] = useState("");
-	const bankSatang = inputToSatang(bank.replace(/[^\d.]/g, ""));
+	const bankSatang = inputToSatang(bank);
 	const gap = bank === "" ? 0 : bankSatang - held;
 	const overBy = formatBaht(Math.abs(s.leftToday));
 
@@ -145,7 +145,7 @@ export function Home({ entries, plan, today, intro, justAddedId, onOpenEntry, on
 							className="bank-input"
 							inputMode="decimal"
 							value={bank}
-							onChange={(event) => setBank(event.target.value.replace(/[^\d.]/g, ""))}
+							onChange={(event) => setBank(cleanAmount(event.target.value))}
 							aria-label="Your real bank balance, in baht"
 							placeholder="What your bank says"
 							maxLength={10}

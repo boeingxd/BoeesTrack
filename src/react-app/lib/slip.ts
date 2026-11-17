@@ -34,12 +34,16 @@ function timeFromRef(ref: string | null): Date | null {
 function timeFromHeader(text: string): Date | null {
 	const m = text.match(/(\d{1,2})\s+(\S+?)\s+(\d{2}),?\s+(\d{1,2}):(\d{2})/);
 	const month = m ? THAI_MONTHS.indexOf(m[2].replace(/\./g, "")) : -1;
+	if (!m || month < 0) return null;
+	const [day, hour, minute] = [Number(m[1]), Number(m[4]), Number(m[5])];
+	// A misread day or time would roll over into another day; the reference's time is used instead.
+	if (day < 1 || day > 31 || hour > 23 || minute > 59) return null;
 	// Buddhist Era: 69 means 2569, which is 2026.
-	return m && month >= 0 ? new Date(2500 + Number(m[3]) - 543, month, Number(m[1]), Number(m[4]), Number(m[5])) : null;
+	return new Date(2500 + Number(m[3]) - 543, month, day, hour, minute);
 }
 
 // OCR writes the Thai "ำ" as two characters, which would break the word matching.
-export const normalizeThai = (raw: string) => raw.replace(/\u0e4d\u0e32/g, "\u0e33");
+const normalizeThai = (raw: string) => raw.replace(/\u0e4d\u0e32/g, "\u0e33");
 
 // The name block: up to four lines, stopping where the bank's codes start.
 function nameFromLines(lines: string[]): string {

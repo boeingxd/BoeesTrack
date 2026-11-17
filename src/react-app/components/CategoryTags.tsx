@@ -20,7 +20,10 @@ export function CategoryTags({ label, categories, value, onChange, onAddCategory
 
 	function commit() {
 		const name = draft.trim();
-		if (name && onAddCategory) {
+		// "food" picks the "Food" you already have; it does not make a second tag.
+		const existing = categories.find((c) => c.toLowerCase() === name.toLowerCase());
+		if (existing) onChange(existing);
+		else if (name && onAddCategory) {
 			onAddCategory(name);
 			onChange(name);
 		}

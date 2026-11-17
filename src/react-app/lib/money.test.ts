@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatBaht, groupInput, inputToSatang, pressKey } from "./money";
+import { cleanAmount, formatBaht, groupInput, inputToSatang, pressKey } from "./money";
 
 describe("formatBaht", () => {
 	it("drops the decimals for whole baht and keeps them otherwise", () => {
@@ -51,5 +51,13 @@ describe("groupInput", () => {
 		expect(groupInput("")).toBe("0");
 		expect(groupInput("1234.5")).toBe("1,234.5");
 		expect(groupInput("12.")).toBe("12.");
+	});
+});
+
+describe("cleanAmount", () => {
+	it("keeps digits and the first dot only, so the result is always a number", () => {
+		expect(cleanAmount("฿1,250.50")).toBe("1250.50");
+		expect(cleanAmount("1.2.3")).toBe("1.23");
+		expect(Number.isNaN(inputToSatang(cleanAmount("..")))).toBe(false);
 	});
 });

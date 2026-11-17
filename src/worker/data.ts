@@ -87,7 +87,8 @@ data.delete("/entries/:id", async (c) => {
 		.bind(c.req.param("id"))
 		.first<{ slip_ref: string | null; has_image: number }>();
 	if (!gone) return c.text("No such entry", 404);
-	if (gone.slip_ref && gone.has_image) await c.env.SLIPS.delete(gone.slip_ref);
+	// The row is already gone, so a bucket failure must not fail the request: the app would put the entry back on screen.
+	if (gone.slip_ref && gone.has_image) await c.env.SLIPS.delete(gone.slip_ref).catch(console.error);
 	return c.json({ ok: true });
 });
 
@@ -103,7 +104,7 @@ data.post("/entries/delete", async (c) => {
 	);
 	const gone = results.flatMap((r) => r.results as { slip_ref: string | null; has_image: number }[]);
 	const refs = gone.flatMap((row) => (row.slip_ref && row.has_image ? [row.slip_ref] : []));
-	if (refs.length > 0) await c.env.SLIPS.delete(refs);
+	for (let i = 0; i < refs.length; i += 1000) await c.env.SLIPS.delete(refs.slice(i, i + 1000)).catch(console.error);
 	return c.json({ deleted: gone.length });
 });
 

@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { csrf } from "hono/csrf";
 import { accessKeys, verifyAccessToken } from "./access";
 import { data } from "./data";
 import { slips } from "./slips";
@@ -7,6 +8,9 @@ import { slips } from "./slips";
 type Bindings = Env & { ACCESS_BYPASS?: string };
 
 const app = new Hono<{ Bindings: Bindings }>();
+
+// Access builds its token from a browser cookie, so a form on another site must not be able to write here.
+app.use("/api/*", csrf());
 
 app.use("/api/*", async (c, next) => {
 	if (c.env.ACCESS_BYPASS === "true") return next();
@@ -22,7 +26,8 @@ app.use("/api/*", async (c, next) => {
 			issuer: TEAM_DOMAIN,
 			audience: POLICY_AUD,
 		});
-	} catch {
+	} catch (e) {
+		console.error(e);
 		return c.text("Invalid Access token", 403);
 	}
 	return next();

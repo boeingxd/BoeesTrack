@@ -76,6 +76,7 @@ export function ClearPictures({ entries, today, onClear }: { entries: Entry[]; t
 									className="detail__btn detail__btn--delete"
 									onClick={() => {
 										setAskedKey(null);
+										setOpen(false);
 										onClear(new Date(before));
 									}}
 								>
